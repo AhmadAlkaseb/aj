@@ -2,13 +2,13 @@
 
 ---
 
-**Ahmad**
+**Ahmad**  
 [cph-aa540@stud.ek.dk](mailto:cph-aa540@stud.ek.dk)  
-@AhmadAlkaseb
+@AhmadAlkaseb  
 
 **Jeppe**  
 [cph-jk469@stud.ek.dk](mailto:cph-jk469@stud.ek.dk)
-@JeppeKoch
+@JeppeKoch  
 
 **Asger**  
 [asbe0002@stud.ek.dk](mailto:cph-jk469@stud.ek.dk)
