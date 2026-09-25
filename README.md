@@ -4,15 +4,15 @@
 
 **Ahmad**  
 [cph-aa540@stud.ek.dk](mailto:cph-aa540@stud.ek.dk)  
-@AhmadAlkaseb  
+Github @AhmadAlkaseb  
 
 **Jeppe**  
 [cph-jk469@stud.ek.dk](mailto:cph-jk469@stud.ek.dk)  
-@JeppeKoch  
+Github @JeppeKoch  
 
 **Asger**  
 [asbe0002@stud.ek.dk](mailto:cph-jk469@stud.ek.dk)  
-@Driconaari
+Github @Driconaari
 
 ---
 
