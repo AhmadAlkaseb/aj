@@ -7,11 +7,11 @@
 @AhmadAlkaseb  
 
 **Jeppe**  
-[cph-jk469@stud.ek.dk](mailto:cph-jk469@stud.ek.dk)
+[cph-jk469@stud.ek.dk](mailto:cph-jk469@stud.ek.dk)  
 @JeppeKoch  
 
 **Asger**  
-[asbe0002@stud.ek.dk](mailto:cph-jk469@stud.ek.dk)
+[asbe0002@stud.ek.dk](mailto:cph-jk469@stud.ek.dk)  
 @Driconaari
 
 ---
