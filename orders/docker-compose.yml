@@ -1,18 +1,17 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: users-db
+    container_name: orders-db
     environment:
-      POSTGRES_DB: users
+      POSTGRES_DB: orders
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
-      - users-postgres-data:/var/lib/postgresql/data
-
+      - orders_pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d users"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d orders"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -21,20 +20,20 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: users-app
+    container_name: orders-app
     depends_on:
       db:
         condition: service_healthy
     environment:
       HOST: 0.0.0.0
       PORT: 7000
-      DB_URL: jdbc:postgresql://db:5432/users
+      DB_URL: jdbc:postgresql://db:5432/orders
       DB_USER: postgres
       DB_PASSWORD: postgres
       HIBERNATE_DDL_AUTO: update
       HIBERNATE_SHOW_SQL: "false"
     ports:
-      - "7002:7000"
+      - "7000:7000"
 
 volumes:
-  users-postgres-data:
+  orders_pg_data:
