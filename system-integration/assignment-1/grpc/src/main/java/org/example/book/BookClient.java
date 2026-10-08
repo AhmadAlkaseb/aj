@@ -53,18 +53,57 @@ public final class BookClient {
 
     private static void createBook(Scanner scanner, BookService service) {
         System.out.print("Skriv bogtitel: ");
-        String name = scanner.nextLine();
+        String name = scanner.nextLine().trim();
         if (name.isBlank()) {
             System.out.println("Bogen skal have en titel.");
+            return;
+        }
+
+        System.out.print("Skriv forfatter-ID: ");
+        long authorId;
+        try {
+            authorId = Long.parseLong(scanner.nextLine().trim());
+            if (authorId <= 0) {
+                System.out.println("Forfatter-ID skal være større end 0.");
+                return;
+            }
+        } catch (NumberFormatException exception) {
+            System.out.println("Forfatter-ID skal være et helt tal.");
+            return;
+        }
+
+        System.out.print("Skriv forlag-ID: ");
+        long publisherId;
+        try {
+            publisherId = Long.parseLong(scanner.nextLine().trim());
+            if (publisherId <= 0) {
+                System.out.println("Forlag-ID skal være større end 0.");
+                return;
+            }
+        } catch (NumberFormatException exception) {
+            System.out.println("Forlag-ID skal være et helt tal.");
+            return;
+        }
+
+        System.out.print("Skriv udgivelsesår: ");
+        int publicationYear;
+        try {
+            publicationYear = Integer.parseInt(scanner.nextLine().trim());
+            if (publicationYear <= 0) {
+                System.out.println("Udgivelsesåret skal være større end 0.");
+                return;
+            }
+        } catch (NumberFormatException exception) {
+            System.out.println("Udgivelsesåret skal være et helt tal.");
             return;
         }
 
         try {
             Book book = service.createBook(CreateBookRequest.newBuilder()
                     .setName(name)
-                    .setAuthorId(1)
-                    .setPublisherId(1)
-                    .setPublicationYear(2026)
+                    .setAuthorId(authorId)
+                    .setPublisherId(publisherId)
+                    .setPublicationYear(publicationYear)
                     .build()).getBook();
             System.out.println("Oprettet: " + book);
         } catch (RuntimeException exception) {
