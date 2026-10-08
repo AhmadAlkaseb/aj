@@ -1,0 +1,57 @@
+// Angiver, at filen bruger proto3-syntaksen.
+syntax = "proto3";
+
+// Definerer protobuf-navnerummet for services og messages.
+package org.example.book;
+
+// Genererer hver protobuf-type i sin egen Java-fil.
+option java_multiple_files = true;
+// Angiver navnet på den ydre Java-klasse, hvis der genereres en.
+option java_outer_classname = "BookServiceProto";
+
+// Tilbyder funktioner til at hente, oprette og overvåge bøger.
+service BookService {
+  // Returnerer bogen med det ønskede ID.
+  rpc getBookById(GetBookByIdRequest) returns (Book);
+
+  // Opretter en bog og returnerer den nyoprettede bog.
+  rpc createBook(CreateBookRequest) returns (CreateBookResponse);
+
+  // Holder forbindelsen åben og sender en bog, hver gang en anden klient opretter en.
+  rpc watchBooks(WatchBooksRequest) returns (stream Book);
+}
+
+// En bog i kataloget.
+message Book {
+  // Bogens unikke ID.
+  int64 id = 1;
+  // Bogens navn.
+  string name = 2;
+  // ID på bogens forfatter.
+  int64 author_id = 3;
+  // ID på bogens forlag.
+  int64 publisher_id = 4;
+  // Året, hvor bogen blev udgivet.
+  int32 publication_year = 5;
+}
+
+// Forespørgsel efter en bog via dens ID.
+message GetBookByIdRequest {
+  int64 book_id = 1;
+}
+
+// Oplysninger, der kræves for at oprette en bog.
+message CreateBookRequest {
+  string name = 1;
+  int64 author_id = 2;
+  int64 publisher_id = 3;
+  int32 publication_year = 4;
+}
+
+// Resultat, der returneres efter oprettelse af en bog.
+message CreateBookResponse {
+  Book book = 1;
+}
+
+// Abonnementsforespørgsel for at modtage nyoprettede bøger.
+message WatchBooksRequest {}

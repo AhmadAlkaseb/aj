@@ -1,0 +1,24 @@
+@host = http://127.0.0.1:50052
+
+### Opret en bog
+POST {{host}}/org.example.book.BookService/createBook/
+Content-Type: application/json
+Accept: application/json
+tri-protocol-version: 1
+
+{
+	"name": "Min første bog",
+	"authorId": "1",
+	"publisherId": "1",
+	"publicationYear": 2026
+}
+
+### Hent en bog via ID
+POST {{host}}/org.example.book.BookService/getBookById/
+Content-Type: application/json
+Accept: application/json
+tri-protocol-version: 1
+
+{
+	"bookId": "1"
+}
