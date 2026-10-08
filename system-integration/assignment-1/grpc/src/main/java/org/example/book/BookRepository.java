@@ -1,6 +1,7 @@
 package org.example.book;
 
 import java.util.Map;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -13,6 +14,12 @@ final class BookRepository {
     // Finder en bog ud fra dens ID.
     Book findById(long id) {
         return books.get(id);
+    }
+
+    List<Book> findAll() {
+        return books.values().stream()
+                .sorted((first, second) -> Long.compare(first.getId(), second.getId()))
+                .toList();
     }
 
     // Opretter og gemmer en bog ud fra klientens oplysninger.

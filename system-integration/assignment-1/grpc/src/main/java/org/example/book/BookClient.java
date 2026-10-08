@@ -5,13 +5,7 @@ import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.bootstrap.DubboBootstrap;
 
 import java.util.Scanner;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 public final class BookClient {
     public static void main(String[] args) {
@@ -27,9 +21,7 @@ public final class BookClient {
             return;
         }
 
-        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         AtomicBoolean streaming = new AtomicBoolean();
-        AtomicReference<ScheduledFuture<?>> task = new AtomicReference<>();
 
         try (Scanner scanner = new Scanner(System.in)) {
             boolean running = true;
@@ -39,14 +31,13 @@ public final class BookClient {
                 switch (scanner.nextLine()) {
                     case "1" -> createBook(scanner, service);
                     case "2" -> findBook(scanner, service);
-                    case "3" -> startStream(service, scheduler, streaming, task);
+                    case "3" -> startStream(service, streaming);
                     case "4" -> running = false;
                     default -> System.out.println("Ugyldigt valg.");
                 }
             }
         } finally {
-            stopStream(streaming, task);
-            scheduler.shutdownNow();
+            streaming.set(false);
             DubboBootstrap.getInstance().stop();
         }
     }
@@ -127,9 +118,7 @@ public final class BookClient {
 
     private static void startStream(
             BookService service,
-            ScheduledExecutorService scheduler,
-            AtomicBoolean streaming,
-            AtomicReference<ScheduledFuture<?>> task) {
+            AtomicBoolean streaming) {
         if (!streaming.compareAndSet(false, true)) {
             System.out.println("Streaming kører allerede.");
             return;
@@ -144,47 +133,19 @@ public final class BookClient {
 
                 @Override
                 public void onError(Throwable throwable) {
-                    stopStream(streaming, task);
+                    streaming.set(false);
                     System.out.println("Streaming stoppet.");
                 }
 
                 @Override
                 public void onCompleted() {
-                    stopStream(streaming, task);
+                    streaming.set(false);
                 }
             });
-
-            task.set(scheduler.scheduleAtFixedRate(() -> {
-                try {
-                    createRandomBook(service);
-                } catch (RuntimeException exception) {
-                    stopStream(streaming, task);
-                    System.out.println("Serveren er ikke tilgængelig.");
-                }
-            }, 20, 20, TimeUnit.SECONDS));
-            System.out.println("Streaming startet. Ny tilfældig bog hvert 20. sekund.");
+            System.out.println("Streaming startet. Opret bøger manuelt med valg 1.");
         } catch (RuntimeException exception) {
-            stopStream(streaming, task);
+            streaming.set(false);
             System.out.println("Streaming kunne ikke startes.");
-        }
-    }
-
-    private static void createRandomBook(BookService service) {
-        service.createBook(CreateBookRequest.newBuilder()
-                .setName("Tilfældig bog " + ThreadLocalRandom.current().nextInt(1000, 10000))
-                .setAuthorId(ThreadLocalRandom.current().nextLong(1, 10))
-                .setPublisherId(ThreadLocalRandom.current().nextLong(1, 10))
-                .setPublicationYear(ThreadLocalRandom.current().nextInt(1950, 2027))
-                .build());
-    }
-
-    private static void stopStream(
-            AtomicBoolean streaming,
-            AtomicReference<ScheduledFuture<?>> task) {
-        streaming.set(false);
-        ScheduledFuture<?> currentTask = task.getAndSet(null);
-        if (currentTask != null) {
-            currentTask.cancel(false);
         }
     }
 }

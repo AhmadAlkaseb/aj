@@ -1,4 +1,4 @@
-@host = http://127.0.0.1:50052
+@host = http://127.0.0.1:50053
 
 ### Opret en bog
 POST {{host}}/org.example.book.BookService/createBook/
@@ -8,8 +8,8 @@ tri-protocol-version: 1
 
 {
 	"name": "Min første bog",
-	"authorId": "1",
-	"publisherId": "1",
+	"authorId": 1,
+	"publisherId": 1,
 	"publicationYear": 2026
 }
 
@@ -20,5 +20,15 @@ Accept: application/json
 tri-protocol-version: 1
 
 {
-	"bookId": "1"
+	"bookId": 1
 }
+
+### Stream nye bøger
+# Kør denne request først. Forbindelsen holdes åben, og nye bøger
+# modtages løbende, når createBook kaldes fra en anden request eller klient.
+POST {{host}}/org.example.book.BookService/watchBooks/
+Content-Type: application/json
+Accept: application/json
+tri-protocol-version: 1
+
+{}

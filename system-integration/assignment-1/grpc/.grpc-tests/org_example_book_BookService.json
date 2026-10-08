@@ -1,0 +1,25 @@
+{
+  "service": "org.example.book.BookService",
+  "endpoint": "0.0.0.0:50053",
+  "protoPath": "c:\\Users\\baban\\OneDrive\\Skrivebord\\aj\\system-integration\\assignment-1\\grpc\\src\\main\\proto\\book_service.proto",
+  "tests": [
+    {
+      "name": "createBook",
+      "method": "createBook",
+      "metadata": "{}",
+      "body": "{\n    \"name\": \"Min første bog\",\n    \"authorId\": 1,\n    \"publisherId\": 1,\n    \"publicationYear\": 2026\n}"
+    },
+    {
+      "name": "getBookById",
+      "method": "getBookById",
+      "metadata": "{}",
+      "body": "{\n  \"book_id\": \"1\"\n}"
+    },
+    {
+      "name": "streamBooks",
+      "method": "watchBooks",
+      "metadata": "{}",
+      "body": "{}"
+    }
+  ]
+}

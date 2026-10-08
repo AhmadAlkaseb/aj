@@ -1,0 +1,8 @@
+{
+  "protoPath": "C:\\Users\\baban\\OneDrive\\Skrivebord\\aj\\system-integration\\assignment-1\\grpc\\src\\main\\proto\\book_service.proto",
+  "endpoint": "127.0.0.1:50053",
+  "service": "org.example.book.BookService",
+  "method": "getBookById",
+  "metadata": "{}",
+  "body": "{\n  \"book_id\": \"1\"\n}"
+}

@@ -17,7 +17,8 @@ service BookService {
   // Opretter en bog og returnerer den nyoprettede bog.
   rpc createBook(CreateBookRequest) returns (CreateBookResponse);
 
-  // Holder forbindelsen åben og sender en bog, hver gang en anden klient opretter en.
+  // Sender først alle eksisterende bøger og holder derefter forbindelsen åben
+  // for nye bøger, der oprettes.
   rpc watchBooks(WatchBooksRequest) returns (stream Book);
 }
 
