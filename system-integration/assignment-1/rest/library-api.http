@@ -1,0 +1,84 @@
+@baseUrl = http://localhost:8080
+
+### Create an author
+POST {{baseUrl}}/authors
+Content-Type: application/json
+
+{
+  "name": "George",
+  "surname": "Orwell"
+}
+
+### List authors
+GET {{baseUrl}}/authors
+
+### Get author by id
+GET {{baseUrl}}/authors/1
+
+### Update author
+PUT {{baseUrl}}/authors/1
+Content-Type: application/json
+
+{
+  "name": "George",
+  "surname": "Orwell"
+}
+
+### Delete author
+DELETE {{baseUrl}}/authors/1
+
+### Create a publisher
+POST {{baseUrl}}/publishers
+Content-Type: application/json
+
+{
+  "name": "Secker & Warburg"
+}
+
+### List publishers
+GET {{baseUrl}}/publishers
+
+### Get publisher by id
+GET {{baseUrl}}/publishers/1
+
+### Update publisher
+PUT {{baseUrl}}/publishers/1
+Content-Type: application/json
+
+{
+  "name": "Secker & Warburg"
+}
+
+### Delete publisher
+DELETE {{baseUrl}}/publishers/1
+
+### Create a book
+POST {{baseUrl}}/books
+Content-Type: application/json
+
+{
+  "title": "1984",
+  "authorId": 1,
+  "publishingYear": 1949,
+  "publishingCompanyId": 1
+}
+
+### List books with pagination
+GET {{baseUrl}}/books?limit=10&offset=0
+
+### Get book by id
+GET {{baseUrl}}/books/1
+
+### Update book
+PUT {{baseUrl}}/books/1
+Content-Type: application/json
+
+{
+  "title": "Nineteen Eighty-Four",
+  "authorId": 1,
+  "publishingYear": 1949,
+  "publishingCompanyId": 1
+}
+
+### Delete book
+DELETE {{baseUrl}}/books/1

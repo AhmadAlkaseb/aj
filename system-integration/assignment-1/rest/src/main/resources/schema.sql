@@ -1,0 +1,22 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS tauthor (
+    nAuthorID INTEGER PRIMARY KEY AUTOINCREMENT,
+    cName TEXT NOT NULL,
+    cSurname TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS tpublishingcompany (
+    nPublishingCompanyID INTEGER PRIMARY KEY AUTOINCREMENT,
+    cName TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS tbook (
+    nBookID INTEGER PRIMARY KEY AUTOINCREMENT,
+    cTitle TEXT NOT NULL,
+    nAuthorID INTEGER NOT NULL,
+    nPublishingYear INTEGER NOT NULL CHECK (nPublishingYear BETWEEN 0 AND 9999),
+    nPublishingCompanyID INTEGER NOT NULL,
+    FOREIGN KEY (nAuthorID) REFERENCES tauthor (nAuthorID) ON UPDATE CASCADE ON DELETE RESTRICT,
+    FOREIGN KEY (nPublishingCompanyID) REFERENCES tpublishingcompany (nPublishingCompanyID) ON UPDATE CASCADE ON DELETE RESTRICT
+);

@@ -1,0 +1,5 @@
+target/
+*.log
+*.sqlite
+*.db
+library-api.db
