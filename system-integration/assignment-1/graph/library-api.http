@@ -1,0 +1,139 @@
+### GraphQL API requests for Library API
+### Base URL: http://localhost:8080/graphql
+
+### Query: Get book by ID
+POST http://localhost:8080/graphql
+Content-Type: application/json
+
+{
+  "query": "query GetBookById($id: Int!) { bookById(id: $id) { id title authorId publishingYear publishingCompanyId } }",
+  "variables": {
+    "id": 1
+  }
+}
+
+### Query: List all authors
+POST http://localhost:8080/graphql
+Content-Type: application/json
+
+{
+  "query": "query { authors { id name surname } }"
+}
+
+### Query: List all publishers
+POST http://localhost:8080/graphql
+Content-Type: application/json
+
+{
+  "query": "query { publishers { id name } }"
+}
+
+### Mutation: Create book
+POST http://localhost:8080/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation CreateBook($title: String!, $authorId: Int!, $publishingYear: Int!, $publishingCompanyId: Int!) { createBook(title: $title, authorId: $authorId, publishingYear: $publishingYear, publishingCompanyId: $publishingCompanyId) { id title authorId publishingYear publishingCompanyId } }",
+  "variables": {
+    "title": "The Hobbit",
+    "authorId": 1,
+    "publishingYear": 1937,
+    "publishingCompanyId": 1
+  }
+}
+
+### Mutation: Update book by ID (all fields)
+POST http://localhost:8080/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation UpdateBook($id: Int!, $title: String!, $authorId: Int!, $publishingYear: Int!, $publishingCompanyId: Int!) { updateBook(id: $id, title: $title, authorId: $authorId, publishingYear: $publishingYear, publishingCompanyId: $publishingCompanyId) { id title authorId publishingYear publishingCompanyId } }",
+  "variables": {
+    "id": 1,
+    "title": "The Hobbit Updated",
+    "authorId": 1,
+    "publishingYear": 1938,
+    "publishingCompanyId": 1
+  }
+}
+
+### Mutation: Delete book
+POST http://localhost:8080/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation DeleteBook($id: Int!) { deleteBook(id: $id) }",
+  "variables": {
+    "id": 1
+  }
+}
+
+### Mutation: Create author
+POST http://localhost:8080/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation CreateAuthor($name: String!, $surname: String!) { createAuthor(name: $name, surname: $surname) { id name surname } }",
+  "variables": {
+    "name": "J.R.R.",
+    "surname": "Tolkien"
+  }
+}
+
+### Mutation: Update author by ID (all fields)
+POST http://localhost:8080/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation UpdateAuthor($id: Int!, $name: String!, $surname: String!) { updateAuthor(id: $id, name: $name, surname: $surname) { id name surname } }",
+  "variables": {
+    "id": 1,
+    "name": "John",
+    "surname": "Tolkien"
+  }
+}
+
+### Mutation: Delete author
+POST http://localhost:8080/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation DeleteAuthor($id: Int!) { deleteAuthor(id: $id) }",
+  "variables": {
+    "id": 1
+  }
+}
+
+### Mutation: Create publisher
+POST http://localhost:8080/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation CreatePublisher($name: String!) { createPublisher(name: $name) { id name } }",
+  "variables": {
+    "name": "George Allen & Unwin"
+  }
+}
+
+### Mutation: Update publisher by ID (all fields)
+POST http://localhost:8080/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation UpdatePublisher($id: Int!, $name: String!) { updatePublisher(id: $id, name: $name) { id name } }",
+  "variables": {
+    "id": 1,
+    "name": "HarperCollins"
+  }
+}
+
+### Mutation: Delete publisher
+POST http://localhost:8080/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation DeletePublisher($id: Int!) { deletePublisher(id: $id) }",
+  "variables": {
+    "id": 1
+  }
+}
