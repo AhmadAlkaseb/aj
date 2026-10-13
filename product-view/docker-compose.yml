@@ -1,0 +1,25 @@
+services:
+  app:
+    build:
+      context: .
+    container_name: product-view-app
+    ports:
+      - "7000:7000"
+    environment:
+      PORT: "7000"
+      MONGO_URI: "mongodb://mongo:27017"
+      MONGO_DB: "product_view"
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:7
+    container_name: product-view-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
