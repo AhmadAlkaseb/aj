@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    XML-deklarationen står først i filen.
+    version="1.0" er XML-versionen.
+    encoding="UTF-8" er tegnkodningen og sikrer korrekt håndtering af
+    danske tegn som æ, ø og å.
+-->
+<wsdl:definitions
+        xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+        xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+        xmlns:tns="http://soap.example.org/library/service"
+        xmlns:lib="http://soap.example.org/library"
+        targetNamespace="http://soap.example.org/library/service"
+        name="LibraryService">
+    <!--
+        wsdl:definitions er WSDL-dokumentets rod-element.
+        wsdl er præfikset for WSDL-standarden.
+        soap er præfikset for SOAP-bindingen.
+        tns ('this namespace') er WSDL'ens eget namespace.
+        lib er namespace-præfikset for typer og elementer fra library.xsd.
+        targetNamespace identificerer denne servicekontrakt.
+        name er navnet på WSDL-definitionen.
+    -->
+
+    <!--
+        WSDL-filen beskriver SOAP-servicen og dens operationer.
+        Selve XML-strukturerne og datatyperne ligger i library.xsd.
+        'lib' peger derfor på XSD'ens namespace, mens 'tns' peger
+        på denne WSDL's eget namespace.
+    -->
+    <wsdl:types>
+        <!--
+            Importerer datamodellen fra XSD-filen, så WSDL'en kan referere
+            til de definerede requests, responses, entiteter og faults.
+        -->
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+            <xs:import namespace="http://soap.example.org/library"
+                      schemaLocation="library.xsd"/>
+        </xs:schema>
+    </wsdl:types>
+
+    <!-- Book-operationernes request- og response-messages. -->
+    <!--
+        En message forbinder en SOAP-operation med et XML-element fra XSD'en.
+        'part' er selve indholdet af SOAP Body'en.
+    -->
+    <wsdl:message name="CreateBookRequest">
+        <wsdl:part name="parameters" element="lib:createBookRequest"/>
+    </wsdl:message>
+    <wsdl:message name="CreateBookResponse">
+        <wsdl:part name="parameters" element="lib:createBookResponse"/>
+    </wsdl:message>
+    <wsdl:message name="GetBookByIdRequest">
+        <wsdl:part name="parameters" element="lib:getBookByIdRequest"/>
+    </wsdl:message>
+    <wsdl:message name="GetBookByIdResponse">
+        <wsdl:part name="parameters" element="lib:getBookByIdResponse"/>
+    </wsdl:message>
+    <wsdl:message name="UpdateBookRequest">
+        <wsdl:part name="parameters" element="lib:updateBookRequest"/>
+    </wsdl:message>
+    <wsdl:message name="UpdateBookResponse">
+        <wsdl:part name="parameters" element="lib:updateBookResponse"/>
+    </wsdl:message>
+    <wsdl:message name="DeleteBookRequest">
+        <wsdl:part name="parameters" element="lib:deleteBookRequest"/>
+    </wsdl:message>
+    <wsdl:message name="DeleteBookResponse">
+        <wsdl:part name="parameters" element="lib:deleteBookResponse"/>
+    </wsdl:message>
+
+    <!-- Author-operationernes request- og response-messages. -->
+    <wsdl:message name="CreateAuthorRequest">
+        <wsdl:part name="parameters" element="lib:createAuthorRequest"/>
+    </wsdl:message>
+    <wsdl:message name="CreateAuthorResponse">
+        <wsdl:part name="parameters" element="lib:createAuthorResponse"/>
+    </wsdl:message>
+    <wsdl:message name="GetAuthorByIdRequest">
+        <wsdl:part name="parameters" element="lib:getAuthorByIdRequest"/>
+    </wsdl:message>
+    <wsdl:message name="GetAuthorByIdResponse">
+        <wsdl:part name="parameters" element="lib:getAuthorByIdResponse"/>
+    </wsdl:message>
+    <wsdl:message name="ListAuthorsRequest">
+        <wsdl:part name="parameters" element="lib:listAuthorsRequest"/>
+    </wsdl:message>
+    <wsdl:message name="ListAuthorsResponse">
+        <wsdl:part name="parameters" element="lib:listAuthorsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="UpdateAuthorRequest">
+        <wsdl:part name="parameters" element="lib:updateAuthorRequest"/>
+    </wsdl:message>
+    <wsdl:message name="UpdateAuthorResponse">
+        <wsdl:part name="parameters" element="lib:updateAuthorResponse"/>
+    </wsdl:message>
+    <wsdl:message name="DeleteAuthorRequest">
+        <wsdl:part name="parameters" element="lib:deleteAuthorRequest"/>
+    </wsdl:message>
+    <wsdl:message name="DeleteAuthorResponse">
+        <wsdl:part name="parameters" element="lib:deleteAuthorResponse"/>
+    </wsdl:message>
+
+    <!-- PublishingCompany-operationernes request- og response-messages. -->
+    <wsdl:message name="CreatePublishingCompanyRequest">
+        <wsdl:part name="parameters" element="lib:createPublishingCompanyRequest"/>
+    </wsdl:message>
+    <wsdl:message name="CreatePublishingCompanyResponse">
+        <wsdl:part name="parameters" element="lib:createPublishingCompanyResponse"/>
+    </wsdl:message>
+    <wsdl:message name="GetPublishingCompanyByIdRequest">
+        <wsdl:part name="parameters" element="lib:getPublishingCompanyByIdRequest"/>
+    </wsdl:message>
+    <wsdl:message name="GetPublishingCompanyByIdResponse">
+        <wsdl:part name="parameters" element="lib:getPublishingCompanyByIdResponse"/>
+    </wsdl:message>
+    <wsdl:message name="ListPublishingCompaniesRequest">
+        <wsdl:part name="parameters" element="lib:listPublishingCompaniesRequest"/>
+    </wsdl:message>
+    <wsdl:message name="ListPublishingCompaniesResponse">
+        <wsdl:part name="parameters" element="lib:listPublishingCompaniesResponse"/>
+    </wsdl:message>
+    <wsdl:message name="UpdatePublishingCompanyRequest">
+        <wsdl:part name="parameters" element="lib:updatePublishingCompanyRequest"/>
+    </wsdl:message>
+    <wsdl:message name="UpdatePublishingCompanyResponse">
+        <wsdl:part name="parameters" element="lib:updatePublishingCompanyResponse"/>
+    </wsdl:message>
+    <wsdl:message name="DeletePublishingCompanyRequest">
+        <wsdl:part name="parameters" element="lib:deletePublishingCompanyRequest"/>
+    </wsdl:message>
+    <wsdl:message name="DeletePublishingCompanyResponse">
+        <wsdl:part name="parameters" element="lib:deletePublishingCompanyResponse"/>
+    </wsdl:message>
+
+    <!--
+        Fault-messages beskriver det strukturerede indhold af SOAP Faults.
+        De konkrete felter er defineret i library.xsd.
+    -->
+    <wsdl:message name="NotFoundFault">
+        <wsdl:part name="details" element="lib:notFoundFault"/>
+    </wsdl:message>
+    <wsdl:message name="ValidationFault">
+        <wsdl:part name="details" element="lib:validationFault"/>
+    </wsdl:message>
+    <wsdl:message name="ConflictFault">
+        <wsdl:part name="details" element="lib:conflictFault"/>
+    </wsdl:message>
+
+    <!--
+        PortType er den abstrakte servicekontrakt.
+        Her angives operationernes input, output og mulige faults,
+        men endnu ikke hvordan SOAP-kaldet transporteres.
+    -->
+    <wsdl:portType name="LibraryPortType">
+        <!-- Book-operationer -->
+        <wsdl:operation name="CreateBook">
+            <!-- input er requesten fra klienten; output er svaret fra servicen. -->
+            <wsdl:input message="tns:CreateBookRequest"/>
+            <wsdl:output message="tns:CreateBookResponse"/>
+            <wsdl:fault name="ValidationFault" message="tns:ValidationFault"/>
+        </wsdl:operation>
+        <wsdl:operation name="GetBookById">
+            <wsdl:input message="tns:GetBookByIdRequest"/>
+            <wsdl:output message="tns:GetBookByIdResponse"/>
+            <wsdl:fault name="NotFoundFault" message="tns:NotFoundFault"/>
+        </wsdl:operation>
+        <wsdl:operation name="UpdateBook">
+            <wsdl:input message="tns:UpdateBookRequest"/>
+            <wsdl:output message="tns:UpdateBookResponse"/>
+            <wsdl:fault name="ValidationFault" message="tns:ValidationFault"/>
+            <wsdl:fault name="NotFoundFault" message="tns:NotFoundFault"/>
+        </wsdl:operation>
+        <wsdl:operation name="DeleteBook">
+            <wsdl:input message="tns:DeleteBookRequest"/>
+            <wsdl:output message="tns:DeleteBookResponse"/>
+            <wsdl:fault name="NotFoundFault" message="tns:NotFoundFault"/>
+        </wsdl:operation>
+
+        <!-- Author-operationer -->
+        <wsdl:operation name="CreateAuthor">
+            <wsdl:input message="tns:CreateAuthorRequest"/>
+            <wsdl:output message="tns:CreateAuthorResponse"/>
+            <wsdl:fault name="ValidationFault" message="tns:ValidationFault"/>
+        </wsdl:operation>
+        <wsdl:operation name="GetAuthorById">
+            <wsdl:input message="tns:GetAuthorByIdRequest"/>
+            <wsdl:output message="tns:GetAuthorByIdResponse"/>
+            <wsdl:fault name="NotFoundFault" message="tns:NotFoundFault"/>
+        </wsdl:operation>
+        <wsdl:operation name="ListAuthors">
+            <wsdl:input message="tns:ListAuthorsRequest"/>
+            <wsdl:output message="tns:ListAuthorsResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="UpdateAuthor">
+            <wsdl:input message="tns:UpdateAuthorRequest"/>
+            <wsdl:output message="tns:UpdateAuthorResponse"/>
+            <wsdl:fault name="ValidationFault" message="tns:ValidationFault"/>
+            <wsdl:fault name="NotFoundFault" message="tns:NotFoundFault"/>
+        </wsdl:operation>
+        <wsdl:operation name="DeleteAuthor">
+            <wsdl:input message="tns:DeleteAuthorRequest"/>
+            <wsdl:output message="tns:DeleteAuthorResponse"/>
+            <wsdl:fault name="NotFoundFault" message="tns:NotFoundFault"/>
+            <wsdl:fault name="ConflictFault" message="tns:ConflictFault"/>
+        </wsdl:operation>
+
+        <!-- PublishingCompany-operationer -->
+        <wsdl:operation name="CreatePublishingCompany">
+            <wsdl:input message="tns:CreatePublishingCompanyRequest"/>
+            <wsdl:output message="tns:CreatePublishingCompanyResponse"/>
+            <wsdl:fault name="ValidationFault" message="tns:ValidationFault"/>
+        </wsdl:operation>
+        <wsdl:operation name="GetPublishingCompanyById">
+            <wsdl:input message="tns:GetPublishingCompanyByIdRequest"/>
+            <wsdl:output message="tns:GetPublishingCompanyByIdResponse"/>
+            <wsdl:fault name="NotFoundFault" message="tns:NotFoundFault"/>
+        </wsdl:operation>
+        <wsdl:operation name="ListPublishingCompanies">
+            <wsdl:input message="tns:ListPublishingCompaniesRequest"/>
+            <wsdl:output message="tns:ListPublishingCompaniesResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="UpdatePublishingCompany">
+            <wsdl:input message="tns:UpdatePublishingCompanyRequest"/>
+            <wsdl:output message="tns:UpdatePublishingCompanyResponse"/>
+            <wsdl:fault name="ValidationFault" message="tns:ValidationFault"/>
+            <wsdl:fault name="NotFoundFault" message="tns:NotFoundFault"/>
+        </wsdl:operation>
+        <wsdl:operation name="DeletePublishingCompany">
+            <wsdl:input message="tns:DeletePublishingCompanyRequest"/>
+            <wsdl:output message="tns:DeletePublishingCompanyResponse"/>
+            <wsdl:fault name="NotFoundFault" message="tns:NotFoundFault"/>
+            <wsdl:fault name="ConflictFault" message="tns:ConflictFault"/>
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <!--
+        Binding omsætter den abstrakte portType til en konkret SOAP-protokol.
+        Document/literal betyder, at SOAP Body'en indeholder XML-elementer
+        fra XSD'en, og at data transporteres som bogstavelig XML.
+    -->
+    <wsdl:binding name="LibrarySoapBinding" type="tns:LibraryPortType">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <!--
+            style="document" betyder, at SOAP Body indeholder dokument-lignende
+            XML-elementer. transport angiver HTTP som transportprotokol.
+        -->
+        <!--
+            Hver operation får en soapAction, som kan bruges til at identificere
+            handlingen. soap:body use="literal" betyder, at XML'en følger XSD'en
+            direkte og ikke SOAP encoding-regler.
+        -->
+        <wsdl:operation name="CreateBook">
+            <soap:operation soapAction="CreateBook"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="GetBookById">
+            <soap:operation soapAction="GetBookById"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="UpdateBook">
+            <soap:operation soapAction="UpdateBook"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="DeleteBook">
+            <soap:operation soapAction="DeleteBook"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CreateAuthor">
+            <soap:operation soapAction="CreateAuthor"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="GetAuthorById">
+            <soap:operation soapAction="GetAuthorById"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ListAuthors">
+            <soap:operation soapAction="ListAuthors"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="UpdateAuthor">
+            <soap:operation soapAction="UpdateAuthor"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="DeleteAuthor">
+            <soap:operation soapAction="DeleteAuthor"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CreatePublishingCompany">
+            <soap:operation soapAction="CreatePublishingCompany"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="GetPublishingCompanyById">
+            <soap:operation soapAction="GetPublishingCompanyById"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ListPublishingCompanies">
+            <soap:operation soapAction="ListPublishingCompanies"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="UpdatePublishingCompany">
+            <soap:operation soapAction="UpdatePublishingCompany"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="DeletePublishingCompany">
+            <soap:operation soapAction="DeletePublishingCompany"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <!--
+        Service-sektionen angiver det faktiske endpoint, som klienter
+        skal sende SOAP-requests til.
+    -->
+    <wsdl:service name="LibraryService">
+        <!-- En service kan have én eller flere porte/endpoints. -->
+        <wsdl:port name="LibraryPort" binding="tns:LibrarySoapBinding">
+            <!--
+                Porten forbinder bindingen med den konkrete adresse, hvor
+                SOAP-klienter sender deres requests.
+            -->
+            <soap:address location="http://localhost:8080/services/library"/>
+        </wsdl:port>
+    </wsdl:service>
+
+</wsdl:definitions>

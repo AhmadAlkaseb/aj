@@ -1,0 +1,304 @@
+@baseUrl = http://localhost:8080/services/library
+@contentType = text/xml; charset=utf-8
+
+### Hent WSDL-kontrakten
+GET {{baseUrl}}?wsdl
+
+###
+### Opret en forfatter - forventet succes, genereret ID = 1 ved frisk serverstart
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+SOAPAction: "CreateAuthor"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:lib="http://soap.example.org/library">
+    <soap:Body>
+        <lib:createAuthorRequest>
+            <lib:name>Hans</lib:name>
+            <lib:surname>Hansen</lib:surname>
+        </lib:createAuthorRequest>
+    </soap:Body>
+</soap:Envelope>
+
+###
+### Opret et forlag - forventet succes, genereret ID = 2 ved frisk serverstart
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+SOAPAction: "CreatePublishingCompany"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:lib="http://soap.example.org/library">
+    <soap:Body>
+        <lib:createPublishingCompanyRequest>
+            <lib:name>Eksempel Forlag</lib:name>
+        </lib:createPublishingCompanyRequest>
+    </soap:Body>
+</soap:Envelope>
+
+###
+### Opret en bog - forventet succes, genereret ID = 3 ved frisk serverstart
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+SOAPAction: "CreateBook"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:lib="http://soap.example.org/library">
+    <soap:Body>
+        <lib:createBookRequest>
+            <lib:title>SOAP med Apache CXF</lib:title>
+            <lib:authorId>1</lib:authorId>
+            <lib:publishingCompanyId>2</lib:publishingCompanyId>
+            <lib:publishingYear>2024</lib:publishingYear>
+        </lib:createBookRequest>
+    </soap:Body>
+</soap:Envelope>
+
+###
+### Hent bog med ID 3 - forventet succes
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+SOAPAction: "GetBookById"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:lib="http://soap.example.org/library">
+    <soap:Body>
+        <lib:getBookByIdRequest>
+            <lib:id>3</lib:id>
+        </lib:getBookByIdRequest>
+    </soap:Body>
+</soap:Envelope>
+
+###
+### Opdater bog 3 - forventet succes
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+SOAPAction: "UpdateBook"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:lib="http://soap.example.org/library">
+    <soap:Body>
+        <lib:updateBookRequest>
+            <lib:id>3</lib:id>
+            <lib:title>Opdateret SOAP-bog</lib:title>
+            <lib:authorId>1</lib:authorId>
+            <lib:publishingCompanyId>2</lib:publishingCompanyId>
+            <lib:publishingYear>2025</lib:publishingYear>
+        </lib:updateBookRequest>
+    </soap:Body>
+</soap:Envelope>
+
+###
+### Slet bog 3 - forventet succes
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+SOAPAction: "DeleteBook"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:lib="http://soap.example.org/library">
+    <soap:Body>
+        <lib:deleteBookRequest>
+            <lib:id>3</lib:id>
+        </lib:deleteBookRequest>
+    </soap:Body>
+</soap:Envelope>
+
+###
+### Hent forfatter med ID 1 - forventet succes
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+SOAPAction: "GetAuthorById"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:lib="http://soap.example.org/library">
+    <soap:Body>
+        <lib:getAuthorByIdRequest>
+            <lib:id>1</lib:id>
+        </lib:getAuthorByIdRequest>
+    </soap:Body>
+</soap:Envelope>
+
+###
+### List alle forfattere - forventet succes
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+SOAPAction: "ListAuthors"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:lib="http://soap.example.org/library">
+    <soap:Body>
+        <lib:listAuthorsRequest/>
+    </soap:Body>
+</soap:Envelope>
+
+###
+### Opdater forfatter 1 - forventet succes
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+SOAPAction: "UpdateAuthor"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:lib="http://soap.example.org/library">
+    <soap:Body>
+        <lib:updateAuthorRequest>
+            <lib:id>1</lib:id>
+            <lib:name>Hans Peter</lib:name>
+            <lib:surname>Hansen</lib:surname>
+        </lib:updateAuthorRequest>
+    </soap:Body>
+</soap:Envelope>
+
+###
+### Hent forlag med ID 2 - forventet succes
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+SOAPAction: "GetPublishingCompanyById"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:lib="http://soap.example.org/library">
+    <soap:Body>
+        <lib:getPublishingCompanyByIdRequest>
+            <lib:id>2</lib:id>
+        </lib:getPublishingCompanyByIdRequest>
+    </soap:Body>
+</soap:Envelope>
+
+###
+### List alle forlag - forventet succes
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+SOAPAction: "ListPublishingCompanies"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:lib="http://soap.example.org/library">
+    <soap:Body>
+        <lib:listPublishingCompaniesRequest/>
+    </soap:Body>
+</soap:Envelope>
+
+###
+### Opdater forlag 2 - forventet succes
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+SOAPAction: "UpdatePublishingCompany"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:lib="http://soap.example.org/library">
+    <soap:Body>
+        <lib:updatePublishingCompanyRequest>
+            <lib:id>2</lib:id>
+            <lib:name>Opdateret Forlag</lib:name>
+        </lib:updatePublishingCompanyRequest>
+    </soap:Body>
+</soap:Envelope>
+
+###
+### ValidationFault - tom titel ved oprettelse af bog
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+SOAPAction: "CreateBook"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:lib="http://soap.example.org/library">
+    <soap:Body>
+        <lib:createBookRequest>
+            <lib:title></lib:title>
+            <lib:authorId>1</lib:authorId>
+            <lib:publishingCompanyId>2</lib:publishingCompanyId>
+            <lib:publishingYear>2024</lib:publishingYear>
+        </lib:createBookRequest>
+    </soap:Body>
+</soap:Envelope>
+
+###
+### ValidationFault - bog refererer til en forfatter, der ikke findes
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+SOAPAction: "CreateBook"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:lib="http://soap.example.org/library">
+    <soap:Body>
+        <lib:createBookRequest>
+            <lib:title>Ugyldig reference</lib:title>
+            <lib:authorId>999</lib:authorId>
+            <lib:publishingCompanyId>2</lib:publishingCompanyId>
+            <lib:publishingYear>2024</lib:publishingYear>
+        </lib:createBookRequest>
+    </soap:Body>
+</soap:Envelope>
+
+###
+### NotFoundFault - bog med ID 999 findes ikke
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+SOAPAction: "GetBookById"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:lib="http://soap.example.org/library">
+    <soap:Body>
+        <lib:getBookByIdRequest>
+            <lib:id>999</lib:id>
+        </lib:getBookByIdRequest>
+    </soap:Body>
+</soap:Envelope>
+
+###
+### NotFoundFault - forfatter med ID 999 findes ikke
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+SOAPAction: "GetAuthorById"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:lib="http://soap.example.org/library">
+    <soap:Body>
+        <lib:getAuthorByIdRequest>
+            <lib:id>999</lib:id>
+        </lib:getAuthorByIdRequest>
+    </soap:Body>
+</soap:Envelope>
+
+###
+### NotFoundFault - forlag med ID 999 findes ikke
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+SOAPAction: "GetPublishingCompanyById"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:lib="http://soap.example.org/library">
+    <soap:Body>
+        <lib:getPublishingCompanyByIdRequest>
+            <lib:id>999</lib:id>
+        </lib:getPublishingCompanyByIdRequest>
+    </soap:Body>
+</soap:Envelope>
+
+###
+### ConflictFault - opret først en bog med authorId=1, og kør derefter denne request
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+SOAPAction: "DeleteAuthor"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:lib="http://soap.example.org/library">
+    <soap:Body>
+        <lib:deleteAuthorRequest>
+            <lib:id>1</lib:id>
+        </lib:deleteAuthorRequest>
+    </soap:Body>
+</soap:Envelope>
+
+###
+### ConflictFault - opret først en bog med publishingCompanyId=2
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+SOAPAction: "DeletePublishingCompany"
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:lib="http://soap.example.org/library">
+    <soap:Body>
+        <lib:deletePublishingCompanyRequest>
+            <lib:id>2</lib:id>
+        </lib:deletePublishingCompanyRequest>
+    </soap:Body>
+</soap:Envelope>
+

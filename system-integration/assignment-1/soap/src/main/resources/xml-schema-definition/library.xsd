@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    XML-deklarationen skal stå først i filen.
+    version="1.0" angiver XML-versionen.
+    encoding="UTF-8" angiver tegnkodningen, så blandt andet æ, ø og å
+    kan læses korrekt.
+-->
+<xs:schema
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="http://soap.example.org/library"
+        xmlns:tns="http://soap.example.org/library"
+        elementFormDefault="qualified">
+    <!--
+        xmlns:xs er præfikset for XML Schema-standarden.
+        targetNamespace er namespace for alle typer og elementer i dette skema.
+        xmlns:tns betyder 'this namespace' og gør det muligt at referere til
+        lokale typer med for eksempel tns:Book.
+        elementFormDefault="qualified" kræver namespace på lokale XML-elementer.
+    -->
+
+    <!-- En genbrugelig heltalstype til alle ID'er. -->
+    <xs:simpleType name="Identifier">
+        <!-- simpleType indeholder én simpel værdi uden underfelter. -->
+        <xs:restriction base="xs:int">
+            <!-- Et ID skal være mindst 1. -->
+            <xs:minInclusive value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- En genbrugelig heltalstype til udgivelsesår. -->
+    <xs:simpleType name="PublishingYear">
+        <xs:restriction base="xs:int">
+            <!-- Bøger må ikke have et udgivelsesår før 1900. -->
+            <xs:minInclusive value="1900"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- En complexType består af flere navngivne XML-felter. -->
+    <!-- Book er datamodellen for en bog. -->
+    <xs:complexType name="Book">
+        <!-- sequence betyder, at felterne skal komme i denne rækkefølge. -->
+        <xs:sequence>
+            <xs:element name="id" type="tns:Identifier"/>
+            <xs:element name="title" type="xs:string"/>
+            <xs:element name="authorId" type="tns:Identifier"/>
+            <xs:element name="publishingCompanyId" type="tns:Identifier"/>
+            <xs:element name="publishingYear" type="tns:PublishingYear"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Datamodellen for en forfatter. -->
+    <xs:complexType name="Author">
+        <xs:sequence>
+            <xs:element name="id" type="tns:Identifier"/>
+            <xs:element name="name" type="xs:string"/>
+            <xs:element name="surname" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Datamodellen for et forlag. -->
+    <xs:complexType name="PublishingCompany">
+        <xs:sequence>
+            <xs:element name="id" type="tns:Identifier"/>
+            <xs:element name="name" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Globale elementer kan bruges direkte som rod-elementer i XML. -->
+    <xs:element name="book" type="tns:Book"/>
+    <xs:element name="author" type="tns:Author"/>
+    <xs:element name="publishingCompany" type="tns:PublishingCompany"/>
+
+    <!-- Fælles request-type til operationer, der kun modtager et ID. -->
+    <xs:complexType name="EntityIdRequest">
+        <xs:sequence>
+            <xs:element name="id" type="tns:Identifier"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Liste-typer bruges som output fra List-operationerne. -->
+    <xs:complexType name="BookList">
+        <xs:sequence>
+            <!-- minOccurs=0 tillader en tom liste; maxOccurs=unbounded tillader mange. -->
+            <xs:element name="book" type="tns:Book" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="AuthorList">
+        <xs:sequence>
+            <xs:element name="author" type="tns:Author" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="PublishingCompanyList">
+        <xs:sequence>
+            <xs:element name="publishingCompany" type="tns:PublishingCompany"
+                        minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- En tom request har ingen felter og bruges til List-operationer. -->
+    <xs:complexType name="EmptyRequest"/>
+
+    <!-- Felter, som kræves for at oprette en Book. -->
+    <xs:complexType name="CreateBookRequest">
+        <xs:sequence>
+            <xs:element name="title" type="xs:string"/>
+            <xs:element name="authorId" type="tns:Identifier"/>
+            <xs:element name="publishingCompanyId" type="tns:Identifier"/>
+            <xs:element name="publishingYear" type="tns:PublishingYear"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- ID identificerer den eksisterende Book, resten er nye værdier. -->
+    <xs:complexType name="UpdateBookRequest">
+        <xs:sequence>
+            <xs:element name="id" type="tns:Identifier"/>
+            <xs:element name="title" type="xs:string"/>
+            <xs:element name="authorId" type="tns:Identifier"/>
+            <xs:element name="publishingCompanyId" type="tns:Identifier"/>
+            <xs:element name="publishingYear" type="tns:PublishingYear"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Felter, som kræves for at oprette en Author. -->
+    <xs:complexType name="CreateAuthorRequest">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string"/>
+            <xs:element name="surname" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- ID identificerer den eksisterende Author, resten er nye værdier. -->
+    <xs:complexType name="UpdateAuthorRequest">
+        <xs:sequence>
+            <xs:element name="id" type="tns:Identifier"/>
+            <xs:element name="name" type="xs:string"/>
+            <xs:element name="surname" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Felter, som kræves for at oprette et PublishingCompany. -->
+    <xs:complexType name="CreatePublishingCompanyRequest">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- ID identificerer det eksisterende PublishingCompany. -->
+    <xs:complexType name="UpdatePublishingCompanyRequest">
+        <xs:sequence>
+            <xs:element name="id" type="tns:Identifier"/>
+            <xs:element name="name" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Fælles response til Create-operationer. -->
+    <xs:complexType name="GeneratedIdResponse">
+        <xs:sequence>
+            <xs:element name="id" type="tns:Identifier"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Fælles response til Update- og Delete-operationer. -->
+    <xs:complexType name="OperationAcknowledgement">
+        <xs:sequence>
+            <xs:element name="success" type="xs:boolean"/>
+            <!-- minOccurs=0 gør den forklarende besked valgfri. -->
+            <xs:element name="message" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Globale request- og response-elementer, som WSDL'en refererer til. -->
+    <xs:element name="createBookRequest" type="tns:CreateBookRequest"/>
+    <xs:element name="getBookByIdRequest" type="tns:EntityIdRequest"/>
+    <xs:element name="updateBookRequest" type="tns:UpdateBookRequest"/>
+    <xs:element name="deleteBookRequest" type="tns:EntityIdRequest"/>
+    <xs:element name="createBookResponse" type="tns:GeneratedIdResponse"/>
+    <xs:element name="getBookByIdResponse" type="tns:Book"/>
+    <xs:element name="updateBookResponse" type="tns:OperationAcknowledgement"/>
+    <xs:element name="deleteBookResponse" type="tns:OperationAcknowledgement"/>
+
+    <!-- Author-operationernes XML-elementer. -->
+    <xs:element name="createAuthorRequest" type="tns:CreateAuthorRequest"/>
+    <xs:element name="getAuthorByIdRequest" type="tns:EntityIdRequest"/>
+    <xs:element name="listAuthorsRequest" type="tns:EmptyRequest"/>
+    <xs:element name="updateAuthorRequest" type="tns:UpdateAuthorRequest"/>
+    <xs:element name="deleteAuthorRequest" type="tns:EntityIdRequest"/>
+    <xs:element name="createAuthorResponse" type="tns:GeneratedIdResponse"/>
+    <xs:element name="getAuthorByIdResponse" type="tns:Author"/>
+    <xs:element name="listAuthorsResponse" type="tns:AuthorList"/>
+    <xs:element name="updateAuthorResponse" type="tns:OperationAcknowledgement"/>
+    <xs:element name="deleteAuthorResponse" type="tns:OperationAcknowledgement"/>
+
+    <!-- PublishingCompany-operationernes XML-elementer. -->
+    <xs:element name="createPublishingCompanyRequest"
+                type="tns:CreatePublishingCompanyRequest"/>
+    <xs:element name="getPublishingCompanyByIdRequest" type="tns:EntityIdRequest"/>
+    <xs:element name="listPublishingCompaniesRequest" type="tns:EmptyRequest"/>
+    <xs:element name="updatePublishingCompanyRequest"
+                type="tns:UpdatePublishingCompanyRequest"/>
+    <xs:element name="deletePublishingCompanyRequest" type="tns:EntityIdRequest"/>
+    <xs:element name="createPublishingCompanyResponse" type="tns:GeneratedIdResponse"/>
+    <xs:element name="getPublishingCompanyByIdResponse" type="tns:PublishingCompany"/>
+    <xs:element name="listPublishingCompaniesResponse" type="tns:PublishingCompanyList"/>
+    <xs:element name="updatePublishingCompanyResponse" type="tns:OperationAcknowledgement"/>
+    <xs:element name="deletePublishingCompanyResponse" type="tns:OperationAcknowledgement"/>
+
+    <!-- Fælles felter for alle fejl, som kan sendes i en SOAP Fault. -->
+    <xs:complexType name="FaultDetail">
+        <xs:sequence>
+            <xs:element name="code" type="xs:string"/>
+            <xs:element name="message" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Bruges når det ønskede ID ikke findes. -->
+    <xs:complexType name="NotFoundFault">
+        <xs:complexContent>
+            <!-- extension genbruger code og message fra FaultDetail. -->
+            <xs:extension base="tns:FaultDetail">
+                <xs:sequence>
+                    <xs:element name="entityType" type="xs:string"/>
+                    <xs:element name="entityId" type="tns:Identifier"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Bruges ved manglende/ugyldige felter eller ugyldige referencer. -->
+    <xs:complexType name="ValidationFault">
+        <xs:complexContent>
+            <xs:extension base="tns:FaultDetail">
+                <xs:sequence>
+                    <xs:element name="field" type="xs:string"/>
+                    <xs:element name="rejectedValue" type="xs:string" minOccurs="0"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Bruges når en entitet ikke kan slettes pga. en reference. -->
+    <xs:complexType name="ConflictFault">
+        <xs:complexContent>
+            <xs:extension base="tns:FaultDetail">
+                <xs:sequence>
+                    <xs:element name="entityType" type="xs:string"/>
+                    <xs:element name="entityId" type="tns:Identifier"/>
+                    <xs:element name="referencingEntityType" type="xs:string"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Globale fault-elementer, som WSDL'en bruger i fault-messages. -->
+    <xs:element name="notFoundFault" type="tns:NotFoundFault"/>
+    <xs:element name="validationFault" type="tns:ValidationFault"/>
+    <xs:element name="conflictFault" type="tns:ConflictFault"/>
+
+</xs:schema>
