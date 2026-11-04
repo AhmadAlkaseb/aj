@@ -1,6 +1,8 @@
 package com.example.libraryapi.service;
 
 import com.example.libraryapi.exception.ResourceNotFoundException;
+import com.example.libraryapi.exception.ValidationException;
+import org.springframework.transaction.annotation.Transactional;
 import com.example.libraryapi.model.Book;
 import com.example.libraryapi.repository.AuthorRepository;
 import com.example.libraryapi.repository.BookRepository;
@@ -24,22 +26,26 @@ public class BookService {
         this.publisherRepository = publisherRepository;
     }
 
-    public List<Book> getAllBooks() {
+    /*public List<Book> getAllBooks() {
         return bookRepository.findAll();
     }
-
+    */
     public Book getBookById(Integer id) {
         return bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
     }
 
+    @Transactional
     public Book createBook(String title, Integer authorId, Integer publishingYear, Integer publishingCompanyId) {
+        InputValidation.requireText(title, "Title");
         validateReferences(authorId, publishingCompanyId);
         Book book = new Book(title, authorId, publishingYear, publishingCompanyId);
         return bookRepository.save(book);
     }
 
+    @Transactional
     public Book updateBook(Integer id, String title, Integer authorId, Integer publishingYear, Integer publishingCompanyId) {
+        InputValidation.requireText(title, "Title");
         Book existingBook = getBookById(id);
         validateReferences(authorId, publishingCompanyId);
 
@@ -59,9 +65,9 @@ public class BookService {
 
     private void validateReferences(Integer authorId, Integer publishingCompanyId) {
         authorRepository.findById(authorId)
-                .orElseThrow(() -> new ResourceNotFoundException("Author not found with id: " + authorId));
+                .orElseThrow(() -> new ValidationException("Author not found with id: " + authorId));
 
         publisherRepository.findById(publishingCompanyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Publisher not found with id: " + publishingCompanyId));
+                .orElseThrow(() -> new ValidationException("Publisher not found with id: " + publishingCompanyId));
     }
 }

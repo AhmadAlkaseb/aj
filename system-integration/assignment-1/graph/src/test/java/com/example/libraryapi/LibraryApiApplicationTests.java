@@ -17,6 +17,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@org.springframework.test.context.TestExecutionListeners(
+        listeners = org.springframework.test.context.support.DependencyInjectionTestExecutionListener.class,
+        inheritListeners = false)
 class LibraryApiApplicationTests {
 
     @Autowired
@@ -24,6 +27,58 @@ class LibraryApiApplicationTests {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    @org.junit.jupiter.api.BeforeEach
+    void clearData() {
+        jdbc.update("DELETE FROM tbook");
+        jdbc.update("DELETE FROM tauthor");
+        jdbc.update("DELETE FROM tpublishingcompany");
+        jdbc.update("ALTER TABLE tbook ALTER COLUMN nBookID RESTART WITH 1");
+    }
+
+    private org.springframework.test.web.servlet.ResultActions query(String query) throws Exception {
+        return mockMvc.perform(post("/graphql").contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(java.util.Map.of("query", query))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void reportsMissingEntitiesInvalidInputAndConflictingDeletes() throws Exception {
+        query("{ bookById(id: 999) { id } }")
+                .andExpect(jsonPath("$.errors[0].extensions.code").value("NOT_FOUND"));
+        for (String mutation : java.util.List.of(
+                "createAuthor(name: \" \", surname: \"Doe\")",
+                "createAuthor(name: \"Jane\", surname: \" \")",
+                "createPublisher(name: \"\")",
+                "createBook(title: \" \", authorId: 999, publishingCompanyId: 999, publishingYear: 2000)",
+                "createBook(title: \"Title\", authorId: 999, publishingCompanyId: 999, publishingYear: 2000)")) {
+            query("mutation { " + mutation + " { id } }")
+                    .andExpect(jsonPath("$.errors[0].extensions.code").value("BAD_REQUEST"));
+        }
+        jdbc.update("INSERT INTO tauthor (nAuthorID, cName, cSurname) VALUES (100, 'Jane', 'Doe')");
+        jdbc.update("INSERT INTO tpublishingcompany (nPublishingCompanyID, cName) VALUES (100, 'Press')");
+        jdbc.update("INSERT INTO tbook (nBookID, cTitle, nAuthorID, nPublishingYear, nPublishingCompanyID) VALUES (100, 'Title', 100, 2000, 100)");
+        for (String mutation : java.util.List.of("deleteAuthor(id: 100)", "deletePublisher(id: 100)")) {
+            query("mutation { " + mutation + " }")
+                    .andExpect(jsonPath("$.errors[0].extensions.code").value("CONFLICT"));
+        }
+        for (String mutation : java.util.List.of(
+                "updateAuthor(id: 100, name: \" \", surname: \"Doe\")",
+                "updatePublisher(id: 100, name: \" \")",
+                "updateBook(id: 100, title: \" \", authorId: 100, publishingCompanyId: 100, publishingYear: 2000)")) {
+            query("mutation { " + mutation + " { id } }")
+                    .andExpect(jsonPath("$.errors[0].extensions.code").value("BAD_REQUEST"));
+        }
+        query("mutation { deleteBook(id: 100) }")
+                .andExpect(jsonPath("$.data.deleteBook").value(true));
+        query("mutation { deleteAuthor(id: 100) }")
+                .andExpect(jsonPath("$.data.deleteAuthor").value(true));
+        query("mutation { deletePublisher(id: 100) }")
+                .andExpect(jsonPath("$.data.deletePublisher").value(true));
+    }
 
     @Test
     void shouldCreateAuthorPublisherAndBookAndListThem() throws Exception {

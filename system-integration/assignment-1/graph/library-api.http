@@ -1,19 +1,19 @@
 ### GraphQL API requests for Library API
-### Base URL: http://localhost:8080/graphql
+@baseUrl = http://localhost:8080/graphql
 
 ### Query: Get book by ID
-POST http://localhost:8080/graphql
+POST {{baseUrl}}
 Content-Type: application/json
 
 {
   "query": "query GetBookById($id: Int!) { bookById(id: $id) { id title authorId publishingYear publishingCompanyId } }",
   "variables": {
-    "id": 1
+    "id": 1000
   }
 }
 
 ### Query: List all authors
-POST http://localhost:8080/graphql
+POST {{baseUrl}}
 Content-Type: application/json
 
 {
@@ -21,7 +21,7 @@ Content-Type: application/json
 }
 
 ### Query: List all publishers
-POST http://localhost:8080/graphql
+POST {{baseUrl}}
 Content-Type: application/json
 
 {
@@ -29,7 +29,7 @@ Content-Type: application/json
 }
 
 ### Mutation: Create book
-POST http://localhost:8080/graphql
+POST {{baseUrl}}
 Content-Type: application/json
 
 {
@@ -43,13 +43,13 @@ Content-Type: application/json
 }
 
 ### Mutation: Update book by ID (all fields)
-POST http://localhost:8080/graphql
+POST {{baseUrl}}
 Content-Type: application/json
 
 {
   "query": "mutation UpdateBook($id: Int!, $title: String!, $authorId: Int!, $publishingYear: Int!, $publishingCompanyId: Int!) { updateBook(id: $id, title: $title, authorId: $authorId, publishingYear: $publishingYear, publishingCompanyId: $publishingCompanyId) { id title authorId publishingYear publishingCompanyId } }",
   "variables": {
-    "id": 1,
+    "id": 1000,
     "title": "The Hobbit Updated",
     "authorId": 1,
     "publishingYear": 1938,
@@ -58,18 +58,18 @@ Content-Type: application/json
 }
 
 ### Mutation: Delete book
-POST http://localhost:8080/graphql
+POST {{baseUrl}}
 Content-Type: application/json
 
 {
   "query": "mutation DeleteBook($id: Int!) { deleteBook(id: $id) }",
   "variables": {
-    "id": 1
+    "id": 1000
   }
 }
 
 ### Mutation: Create author
-POST http://localhost:8080/graphql
+POST {{baseUrl}}
 Content-Type: application/json
 
 {
@@ -81,7 +81,7 @@ Content-Type: application/json
 }
 
 ### Mutation: Update author by ID (all fields)
-POST http://localhost:8080/graphql
+POST {{baseUrl}}
 Content-Type: application/json
 
 {
@@ -94,7 +94,7 @@ Content-Type: application/json
 }
 
 ### Mutation: Delete author
-POST http://localhost:8080/graphql
+POST {{baseUrl}}
 Content-Type: application/json
 
 {
@@ -105,7 +105,7 @@ Content-Type: application/json
 }
 
 ### Mutation: Create publisher
-POST http://localhost:8080/graphql
+POST {{baseUrl}}
 Content-Type: application/json
 
 {
@@ -116,7 +116,7 @@ Content-Type: application/json
 }
 
 ### Mutation: Update publisher by ID (all fields)
-POST http://localhost:8080/graphql
+POST {{baseUrl}}
 Content-Type: application/json
 
 {
@@ -128,7 +128,7 @@ Content-Type: application/json
 }
 
 ### Mutation: Delete publisher
-POST http://localhost:8080/graphql
+POST {{baseUrl}}
 Content-Type: application/json
 
 {

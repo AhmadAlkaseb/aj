@@ -1,36 +1,31 @@
 # Library API GraphQL Service
 
-This project exposes a GraphQL API on the `/graphql` endpoint with PostgreSQL persistence.
+This project exposes a GraphQL API on the `/graphql` endpoint with SQLite persistence through Spring JDBC `JdbcTemplate`.
+
+Tables are initialized from `src/main/resources/schema.sql`. The API reads the supplied `tauthor`,
+`tpublishingcompany`, and `tbook` tables. Existing data is retained.
 
 ## Prerequisites
 
 - Java 21+
 - Maven 3.9+
-- Docker + Docker Compose
 
-## Run locally with Postgres
+## Standardized Startup
 
-1. Start PostgreSQL:
-   ```bash
-   docker compose up -d postgres
-   ```
-2. Run the app:
-   ```bash
-   ./mvnw spring-boot:run
-   ```
-   If you do not have the wrapper, use:
-   ```bash
-   mvn spring-boot:run
-   ```
-3. Open GraphQL playground at:
-   ```text
-   http://localhost:8080/graphiql
-   ```
-
-## Run everything with Docker Compose
+Use environment variables for startup configuration:
 
 ```bash
-docker compose up --build
+SPRING_APPLICATION_NAME=library-graph-api \
+SERVER_PORT=8080 \
+SPRING_DATASOURCE_URL=jdbc:sqlite:library.db \
+SPRING_DATASOURCE_DRIVER=org.sqlite.JDBC \
+mvn spring-boot:run
+```
+
+Open GraphQL playground at:
+
+```text
+http://localhost:8080/graphiql
 ```
 
 ## Example GraphQL requests
@@ -38,7 +33,7 @@ docker compose up --build
 ### Query a book by ID
 ```graphql
 query {
-  bookById(id: 1) {
+  bookById(id: 1000) {
     id
     title
     authorId
@@ -78,3 +73,6 @@ mutation {
   }
 }
 ```
+
+Start from the `graph` directory so the default database path resolves to
+`graph/library.db`, or set `SPRING_DATASOURCE_URL` to an absolute SQLite path.

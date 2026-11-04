@@ -1,6 +1,8 @@
 package com.example.libraryapi.exception;
 
 import java.time.Instant;
+import java.sql.SQLException;
+import org.springframework.dao.DataAccessException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,6 +49,18 @@ public class RestExceptionHandler {
     @ExceptionHandler({MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class})
     public ResponseEntity<ApiError> handleBadRequest(Exception exception, HttpServletRequest request) {
         return build(HttpStatus.BAD_REQUEST, exception.getMessage(), request.getRequestURI(), List.of());
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<ApiError> handleDatabaseError(DataAccessException exception, HttpServletRequest request) {
+        for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
+            if (cause instanceof SQLException && cause.getMessage() != null
+                    && cause.getMessage().contains("FOREIGN KEY constraint failed")) {
+                return build(HttpStatus.CONFLICT, "Cannot delete an author or publisher referenced by a book",
+                        request.getRequestURI(), List.of());
+            }
+        }
+        return handleUnexpected(exception, request);
     }
 
     @ExceptionHandler(Exception.class)
