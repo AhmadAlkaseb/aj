@@ -4,9 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class LibraryApiApplication {
+public class LibraryRestApiApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(LibraryApiApplication.class, args);
+        SpringApplication.run(LibraryRestApiApplication.class, args);
     }
 }

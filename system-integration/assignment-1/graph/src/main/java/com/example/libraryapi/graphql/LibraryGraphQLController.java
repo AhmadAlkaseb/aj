@@ -33,10 +33,12 @@ public class LibraryGraphQLController {
         return bookService.getBookById(id);
     }
 
+    /*
     @QueryMapping
     public List<Book> books() {
         return bookService.getAllBooks();
     }
+    */
 
     @QueryMapping
     public List<Author> authors() {

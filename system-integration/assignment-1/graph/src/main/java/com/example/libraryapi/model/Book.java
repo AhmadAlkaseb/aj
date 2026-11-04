@@ -1,31 +1,15 @@
 package com.example.libraryapi.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
-@Entity
-@Table(name = "books")
 public class Book {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "book_id")
     private Integer id;
 
-    @Column(name = "title", nullable = false, length = 255)
     private String title;
 
-    @Column(name = "author_id", nullable = false)
     private Integer authorId;
 
-    @Column(name = "publishing_year", nullable = false)
     private Integer publishingYear;
 
-    @Column(name = "publishing_company_id", nullable = false)
     private Integer publishingCompanyId;
 
     public Book() {
