@@ -1,0 +1,74 @@
+@startuml
+!pragma layout smetana
+title AJ Motors - Architecture
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam ArrowColor #47665C
+skinparam componentBackgroundColor #E5EDE4
+skinparam databaseBackgroundColor #F2ECD9
+top to bottom direction
+
+actor "Bruger" as customer
+component "Frontend\nJava/Javalin + HTML/CSS/JS\nlocalhost:3000" as frontend
+component "API Gateway\nlocalhost:8080" as gateway
+component "Users\nlocalhost:7002" as users
+component "Products (write)\nlocalhost:7003" as products
+component "Orders\nlocalhost:7004" as orders
+component "Payments (manual)\nlocalhost:7005" as payments
+component "Product View (read)\nlocalhost:7006" as view
+component "Product Synchronizer\nlocalhost:7007" as sync
+component "Keycloak\nLocal third-party OIDC provider\nlocalhost:8180" as keycloak
+database "Keycloak PostgreSQL\nPrivate identity store" as identityDb
+queue "RabbitMQ\naj.events (topic exchange)\naj.users / aj.products / aj.orders / aj.payments / aj.product-sync\naj.dead (dead letters)" as rabbit
+database "Users PostgreSQL\nlocalhost:5433" as usersDb
+database "Products PostgreSQL\nlocalhost:5434" as productsDb
+database "Orders PostgreSQL\nlocalhost:5435" as ordersDb
+database "Payments PostgreSQL\nlocalhost:5436" as paymentsDb
+database "Product View MongoDB\nPrivate product-view-data network\nproduct_view.products" as mongo
+
+customer --> frontend : Browser
+frontend --> gateway : HTTP /api/v1/*
+frontend --> keycloak : OIDC Code + PKCE / SSO / logout
+gateway --> keycloak : JWKS / discovery
+keycloak --> identityDb : Own identity data
+gateway --> users : HTTP users
+gateway --> products : HTTP POST / PUT / DELETE products
+gateway --> view : HTTP GET products
+gateway --> orders : HTTP orders + user orders
+gateway --> payments : HTTP payments + order payments
+gateway --> sync : HTTP /health (status only)
+users --> usersDb : JPA + outbox/inbox
+products --> productsDb : JPA + outbox/inbox
+orders --> ordersDb : JPA + outbox/inbox
+payments --> paymentsDb : JPA + outbox/inbox
+view --> mongo : Owned reads / versioned writes
+sync --> view : Internal HTTP projection API + service token
+users ..> rabbit : customer.valid / customer.invalid
+rabbit ..> users : customer.check
+orders ..> rabbit : customer.check / quantitycheck / order.cancelled\npayment.authorized / payment.rejected
+rabbit ..> payments : payment.authorized / payment.rejected
+rabbit ..> products : quantitycheck / order.cancelled\npaymentfail / payment.completed
+products ..> rabbit : quantityreserved / quantityrejected\nproduct.created / updated / reserved / removed
+rabbit ..> orders : customer.valid / invalid / quantityreserved / rejected\npayment.requested / paymentfail / payment.completed
+payments ..> rabbit : payment.requested / payment.completed / paymentfail
+rabbit ..> sync : product.*
+
+note bottom of frontend
+Frontend starts without backend dependencies.
+Status polling and retry messages support partial outages.
+Keycloak login is implemented; no Stripe.
+Business role/ownership enforcement remains SEC-01.
+end note
+note bottom of mongo
+Only Product View accesses the MongoDB read model.
+Synchronizer relays events through the owner's API.
+Each SQL service owns its own isolated database.
+GUID references cross service boundaries; no cross-database FKs.
+end note
+legend bottom
+Solid arrow: synchronous request / database access
+Dashed arrow: asynchronous RabbitMQ delivery
+service-common is a build library, not a running service.
+endlegend
+@enduml

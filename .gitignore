@@ -1,0 +1,11 @@
+**/target/
+.env
+*.log
+node_modules/
+test-results/
+__pycache__/
+
+backups/
+.env.*
+!*.example
+

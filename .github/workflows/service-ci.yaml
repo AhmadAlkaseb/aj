@@ -1,0 +1,41 @@
+name: Reusable service checks
+
+on:
+  workflow_call:
+    inputs:
+      service:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: ${{ inputs.service }} - unit and integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Unit tests (Surefire)
+        env:
+          SERVICE: ${{ inputs.service }}
+        run: mvn -B -ntp -pl "$SERVICE" -am test
+      - name: Integration tests and package (Failsafe)
+        env:
+          SERVICE: ${{ inputs.service }}
+        run: mvn -B -ntp -pl "$SERVICE" -am verify -DskipUnitTests=true
+      - name: Save test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.service }}-test-reports
+          path: |
+            **/target/surefire-reports/
+            **/target/failsafe-reports/
+          if-no-files-found: warn

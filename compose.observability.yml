@@ -1,0 +1,78 @@
+{
+  "name": "aj-monitoring",
+  "services": {
+    "prometheus": {
+      "image": "prom/prometheus:v3.2.1",
+      "ports": [
+        "127.0.0.1:9090:9090"
+      ],
+      "volumes": [
+        "./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro",
+        "./observability/alerts.yml:/etc/prometheus/alerts.yml:ro",
+        "prometheus-data:/prometheus"
+      ],
+      "networks": [
+        "backend"
+      ]
+    },
+    "loki": {
+      "image": "grafana/loki:3.4.2",
+      "command": [
+        "-config.file=/etc/loki/local-config.yaml"
+      ],
+      "ports": [
+        "127.0.0.1:3100:3100"
+      ],
+      "volumes": [
+        "./observability/loki.yml:/etc/loki/local-config.yaml:ro",
+        "loki-data:/loki"
+      ],
+      "networks": [
+        "backend"
+      ]
+    },
+    "alloy": {
+      "image": "grafana/alloy:v1.8.0",
+      "command": [
+        "run",
+        "/etc/alloy/config.alloy"
+      ],
+      "volumes": [
+        "./observability/alloy.alloy:/etc/alloy/config.alloy:ro",
+        "/var/run/docker.sock:/var/run/docker.sock:ro"
+      ],
+      "networks": [
+        "backend"
+      ]
+    },
+    "grafana": {
+      "image": "grafana/grafana:11.5.2",
+      "ports": [
+        "127.0.0.1:3001:3000"
+      ],
+      "environment": {
+        "GF_SECURITY_ADMIN_USER": "admin",
+        "GF_SECURITY_ADMIN_PASSWORD": "${GRAFANA_PASSWORD:-aj-monitoring-local}"
+      },
+      "volumes": [
+        "./observability/grafana:/etc/grafana/provisioning:ro",
+        "./observability/dashboard.json:/var/lib/grafana/dashboards/aj.json:ro",
+        "grafana-data:/var/lib/grafana"
+      ],
+      "networks": [
+        "backend"
+      ]
+    }
+  },
+  "volumes": {
+    "prometheus-data": {},
+    "loki-data": {},
+    "grafana-data": {}
+  },
+  "networks": {
+    "backend": {
+      "external": true,
+      "name": "aj-backend"
+    }
+  }
+}

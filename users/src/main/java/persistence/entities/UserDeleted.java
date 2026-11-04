@@ -34,7 +34,7 @@ public class UserDeleted {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     @ToString.Exclude
     private User user;
 

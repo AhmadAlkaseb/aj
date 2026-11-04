@@ -1,25 +1,66 @@
-services:
-  app:
-    build:
-      context: .
-    container_name: product-view-app
-    ports:
-      - "7000:7000"
-    environment:
-      PORT: "7000"
-      MONGO_URI: "mongodb://mongo:27017"
-      MONGO_DB: "product_view"
-    depends_on:
-      - mongo
-
-  mongo:
-    image: mongo:7
-    container_name: product-view-mongo
-    restart: unless-stopped
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
-
-volumes:
-  mongo-data:
+{
+  "name": "aj-product-view",
+  "services": {
+    "product-view": {
+      "build": {
+        "context": "..",
+        "dockerfile": "Dockerfile",
+        "args": {
+          "SERVICE": "product-view"
+        }
+      },
+      "image": "aj-product-view:local",
+      "restart": "unless-stopped",
+      "environment": {
+        "PORT": "7000",
+        "MONGO_URI": "mongodb://product-view-mongo:27017",
+        "MONGO_DB": "product_view",
+        "PROJECTION_API_TOKEN": "${PROJECTION_API_TOKEN:-aj-projection-local}"
+      },
+      "ports": [
+        "127.0.0.1:7006:7000"
+      ],
+      "networks": [
+        "backend",
+        "product-view-data"
+      ],
+      "depends_on": {
+        "product-view-mongo": {
+          "condition": "service_healthy"
+        }
+      }
+    },
+    "product-view-mongo": {
+      "image": "mongo:7",
+      "restart": "unless-stopped",
+      "volumes": [
+        "product-view-mongo-data:/data/db"
+      ],
+      "networks": [
+        "product-view-data"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "mongosh",
+          "--quiet",
+          "--eval",
+          "quit(db.adminCommand('ping').ok ? 0 : 1)"
+        ],
+        "interval": "5s",
+        "timeout": "5s",
+        "retries": 20
+      }
+    }
+  },
+  "volumes": {
+    "product-view-mongo-data": {}
+  },
+  "networks": {
+    "backend": {
+      "external": true,
+      "name": "aj-backend"
+    },
+    "product-view-data": {}
+  }
+}

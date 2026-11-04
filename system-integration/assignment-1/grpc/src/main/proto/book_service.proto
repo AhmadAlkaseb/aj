@@ -1,47 +1,34 @@
-// Angiver, at filen bruger proto3-syntaksen.
-syntax = "proto3";
+syntax = "proto3"; // Bruger version 3 af Protocol Buffers-sproget.
 
-// Definerer protobuf-navnerummet for services og messages.
-package org.example.book;
+package org.example.book; // Angiver navnerummet og her også pakken til den genererede Java-kode.
+option java_multiple_files = true; // Genererer en separat Java-fil for hver beskedtype.
+option java_outer_classname = "BookServiceProto"; // Navngiver Java-klassen med protofilens beskrivelse.
 
-// Genererer hver protobuf-type i sin egen Java-fil.
-option java_multiple_files = true;
-// Angiver navnet på den ydre Java-klasse, hvis der genereres en.
-option java_outer_classname = "BookServiceProto";
-
-// Tilbyder funktioner til at hente, oprette og overvåge bøger.
+// To unary-kald og ét abonnement på nye bøger.
 service BookService {
-  // Returnerer bogen med det ønskede ID.
-  rpc getBookById(GetBookByIdRequest) returns (Book);
-
-  // Opretter en bog og returnerer den nyoprettede bog.
-  rpc createBook(CreateBookRequest) returns (CreateBookResponse);
-
-  // Sender først alle eksisterende bøger og holder derefter forbindelsen åben
-  // for nye bøger, der oprettes.
-  rpc watchBooks(WatchBooksRequest) returns (stream Book);
+  rpc GetBookById(GetBookByIdRequest) returns (Book);
+  rpc CreateBook(CreateBookRequest) returns (CreateBookResponse);
+  rpc WatchBooks(WatchBooksRequest) returns (stream Book);
 }
 
-// En bog i kataloget.
+// Oplysningerne, der sendes om en bog.
 message Book {
-  // Bogens unikke ID.
   int64 id = 1;
-  // Bogens navn.
   string name = 2;
-  // ID på bogens forfatter.
   int64 author_id = 3;
-  // ID på bogens forlag.
   int64 publisher_id = 4;
-  // Året, hvor bogen blev udgivet.
   int32 publication_year = 5;
 }
 
-// Forespørgsel efter en bog via dens ID.
+// Tilmelding kræver ingen parametre.
+message WatchBooksRequest {}
+
+// Bog-ID til opslag.
 message GetBookByIdRequest {
   int64 book_id = 1;
 }
 
-// Oplysninger, der kræves for at oprette en bog.
+// Oplysninger til oprettelse; serveren tildeler selv ID.
 message CreateBookRequest {
   string name = 1;
   int64 author_id = 2;
@@ -49,10 +36,7 @@ message CreateBookRequest {
   int32 publication_year = 4;
 }
 
-// Resultat, der returneres efter oprettelse af en bog.
+// Den oprettede bog inklusive dens nye ID.
 message CreateBookResponse {
   Book book = 1;
 }
-
-// Abonnementsforespørgsel for at modtage nyoprettede bøger.
-message WatchBooksRequest {}

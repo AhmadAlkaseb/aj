@@ -1,151 +1,94 @@
 package org.example.book;
 
-import org.apache.dubbo.common.stream.StreamObserver;
-import org.apache.dubbo.config.ReferenceConfig;
-import org.apache.dubbo.config.bootstrap.DubboBootstrap;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 
 import java.util.Scanner;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.TimeUnit;
 
 public final class BookClient {
-    public static void main(String[] args) {
-        BookService service;
-        try {
-            ReferenceConfig<BookService> reference = new ReferenceConfig<>();
-            reference.setInterface(BookService.class);
-            reference.setUrl("tri://localhost:50052");
-            DubboBootstrap.getInstance().reference(reference).start();
-            service = reference.get();
-        } catch (RuntimeException exception) {
-            System.out.println("Serveren er ikke tilgængelig.");
-            return;
-        }
 
-        AtomicBoolean streaming = new AtomicBoolean();
+    // Start uden argumenter, eller brug Run i editoren:
+    // mvn -q exec:java "-Dexec.mainClass=org.example.book.BookClient"
+    // Skriv get, create eller watch. Klienten spørger selv efter oplysningerne.
+    public static void main(String[] args) {
+        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50052)
+                .usePlaintext()
+                .build();
+        Runtime.getRuntime().addShutdownHook(new Thread(channel::shutdownNow));
 
         try (Scanner scanner = new Scanner(System.in)) {
-            boolean running = true;
-            while (running) {
-                System.out.println("\n1. Opret en bog\n2. Find en bog\n3. Stream bøger\n4. Luk");
-                System.out.print("Vælg: ");
-                switch (scanner.nextLine()) {
-                    case "1" -> createBook(scanner, service);
-                    case "2" -> findBook(scanner, service);
-                    case "3" -> startStream(service, streaming);
-                    case "4" -> running = false;
-                    default -> System.out.println("Ugyldigt valg.");
-                }
+            var service = BookServiceGrpc.newBlockingStub(channel);
+            String command = readInput(scanner, "Skriv get, create eller watch:");
+
+            switch (command) {
+                case "get" -> getBook(scanner, service);
+                case "create" -> createBook(scanner, service);
+                case "watch" -> watchBooks(service);
+                default -> System.out.println("Ukendt kommando.");
+            }
+        } catch (NumberFormatException exception) {
+            System.out.println("ID og år skal være hele tal.");
+        } catch (StatusRuntimeException exception) {
+            if (exception.getStatus().getCode() == Status.Code.NOT_FOUND) {
+                System.out.println("Ikke fundet");
+            } else if (exception.getStatus().getCode() == Status.Code.UNAVAILABLE) {
+                System.out.println("Serveren er ikke tilgængelig.");
+            } else {
+                System.out.println("Fejl: " + exception.getStatus().getDescription());
             }
         } finally {
-            streaming.set(false);
-            DubboBootstrap.getInstance().stop();
+            channel.shutdownNow();
         }
     }
 
-    private static void createBook(Scanner scanner, BookService service) {
-        System.out.print("Skriv bogtitel: ");
-        String name = scanner.nextLine().trim();
-        if (name.isBlank()) {
-            System.out.println("Bogen skal have en titel.");
-            return;
-        }
+    // Spørger efter ID, henter bogen og viser svaret.
+    private static void getBook(Scanner scanner, BookServiceGrpc.BookServiceBlockingStub service) {
+        long id = Long.parseLong(readInput(scanner, "Bog-ID:"));
+        var request = GetBookByIdRequest.newBuilder().setBookId(id).build();
+        Book book = service.withDeadlineAfter(5, TimeUnit.SECONDS).getBookById(request);
+        printBook(book);
+    }
 
-        System.out.print("Skriv forfatter-ID: ");
-        long authorId;
-        try {
-            authorId = Long.parseLong(scanner.nextLine().trim());
-            if (authorId <= 0) {
-                System.out.println("Forfatter-ID skal være større end 0.");
-                return;
-            }
-        } catch (NumberFormatException exception) {
-            System.out.println("Forfatter-ID skal være et helt tal.");
-            return;
-        }
+    // Spørger efter bogens oplysninger og sender dem til serveren.
+    private static void createBook(Scanner scanner, BookServiceGrpc.BookServiceBlockingStub service) {
+        String title = readInput(scanner, "Bogtitel:");
+        long authorId = Long.parseLong(readInput(scanner, "Forfatter-ID:"));
+        long publisherId = Long.parseLong(readInput(scanner, "Forlag-ID:"));
+        int year = Integer.parseInt(readInput(scanner, "Udgivelsesår:"));
 
-        System.out.print("Skriv forlag-ID: ");
-        long publisherId;
-        try {
-            publisherId = Long.parseLong(scanner.nextLine().trim());
-            if (publisherId <= 0) {
-                System.out.println("Forlag-ID skal være større end 0.");
-                return;
-            }
-        } catch (NumberFormatException exception) {
-            System.out.println("Forlag-ID skal være et helt tal.");
-            return;
-        }
+        var request = CreateBookRequest.newBuilder()
+                .setName(title)
+                .setAuthorId(authorId)
+                .setPublisherId(publisherId)
+                .setPublicationYear(year)
+                .build();
+        var response = service.withDeadlineAfter(5, TimeUnit.SECONDS).createBook(request);
+        System.out.println("Oprettet:");
+        printBook(response.getBook());
+    }
 
-        System.out.print("Skriv udgivelsesår: ");
-        int publicationYear;
-        try {
-            publicationYear = Integer.parseInt(scanner.nextLine().trim());
-            if (publicationYear <= 0) {
-                System.out.println("Udgivelsesåret skal være større end 0.");
-                return;
-            }
-        } catch (NumberFormatException exception) {
-            System.out.println("Udgivelsesåret skal være et helt tal.");
-            return;
-        }
-
-        try {
-            Book book = service.createBook(CreateBookRequest.newBuilder()
-                    .setName(name)
-                    .setAuthorId(authorId)
-                    .setPublisherId(publisherId)
-                    .setPublicationYear(publicationYear)
-                    .build()).getBook();
-            System.out.println("Oprettet: " + book);
-        } catch (RuntimeException exception) {
-            System.out.println("Bogen kunne ikke oprettes.");
+    // Holder abonnementet åbent og viser nye bøger, indtil klienten stoppes med Ctrl+C.
+    private static void watchBooks(BookServiceGrpc.BookServiceBlockingStub service) {
+        System.out.println("Abonnerer på nye bøger. Stop med Ctrl+C.");
+        // Ingen tidsgrænse: vi skal kunne vente på fremtidige bøger.
+        var books = service.watchBooks(WatchBooksRequest.getDefaultInstance());
+        while (books.hasNext()) {
+            printBook(books.next());
         }
     }
 
-    private static void findBook(Scanner scanner, BookService service) {
-        System.out.print("Skriv bog-ID: ");
-        try {
-            Book book = service.getBookById(GetBookByIdRequest.newBuilder()
-                    .setBookId(Long.parseLong(scanner.nextLine()))
-                    .build());
-            System.out.println("Fundet: " + book);
-        } catch (NumberFormatException exception) {
-            System.out.println("ID skal være et tal.");
-        } catch (RuntimeException exception) {
-            System.out.println("Bogen blev ikke fundet.");
-        }
+    // Viser et spørgsmål og læser svaret fra terminalen.
+    private static String readInput(Scanner scanner, String question) {
+        System.out.println(question);
+        return scanner.nextLine().trim();
     }
 
-    private static void startStream(
-            BookService service,
-            AtomicBoolean streaming) {
-        if (!streaming.compareAndSet(false, true)) {
-            System.out.println("Streaming kører allerede.");
-            return;
-        }
-
-        try {
-            service.watchBooks(WatchBooksRequest.getDefaultInstance(), new StreamObserver<>() {
-                @Override
-                public void onNext(Book book) {
-                    System.out.println("\nStream modtog: " + book);
-                }
-
-                @Override
-                public void onError(Throwable throwable) {
-                    streaming.set(false);
-                    System.out.println("Streaming stoppet.");
-                }
-
-                @Override
-                public void onCompleted() {
-                    streaming.set(false);
-                }
-            });
-            System.out.println("Streaming startet. Opret bøger manuelt med valg 1.");
-        } catch (RuntimeException exception) {
-            streaming.set(false);
-            System.out.println("Streaming kunne ikke startes.");
-        }
+    // Udskriver bogens oplysninger på én linje.
+    private static void printBook(Book book) {
+        System.out.printf("%d: %s (år: %d, forfatter-ID: %d, forlag-ID: %d)%n",
+                book.getId(), book.getName(), book.getPublicationYear(), book.getAuthorId(), book.getPublisherId());
     }
 }

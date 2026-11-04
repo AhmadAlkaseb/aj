@@ -1,0 +1,22 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.aj</groupId><artifactId>aj-platform</artifactId><version>1.0.0</version><packaging>pom</packaging>
+  <modules><module>service-common</module><module>users</module><module>products</module><module>orders</module><module>payments</module><module>product-view</module><module>product-synchronizer</module><module>apigateway</module><module>frontend</module><module>confirmation-job</module></modules>
+  <properties><maven.compiler.release>17</maven.compiler.release><project.build.sourceEncoding>UTF-8</project.build.sourceEncoding><skipTests>false</skipTests><skipUnitTests>${skipTests}</skipUnitTests></properties>
+  <dependencyManagement><dependencies>
+    <dependency><groupId>com.fasterxml.jackson</groupId><artifactId>jackson-bom</artifactId><version>2.18.3</version><type>pom</type><scope>import</scope></dependency>
+  </dependencies></dependencyManagement>
+  <build><pluginManagement><plugins>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.13.0</version></plugin>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.5.2</version><configuration><skipTests>${skipUnitTests}</skipTests></configuration></plugin>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-failsafe-plugin</artifactId><version>3.5.2</version><executions><execution><goals><goal>integration-test</goal><goal>verify</goal></goals></execution></executions></plugin>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-shade-plugin</artifactId><version>3.6.0</version><executions><execution><phase>package</phase><goals><goal>shade</goal></goals><configuration>
+      <createDependencyReducedPom>false</createDependencyReducedPom><filters><filter><artifact>*:*</artifact><excludes><exclude>META-INF/*.SF</exclude><exclude>META-INF/*.RSA</exclude><exclude>META-INF/*.DSA</exclude></excludes></filter></filters>
+      <transformers><transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/><transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"><mainClass>${app.main}</mainClass></transformer></transformers>
+    </configuration></execution></executions></plugin>
+  </plugins></pluginManagement><plugins><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-failsafe-plugin</artifactId></plugin></plugins></build>
+<profiles><profile><id>quality</id><build><plugins>
+<plugin><groupId>com.github.spotbugs</groupId><artifactId>spotbugs-maven-plugin</artifactId><version>4.9.3.0</version>
+<configuration><effort>Max</effort><threshold>High</threshold><failOnError>true</failOnError><xmlOutput>true</xmlOutput></configuration>
+<executions><execution><phase>verify</phase><goals><goal>check</goal></goals></execution></executions></plugin>
+</plugins></build></profile></profiles></project>

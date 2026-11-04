@@ -40,14 +40,14 @@ public final class HibernateUtil {
 
         Properties properties = new Properties();
         properties.setProperty("hibernate.connection.driver_class", driver);
-        properties.setProperty("hibernate.connection.url", url);
+        properties.setProperty("hibernate.connection.url", h2 ? url + ";NON_KEYWORDS=YEAR" : url);
         properties.setProperty("hibernate.connection.username", user);
         properties.setProperty("hibernate.connection.password", password);
         properties.setProperty("hibernate.dialect", h2 ? "org.hibernate.dialect.H2Dialect" : "org.hibernate.dialect.PostgreSQLDialect");
         properties.setProperty("hibernate.hbm2ddl.auto", h2 ? "create-drop" : "update");
         properties.setProperty("hibernate.show_sql", "false");
         properties.setProperty("hibernate.format_sql", "true");
-        properties.setProperty("hibernate.default_schema", "public");
+        properties.setProperty("hibernate.default_schema", h2 ? "PUBLIC" : "public");
         properties.setProperty("hibernate.jdbc.time_zone", "UTC");
 
         Configuration configuration = new Configuration();

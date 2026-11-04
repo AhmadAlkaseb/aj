@@ -34,7 +34,7 @@ public class PaymentDeleted {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "payment_id", nullable = false)
+    @JoinColumn(name = "payment_id", nullable = false, unique = true)
     @ToString.Exclude
     private Payment payment;
 

@@ -1,0 +1,14 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"><modelVersion>4.0.0</modelVersion><parent><groupId>com.aj</groupId><artifactId>aj-platform</artifactId><version>1.0.0</version></parent><artifactId>service-common</artifactId>
+<dependencies>
+  <dependency><groupId>org.flywaydb</groupId><artifactId>flyway-core</artifactId><version>10.21.0</version></dependency>
+  <dependency><groupId>org.flywaydb</groupId><artifactId>flyway-database-postgresql</artifactId><version>10.21.0</version></dependency>
+  <dependency><groupId>com.nimbusds</groupId><artifactId>nimbus-jose-jwt</artifactId><version>10.6</version></dependency>
+  <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><version>5.11.4</version><scope>test</scope></dependency>
+  <dependency><groupId>io.javalin</groupId><artifactId>javalin</artifactId><version>6.7.0</version></dependency>
+  <dependency><groupId>com.fasterxml.jackson.core</groupId><artifactId>jackson-databind</artifactId></dependency>
+  <dependency><groupId>com.fasterxml.jackson.datatype</groupId><artifactId>jackson-datatype-jsr310</artifactId></dependency>
+  <dependency><groupId>org.hibernate.orm</groupId><artifactId>hibernate-core</artifactId><version>6.6.13.Final</version></dependency>
+  <dependency><groupId>org.postgresql</groupId><artifactId>postgresql</artifactId><version>42.7.5</version></dependency>
+  <dependency><groupId>com.rabbitmq</groupId><artifactId>amqp-client</artifactId><version>5.25.0</version></dependency>
+  <dependency><groupId>org.slf4j</groupId><artifactId>slf4j-simple</artifactId><version>2.0.17</version></dependency>
+</dependencies></project>

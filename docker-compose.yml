@@ -1,15 +1,519 @@
-services:
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: services-pgadmin
-    restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "5051:80"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-
-volumes:
-  pgadmin_data:
+{
+  "name": "aj",
+  "services": {
+    "rabbitmq": {
+      "image": "rabbitmq:4.1-management-alpine",
+      "restart": "unless-stopped",
+      "environment": {
+        "RABBITMQ_DEFAULT_USER": "aj",
+        "RABBITMQ_DEFAULT_PASS": "aj-local",
+        "RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS": "-rabbitmq_prometheus return_per_object_metrics true"
+      },
+      "ports": [
+        "127.0.0.1:5672:5672",
+        "127.0.0.1:15672:15672"
+      ],
+      "volumes": [
+        "rabbitmq-data:/var/lib/rabbitmq"
+      ],
+      "networks": [
+        "backend"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "rabbitmq-diagnostics",
+          "-q",
+          "ping"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 10
+      },
+      "command": [
+        "/bin/sh",
+        "-c",
+        "rabbitmq-plugins enable --offline rabbitmq_prometheus && exec rabbitmq-server"
+      ]
+    },
+    "users-db": {
+      "image": "postgres:16-alpine",
+      "restart": "unless-stopped",
+      "environment": {
+        "POSTGRES_DB": "users",
+        "POSTGRES_USER": "postgres",
+        "POSTGRES_PASSWORD": "postgres"
+      },
+      "ports": [
+        "127.0.0.1:5433:5432"
+      ],
+      "volumes": [
+        "users-postgres-data:/var/lib/postgresql/data"
+      ],
+      "networks": [
+        "users-data"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U postgres -d users"
+        ],
+        "interval": "5s",
+        "timeout": "3s",
+        "retries": 20
+      }
+    },
+    "users": {
+      "build": {
+        "context": ".",
+        "dockerfile": "Dockerfile",
+        "args": {
+          "SERVICE": "users"
+        }
+      },
+      "image": "aj-users:local",
+      "restart": "unless-stopped",
+      "environment": {
+        "PORT": "7000",
+        "DB_URL": "jdbc:postgresql://users-db:5432/users",
+        "DB_USER": "postgres",
+        "DB_PASSWORD": "postgres",
+        "RABBITMQ_URL": "amqp://aj:aj-local@rabbitmq:5672/%2f",
+        "DEMO_DATA_ENABLED": "${DEMO_DATA_ENABLED:-true}",
+        "OIDC_ISSUER": "http://localhost:8180/realms/aj",
+        "OIDC_JWKS_URL": "http://keycloak:8180/realms/aj/protocol/openid-connect/certs",
+        "DB_BASELINE_EXISTING": "true"
+      },
+      "ports": [
+        "127.0.0.1:7002:7000"
+      ],
+      "networks": [
+        "backend",
+        "users-data"
+      ],
+      "depends_on": {
+        "users-db": {
+          "condition": "service_healthy"
+        }
+      }
+    },
+    "products-db": {
+      "image": "postgres:16-alpine",
+      "restart": "unless-stopped",
+      "environment": {
+        "POSTGRES_DB": "products",
+        "POSTGRES_USER": "postgres",
+        "POSTGRES_PASSWORD": "postgres"
+      },
+      "ports": [
+        "127.0.0.1:5434:5432"
+      ],
+      "volumes": [
+        "products-postgres-data:/var/lib/postgresql/data"
+      ],
+      "networks": [
+        "products-data"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U postgres -d products"
+        ],
+        "interval": "5s",
+        "timeout": "3s",
+        "retries": 20
+      }
+    },
+    "products": {
+      "build": {
+        "context": ".",
+        "dockerfile": "Dockerfile",
+        "args": {
+          "SERVICE": "products"
+        }
+      },
+      "image": "aj-products:local",
+      "restart": "unless-stopped",
+      "environment": {
+        "PORT": "7000",
+        "DB_URL": "jdbc:postgresql://products-db:5432/products",
+        "DB_USER": "postgres",
+        "DB_PASSWORD": "postgres",
+        "RABBITMQ_URL": "amqp://aj:aj-local@rabbitmq:5672/%2f",
+        "DEMO_DATA_ENABLED": "${DEMO_DATA_ENABLED:-true}",
+        "OIDC_ISSUER": "http://localhost:8180/realms/aj",
+        "OIDC_JWKS_URL": "http://keycloak:8180/realms/aj/protocol/openid-connect/certs",
+        "DB_BASELINE_EXISTING": "true",
+        "OLLAMA_URL": "${OLLAMA_URL:-http://host.docker.internal:11434}",
+        "OLLAMA_MODEL": "${OLLAMA_MODEL:-llama3.2:3b}"
+      },
+      "ports": [
+        "127.0.0.1:7003:7000"
+      ],
+      "networks": [
+        "backend",
+        "products-data"
+      ],
+      "depends_on": {
+        "products-db": {
+          "condition": "service_healthy"
+        }
+      }
+    },
+    "orders-db": {
+      "image": "postgres:16-alpine",
+      "restart": "unless-stopped",
+      "environment": {
+        "POSTGRES_DB": "orders",
+        "POSTGRES_USER": "postgres",
+        "POSTGRES_PASSWORD": "postgres"
+      },
+      "ports": [
+        "127.0.0.1:5435:5432"
+      ],
+      "volumes": [
+        "orders-postgres-data:/var/lib/postgresql/data"
+      ],
+      "networks": [
+        "orders-data"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U postgres -d orders"
+        ],
+        "interval": "5s",
+        "timeout": "3s",
+        "retries": 20
+      }
+    },
+    "orders": {
+      "build": {
+        "context": ".",
+        "dockerfile": "Dockerfile",
+        "args": {
+          "SERVICE": "orders"
+        }
+      },
+      "image": "aj-orders:local",
+      "restart": "unless-stopped",
+      "environment": {
+        "PORT": "7000",
+        "DB_URL": "jdbc:postgresql://orders-db:5432/orders",
+        "DB_USER": "postgres",
+        "DB_PASSWORD": "postgres",
+        "RABBITMQ_URL": "amqp://aj:aj-local@rabbitmq:5672/%2f",
+        "DEMO_DATA_ENABLED": "${DEMO_DATA_ENABLED:-true}",
+        "OIDC_ISSUER": "http://localhost:8180/realms/aj",
+        "OIDC_JWKS_URL": "http://keycloak:8180/realms/aj/protocol/openid-connect/certs",
+        "DB_BASELINE_EXISTING": "true",
+        "CONFIRMATION_TOKEN": "${CONFIRMATION_TOKEN:-aj-confirmation-local}"
+      },
+      "ports": [
+        "127.0.0.1:7004:7000"
+      ],
+      "networks": [
+        "backend",
+        "orders-data"
+      ],
+      "depends_on": {
+        "orders-db": {
+          "condition": "service_healthy"
+        }
+      }
+    },
+    "payments-db": {
+      "image": "postgres:16-alpine",
+      "restart": "unless-stopped",
+      "environment": {
+        "POSTGRES_DB": "payments",
+        "POSTGRES_USER": "postgres",
+        "POSTGRES_PASSWORD": "postgres"
+      },
+      "ports": [
+        "127.0.0.1:5436:5432"
+      ],
+      "volumes": [
+        "payments-postgres-data:/var/lib/postgresql/data"
+      ],
+      "networks": [
+        "payments-data"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U postgres -d payments"
+        ],
+        "interval": "5s",
+        "timeout": "3s",
+        "retries": 20
+      }
+    },
+    "payments": {
+      "build": {
+        "context": ".",
+        "dockerfile": "Dockerfile",
+        "args": {
+          "SERVICE": "payments"
+        }
+      },
+      "image": "aj-payments:local",
+      "restart": "unless-stopped",
+      "environment": {
+        "PORT": "7000",
+        "DB_URL": "jdbc:postgresql://payments-db:5432/payments",
+        "DB_USER": "postgres",
+        "DB_PASSWORD": "postgres",
+        "RABBITMQ_URL": "amqp://aj:aj-local@rabbitmq:5672/%2f",
+        "DEMO_DATA_ENABLED": "${DEMO_DATA_ENABLED:-true}",
+        "OIDC_ISSUER": "http://localhost:8180/realms/aj",
+        "OIDC_JWKS_URL": "http://keycloak:8180/realms/aj/protocol/openid-connect/certs",
+        "DB_BASELINE_EXISTING": "true"
+      },
+      "ports": [
+        "127.0.0.1:7005:7000"
+      ],
+      "networks": [
+        "backend",
+        "payments-data"
+      ],
+      "depends_on": {
+        "payments-db": {
+          "condition": "service_healthy"
+        }
+      }
+    },
+    "product-view-mongo": {
+      "image": "mongo:7",
+      "restart": "unless-stopped",
+      "volumes": [
+        "product-view-mongo-data:/data/db"
+      ],
+      "networks": [
+        "product-view-data"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "mongosh",
+          "--quiet",
+          "--eval",
+          "quit(db.adminCommand('ping').ok ? 0 : 1)"
+        ],
+        "interval": "5s",
+        "timeout": "5s",
+        "retries": 20
+      }
+    },
+    "product-view": {
+      "build": {
+        "context": ".",
+        "dockerfile": "Dockerfile",
+        "args": {
+          "SERVICE": "product-view"
+        }
+      },
+      "image": "aj-product-view:local",
+      "restart": "unless-stopped",
+      "environment": {
+        "PORT": "7000",
+        "MONGO_URI": "mongodb://product-view-mongo:27017",
+        "MONGO_DB": "product_view",
+        "PROJECTION_API_TOKEN": "${PROJECTION_API_TOKEN:-aj-projection-local}"
+      },
+      "ports": [
+        "127.0.0.1:7006:7000"
+      ],
+      "networks": [
+        "backend",
+        "product-view-data"
+      ],
+      "depends_on": {
+        "product-view-mongo": {
+          "condition": "service_healthy"
+        }
+      }
+    },
+    "product-synchronizer": {
+      "build": {
+        "context": ".",
+        "dockerfile": "Dockerfile",
+        "args": {
+          "SERVICE": "product-synchronizer"
+        }
+      },
+      "image": "aj-product-synchronizer:local",
+      "restart": "unless-stopped",
+      "environment": {
+        "PORT": "7000",
+        "RABBITMQ_URL": "amqp://aj:aj-local@rabbitmq:5672/%2f",
+        "PRODUCT_VIEW_URL": "http://product-view:7000",
+        "PROJECTION_API_TOKEN": "${PROJECTION_API_TOKEN:-aj-projection-local}"
+      },
+      "ports": [
+        "127.0.0.1:7007:7000"
+      ],
+      "networks": [
+        "backend"
+      ]
+    },
+    "apigateway": {
+      "build": {
+        "context": ".",
+        "dockerfile": "Dockerfile",
+        "args": {
+          "SERVICE": "apigateway"
+        }
+      },
+      "image": "aj-apigateway:local",
+      "restart": "unless-stopped",
+      "environment": {
+        "PORT": "7000",
+        "OIDC_ISSUER": "http://localhost:8180/realms/aj",
+        "OIDC_JWKS_URL": "http://keycloak:8180/realms/aj/protocol/openid-connect/certs",
+        "KEYCLOAK_URL": "http://keycloak:8180"
+      },
+      "ports": [
+        "127.0.0.1:8080:7000"
+      ],
+      "networks": [
+        "backend",
+        "edge"
+      ]
+    },
+    "frontend": {
+      "build": {
+        "context": ".",
+        "dockerfile": "Dockerfile",
+        "args": {
+          "SERVICE": "frontend"
+        }
+      },
+      "image": "aj-frontend:local",
+      "restart": "unless-stopped",
+      "environment": {
+        "PORT": "7000",
+        "GATEWAY_URL": "http://apigateway:7000"
+      },
+      "ports": [
+        "127.0.0.1:3000:7000"
+      ],
+      "networks": [
+        "edge"
+      ]
+    },
+    "keycloak-db": {
+      "image": "postgres:16-alpine",
+      "restart": "unless-stopped",
+      "environment": {
+        "POSTGRES_DB": "keycloak",
+        "POSTGRES_USER": "keycloak",
+        "POSTGRES_PASSWORD": "keycloak-local"
+      },
+      "volumes": [
+        "keycloak-postgres-data:/var/lib/postgresql/data"
+      ],
+      "networks": [
+        "identity-data"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U keycloak -d keycloak"
+        ],
+        "interval": "5s",
+        "timeout": "3s",
+        "retries": 20
+      }
+    },
+    "keycloak": {
+      "image": "quay.io/keycloak/keycloak:26.8.1",
+      "command": [
+        "start-dev",
+        "--import-realm"
+      ],
+      "restart": "unless-stopped",
+      "environment": {
+        "KC_DB": "postgres",
+        "KC_DB_URL": "jdbc:postgresql://keycloak-db:5432/keycloak",
+        "KC_DB_USERNAME": "keycloak",
+        "KC_DB_PASSWORD": "keycloak-local",
+        "KC_BOOTSTRAP_ADMIN_USERNAME": "keycloak-admin",
+        "KC_BOOTSTRAP_ADMIN_PASSWORD": "KeycloakAdmin123!",
+        "KC_HTTP_PORT": "8180",
+        "KC_HOSTNAME": "http://localhost:8180",
+        "KC_HEALTH_ENABLED": "true"
+      },
+      "ports": [
+        "127.0.0.1:8180:8180"
+      ],
+      "volumes": [
+        "./identity/aj-realm.json:/opt/keycloak/data/import/aj-realm.json:ro"
+      ],
+      "networks": [
+        "backend",
+        "identity-data"
+      ],
+      "depends_on": {
+        "keycloak-db": {
+          "condition": "service_healthy"
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "bash -c 'exec 3<>/dev/tcp/127.0.0.1/9000; printf \"GET /health/ready HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "start_period": "90s",
+        "retries": 15
+      }
+    },
+    "confirmation-job": {
+      "profiles": [
+        "jobs"
+      ],
+      "build": {
+        "context": ".",
+        "dockerfile": "Dockerfile",
+        "args": {
+          "SERVICE": "confirmation-job"
+        }
+      },
+      "image": "aj-confirmation-job:local",
+      "restart": "no",
+      "environment": {
+        "RABBITMQ_URL": "amqp://aj:aj-local@rabbitmq:5672/%2f",
+        "ORDERS_URL": "http://orders:7000",
+        "CONFIRMATION_TOKEN": "${CONFIRMATION_TOKEN:-aj-confirmation-local}"
+      },
+      "networks": [
+        "backend"
+      ]
+    }
+  },
+  "volumes": {
+    "rabbitmq-data": {},
+    "users-postgres-data": {},
+    "products-postgres-data": {},
+    "orders-postgres-data": {},
+    "payments-postgres-data": {},
+    "product-view-mongo-data": {},
+    "keycloak-postgres-data": {}
+  },
+  "networks": {
+    "backend": {
+      "name": "aj-backend"
+    },
+    "edge": {
+      "name": "aj-edge"
+    },
+    "users-data": {},
+    "products-data": {},
+    "orders-data": {},
+    "payments-data": {},
+    "identity-data": {},
+    "product-view-data": {}
+  }
+}

@@ -27,6 +27,22 @@ import java.time.Instant;
 @Builder
 public class ProductDetail {
 
+    @jakarta.persistence.Version
+    private long version;
+
+    @Column(name = "reserved_order_guid")
+    private java.util.UUID reservedOrderGuid;
+
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "equipment", columnDefinition = "jsonb")
+    @Builder.Default
+    private java.util.List<String> equipment = new java.util.ArrayList<>();
+
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "images", columnDefinition = "jsonb")
+    @Builder.Default
+    private java.util.List<String> images = new java.util.ArrayList<>();
+
     @Id
     @Column(name = "product_id")
     private Long productId;
@@ -49,7 +65,7 @@ public class ProductDetail {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "price", precision = 10, scale = 2)
+    @Column(name = "price", precision = 12, scale = 2)
     private BigDecimal price;
 
     @Column(name = "currency")

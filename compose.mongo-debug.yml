@@ -1,0 +1,6 @@
+# Optional operator access for local JVM development; not part of normal startup.
+# docker compose -f docker-compose.yml -f compose.mongo-debug.yml up -d
+services:
+  product-view-mongo:
+    ports:
+      - "127.0.0.1:27018:27017"

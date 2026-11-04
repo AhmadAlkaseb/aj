@@ -1,0 +1,162 @@
+@startuml
+!pragma layout smetana
+title AJ Motors - API Contracts (implemented endpoints and request bodies)
+hide circle
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam defaultFontName SansSerif
+left to right direction
+
+interface "Users API" as users {
+  POST /api/v1/users : UserWrite
+  GET /api/v1/users
+  GET /api/v1/users/{userGuid}
+  PUT /api/v1/users/{userGuid} : UserWrite
+  DELETE /api/v1/users/{userGuid}
+}
+class UserWrite <<request>> {
+  firstName : String (required)
+  lastName : String (required)
+  email : String (required, unique)
+  phoneNumber : String
+  address : String
+  postalCode : String
+  city : String
+}
+users ..> UserWrite
+
+interface "Products API" as products {
+  POST /api/v1/products : ProductWrite
+  GET /api/v1/products
+  GET /api/v1/products?status=AVAILABLE
+  GET /api/v1/products/{productGuid}
+  PUT /api/v1/products/{productGuid} : ProductWrite
+  DELETE /api/v1/products/{productGuid}
+}
+class ProductWrite <<request>> {
+  brand : String (required)
+  model : String (required)
+  year : Integer
+  description : String
+  price : Decimal (required, >= 0, scale <= 2)
+  currency : ISO-4217 String (default DKK)
+  status : AVAILABLE | UNAVAILABLE
+  mileage : Integer
+  color : String
+  fuelType : String
+  transmission : String
+  engine : Engine
+  performance : Performance
+  dimensions : Dimensions
+  equipment : String[]
+  images : String[]
+}
+class Engine {
+  type : String
+  powerHp : Integer
+  capacityLiters : Decimal
+}
+class Performance {
+  topSpeedKmh : Integer
+  zeroTo100 : Decimal
+}
+class Dimensions {
+  length : Integer (mm)
+  width : Integer (mm)
+  height : Integer (mm)
+}
+products ..> ProductWrite
+ProductWrite *-- Engine
+ProductWrite *-- Performance
+ProductWrite *-- Dimensions
+note bottom of products
+  Gateway GET -> Product View / MongoDB.
+  Writes -> Products / PostgreSQL.
+  RESERVED and SOLD are managed by events.
+  PUT replaces editable fields; updates/deletes
+  of reserved or sold cars return 409.
+end note
+
+interface "Orders API" as orders {
+  POST /api/v1/orders : OrderCreate
+  GET /api/v1/orders
+  GET /api/v1/orders/{orderGuid}
+  GET /api/v1/users/{userGuid}/orders
+  PUT /api/v1/orders/{orderGuid} : OrderUpdate
+  DELETE /api/v1/orders/{orderGuid}
+}
+class OrderCreate <<request>> {
+  userGuid : UUID (required)
+  productGuid : UUID (required)
+  shippingAddress : String (required)
+  notes : String
+}
+class OrderUpdate <<request>> {
+  shippingAddress : String (optional)
+  notes : String (optional)
+  status : CANCELLED (optional)
+}
+orders ..> OrderCreate
+orders ..> OrderUpdate
+note bottom of orders
+  One order = one car.
+  Amount/currency come from Products, not the client.
+  Creation is PENDING; reservation completes asynchronously.
+  Only PENDING/RESERVING/RESERVED can be manually edited or cancelled.
+end note
+
+interface "Payments API" as payments {
+  POST /api/v1/payments : PaymentCreate
+  GET /api/v1/payments
+  GET /api/v1/payments/{paymentGuid}
+  GET /api/v1/orders/{orderGuid}/payments
+  PUT /api/v1/payments/{paymentGuid} : PaymentUpdate
+}
+class PaymentCreate <<request>> {
+  orderGuid : UUID (required)
+  paymentMethod : MANUAL | BANK_TRANSFER | CASH
+}
+class PaymentUpdate <<request>> {
+  status : COMPLETED | FAILED (required)
+}
+payments ..> PaymentCreate
+payments ..> PaymentUpdate
+note bottom of payments
+  New payments are REQUESTED; asynchronous claim gives PENDING/REJECTED.
+  One payment per order; retry returns existing payment.
+  Terminal results cannot change; same result can be retried.
+  No Stripe; recording a payment does not transfer money.
+end note
+
+interface "Operations" as ops {
+  GET /health/live : every app
+  GET /health : every app
+  GET /api/v1/status : gateway via frontend
+}
+interface "Internal Product View API" as projection {
+  PUT /internal/projections/products/{productGuid}
+  body: eventId, topic, complete snapshot
+  GET /internal/projections/health
+  header: X-Projection-Token required
+}
+note bottom of projection
+  Synchronizer sends RabbitMQ events to the owner.
+  Gateway does not forward these internal endpoints.
+  Only Product View has MongoDB access.
+end note
+interface "OIDC session" as oidc {
+  GET /auth/config : frontend public configuration
+  GET /api/v1/auth/session : Bearer access token required
+}
+note bottom of oidc
+  Keycloak Authorization Code + PKCE S256.
+  Login / refresh / SSO / logout use provider endpoints.
+  Role and ownership enforcement on business APIs remains SEC-01.
+end note
+legend bottom
+  JSON request names are camelCase. Public identifiers are canonical UUIDs.
+  Frontend base: http://localhost:3000 | Gateway: http://localhost:8080
+  Business routes remain public pending SEC-01; session requires OIDC login.
+  Optional scalar fields receive implementation defaults when omitted.
+endlegend
+@enduml

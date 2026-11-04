@@ -1,0 +1,27 @@
+{
+  "name": "aj-confirmation-job",
+  "services": {
+    "confirmation-job": {
+      "build": {
+        "context": "..",
+        "dockerfile": "confirmation-job/Dockerfile"
+      },
+      "image": "aj-confirmation-job:local",
+      "restart": "no",
+      "environment": {
+        "RABBITMQ_URL": "${RABBITMQ_URL:-amqp://aj:aj-local@rabbitmq:5672/%2f}",
+        "ORDERS_URL": "${ORDERS_URL:-http://orders:7000}",
+        "CONFIRMATION_TOKEN": "${CONFIRMATION_TOKEN:-aj-confirmation-local}"
+      },
+      "networks": [
+        "backend"
+      ]
+    }
+  },
+  "networks": {
+    "backend": {
+      "external": true,
+      "name": "aj-backend"
+    }
+  }
+}

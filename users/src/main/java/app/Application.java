@@ -1,53 +1,16 @@
 package app;
-
 import app.controller.UserController;
-import app.routes.UserRoutes;
-import io.javalin.Javalin;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
-
-import java.util.HashMap;
-import java.util.Map;
-
+import com.aj.common.*;
+import persistence.entities.*;
 public class Application {
-
     public static void main(String[] args) {
-        EntityManagerFactory entityManagerFactory = createEntityManagerFactory();
-        UserController userController = new UserController(entityManagerFactory);
-
-        Javalin app = Javalin.create();
-        UserRoutes.register(app, userController);
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            if (entityManagerFactory.isOpen()) {
-                entityManagerFactory.close();
-            }
-        }));
-
-        app.start(env("HOST", "0.0.0.0"), integerEnv("PORT", 7000));
-    }
-
-    private static EntityManagerFactory createEntityManagerFactory() {
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("jakarta.persistence.jdbc.url", env("DB_URL", "jdbc:postgresql://localhost:5433/users"));
-        properties.put("jakarta.persistence.jdbc.user", env("DB_USER", "postgres"));
-        properties.put("jakarta.persistence.jdbc.password", env("DB_PASSWORD", "postgres"));
-        properties.put("hibernate.hbm2ddl.auto", env("HIBERNATE_DDL_AUTO", "update"));
-        properties.put("hibernate.show_sql", Boolean.parseBoolean(env("HIBERNATE_SHOW_SQL", "false")));
-
-        return Persistence.createEntityManagerFactory("usersPU", properties);
-    }
-
-    private static String env(String name, String defaultValue) {
-        String value = System.getenv(name);
-        return value == null || value.isBlank() ? defaultValue : value;
-    }
-
-    private static int integerEnv(String name, int defaultValue) {
-        try {
-            return Integer.parseInt(env(name, Integer.toString(defaultValue)));
-        } catch (NumberFormatException exception) {
-            return defaultValue;
-        }
+        Db db = new Db("users", 5433, User.class, UserDetails.class, UserDeleted.class);
+        DemoSeeder.seed(db);
+        var app = Api.app("users");
+        var controller=new UserController(db); controller.register(app);
+        Bus bus=new Bus(db,"aj.users",controller::event);
+        Api.health(app,"users",() -> db.healthy() && bus.healthy());
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> { app.stop(); bus.close(); db.close(); }));
+        Api.start(app,7002);
     }
 }

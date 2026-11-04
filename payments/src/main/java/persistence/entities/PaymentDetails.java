@@ -28,6 +28,15 @@ import java.time.LocalDateTime;
 @Builder
 public class PaymentDetails {
 
+    @Column(name = "order_guid", nullable = false, unique = true)
+    private java.util.UUID orderGuid;
+
+    @Column(name = "product_guid")
+    private java.util.UUID productGuid;
+
+    @Column(name = "customer_guid")
+    private java.util.UUID customerGuid;
+
     @Id
     @Column(name = "payment_id")
     private Long paymentId;

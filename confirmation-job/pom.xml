@@ -1,0 +1,7 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"><modelVersion>4.0.0</modelVersion>
+<parent><groupId>com.aj</groupId><artifactId>aj-platform</artifactId><version>1.0.0</version></parent>
+<artifactId>confirmation-job</artifactId><properties><app.main>com.aj.confirmation.Application</app.main></properties>
+<dependencies><dependency><groupId>com.aj</groupId><artifactId>service-common</artifactId><version>1.0.0</version></dependency>
+<dependency><groupId>org.apache.pdfbox</groupId><artifactId>pdfbox</artifactId><version>3.0.4</version></dependency>
+<dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><version>5.11.4</version><scope>test</scope></dependency></dependencies>
+<build><finalName>app</finalName><plugins><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-shade-plugin</artifactId></plugin></plugins></build></project>

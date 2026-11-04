@@ -1,0 +1,243 @@
+@startuml
+!pragma layout smetana
+title AJ Motors - Databases (implemented schema)
+hide circle
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam defaultFontName SansSerif
+left to right direction
+package "users / PostgreSQL" {
+entity "event_inbox" as users_event_inbox {
+  id : VARCHAR <<PK>> NOT NULL
+  processedat : TIMESTAMPTZ
+}
+entity "event_outbox" as users_event_outbox {
+  id : BIGINT <<PK>> NOT NULL
+  createdat : TIMESTAMPTZ NOT NULL
+  eventid : UUID <<UQ>> NOT NULL
+  payload : TEXT NOT NULL
+  topic : VARCHAR NOT NULL
+}
+entity "users" as users_users {
+  id : BIGINT <<PK>> NOT NULL
+  guid : UUID <<UQ>> NOT NULL
+}
+entity "users_deleted" as users_users_deleted {
+  id : BIGINT <<PK>> NOT NULL
+  deleted_at : TIMESTAMP NOT NULL
+  reason : VARCHAR
+  user_id : BIGINT <<FK, UQ>> NOT NULL
+}
+entity "users_details" as users_users_details {
+  user_id : BIGINT <<PK, FK>> NOT NULL
+  address : VARCHAR
+  city : VARCHAR
+  created_at : TIMESTAMP NOT NULL
+  email : VARCHAR <<UQ>>
+  first_name : VARCHAR
+  last_name : VARCHAR
+  phone_number : VARCHAR
+  postal_code : VARCHAR
+}
+}
+users_users "1" -- "1" users_users_details : user_id
+users_users "1" -- "0..1" users_users_deleted : user_id (unique)
+package "products / PostgreSQL" {
+entity "event_inbox" as products_event_inbox {
+  id : VARCHAR <<PK>> NOT NULL
+  processedat : TIMESTAMPTZ
+}
+entity "event_outbox" as products_event_outbox {
+  id : BIGINT <<PK>> NOT NULL
+  createdat : TIMESTAMPTZ NOT NULL
+  eventid : UUID <<UQ>> NOT NULL
+  payload : TEXT NOT NULL
+  topic : VARCHAR NOT NULL
+}
+entity "products" as products_products {
+  id : BIGINT <<PK>> NOT NULL
+  guid : UUID <<UQ>> NOT NULL
+}
+entity "products_deleted" as products_products_deleted {
+  id : BIGINT <<PK>> NOT NULL
+  deleted_at : TIMESTAMPTZ NOT NULL
+  reason : VARCHAR
+  product_id : BIGINT <<FK, UQ>> NOT NULL
+}
+entity "products_details" as products_products_details {
+  product_id : BIGINT <<PK, FK>> NOT NULL
+  brand : VARCHAR
+  capacity_liters : NUMERIC(8,2)
+  color : VARCHAR
+  created_at : TIMESTAMPTZ
+  currency : VARCHAR
+  description : TEXT
+  engine_type : VARCHAR
+  equipment : JSONB
+  fuel_type : VARCHAR
+  height_mm : INTEGER
+  images : JSONB
+  length_mm : INTEGER
+  mileage : INTEGER
+  model : VARCHAR
+  power_hp : INTEGER
+  price : NUMERIC(12,2)
+  reserved_order_guid : UUID
+  status : VARCHAR
+  top_speed_kmh : INTEGER
+  transmission : VARCHAR
+  updated_at : TIMESTAMPTZ
+  version : BIGINT NOT NULL
+  width_mm : INTEGER
+  year : INTEGER
+  zero_to_100_seconds : NUMERIC(5,2)
+}
+}
+products_products "1" -- "1" products_products_details : product_id
+products_products "1" -- "0..1" products_products_deleted : product_id (unique)
+package "orders / PostgreSQL" {
+entity "event_inbox" as orders_event_inbox {
+  id : VARCHAR <<PK>> NOT NULL
+  processedat : TIMESTAMPTZ
+}
+entity "event_outbox" as orders_event_outbox {
+  id : BIGINT <<PK>> NOT NULL
+  createdat : TIMESTAMPTZ NOT NULL
+  eventid : UUID <<UQ>> NOT NULL
+  payload : TEXT NOT NULL
+  topic : VARCHAR NOT NULL
+}
+entity "orders" as orders_orders {
+  id : BIGINT <<PK>> NOT NULL
+  guid : UUID <<UQ>> NOT NULL
+}
+entity "orders_deleted" as orders_orders_deleted {
+  id : BIGINT <<PK>> NOT NULL
+  deleted_at : TIMESTAMP NOT NULL
+  reason : VARCHAR
+  order_id : BIGINT <<FK, UQ>> NOT NULL
+}
+entity "orders_details" as orders_orders_details {
+  order_id : BIGINT <<PK, FK>> NOT NULL
+  created_at : TIMESTAMP NOT NULL
+  currency : VARCHAR
+  notes : VARCHAR
+  payment_guid : UUID
+  product_guid : UUID NOT NULL
+  shipping_address : VARCHAR
+  status : VARCHAR
+  total_amount : NUMERIC(38,2)
+  updated_at : TIMESTAMP
+  user_guid : UUID NOT NULL
+}
+}
+orders_orders "1" -- "1" orders_orders_details : order_id
+orders_orders "1" -- "0..1" orders_orders_deleted : order_id (unique)
+package "payments / PostgreSQL" {
+entity "event_inbox" as payments_event_inbox {
+  id : VARCHAR <<PK>> NOT NULL
+  processedat : TIMESTAMPTZ
+}
+entity "event_outbox" as payments_event_outbox {
+  id : BIGINT <<PK>> NOT NULL
+  createdat : TIMESTAMPTZ NOT NULL
+  eventid : UUID <<UQ>> NOT NULL
+  payload : TEXT NOT NULL
+  topic : VARCHAR NOT NULL
+}
+entity "payments" as payments_payments {
+  id : BIGINT <<PK>> NOT NULL
+  guid : UUID <<UQ>> NOT NULL
+}
+entity "payments_deleted" as payments_payments_deleted {
+  id : BIGINT <<PK>> NOT NULL
+  deleted_at : TIMESTAMP NOT NULL
+  reason : VARCHAR
+  payment_id : BIGINT <<FK, UQ>> NOT NULL
+}
+entity "payments_details" as payments_payments_details {
+  payment_id : BIGINT <<PK, FK>> NOT NULL
+  amount : NUMERIC(38,2)
+  created_at : TIMESTAMP NOT NULL
+  currency : VARCHAR
+  order_guid : UUID <<UQ>> NOT NULL
+  paid_at : TIMESTAMP
+  payment_method : VARCHAR
+  product_guid : UUID (null until authorised)
+  status : VARCHAR
+  transaction_reference : VARCHAR
+}
+}
+payments_payments "1" -- "1" payments_payments_details : payment_id
+payments_payments "1" -- "0..1" payments_payments_deleted : payment_id (unique)
+package "product_view / MongoDB" {
+  entity "products" as mongo_product <<document>> {
+    _id : ObjectId
+    guid : String (UUID) <<UQ>>
+    brand : String
+    model : String
+    year : Integer
+    description : String
+    price : Decimal128
+    currency : String
+    status : String
+    mileage : Integer
+    color : String
+    fuelType : String
+    transmission : String
+    equipment : String[]
+    images : String[]
+    createdAt : ISO-8601 String
+    updatedAt : ISO-8601 String
+    version : Long
+    eventId : String (UUID)
+    deleted : Boolean
+  }
+  entity "engine" as engine <<embedded>> {
+    type : String
+    powerHp : Integer
+    capacityLiters : Number
+  }
+  entity "performance" as performance <<embedded>> {
+    topSpeedKmh : Integer
+    zeroTo100 : Number
+  }
+  entity "dimensions" as dimensions <<embedded>> {
+    length : Integer (mm)
+    width : Integer (mm)
+    height : Integer (mm)
+  }
+  mongo_product *-- engine
+  mongo_product *-- performance
+  mongo_product *-- dimensions
+}
+orders_orders_details ..> users_users : user_guid = guid (logical reference)
+orders_orders_details ..> products_products : product_guid = guid (logical reference)
+payments_payments_details ..> orders_orders : order_guid = guid (logical reference)
+payments_payments_details ..> products_products : product_guid = guid (logical reference)
+orders_orders_details ..> payments_payments : payment_guid = guid (logical reference)
+products_products_details ..> orders_orders : reserved_order_guid = guid (logical reference)
+products_products ..> mongo_product : guid / asynchronous projection
+note bottom of mongo_product
+  Tombstones (deleted=true) hide removed cars and reject stale events.
+  Nested numeric types follow the JSON snapshot; price is Decimal128.
+  Product View is the sole MongoDB owner.
+  Synchronizer accesses the projection only through the internal API.
+end note
+legend bottom
+  PK = primary key, FK = local foreign key, UQ = unique constraint
+  Dashed dependencies across databases are logical UUID references, never SQL FKs.
+  SQL timestamps follow the current JPA mappings; no field is added by this diagram.
+  Outbox/inbox and active workers exist in every SQL-owning service.
+endlegend
+package "Keycloak / PostgreSQL (identity infrastructure)" {
+  entity "Keycloak managed schema" as keycloak_store <<identity>>
+}
+note bottom of keycloak_store
+  Keycloak owns and migrates its identity schema.
+  Business services do not read these tables.
+  customerGuid attributes reference Users UUIDs logically.
+  Internal Keycloak tables are outside the domain model shown here.
+end note
+@enduml

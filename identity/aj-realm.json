@@ -1,0 +1,574 @@
+{
+  "realm": "aj",
+  "displayName": "AJ Motors",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": true,
+  "resetPasswordAllowed": false,
+  "rememberMe": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "roles": {
+    "realm": [
+      {
+        "name": "admin"
+      },
+      {
+        "name": "customer"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "aj-frontend",
+      "name": "AJ Motors frontend",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://127.0.0.1:3000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3000/*##http://127.0.0.1:3000/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "aj-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "customer-reference",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "customer_guid",
+            "claim.name": "customerGuid",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "multivalued": "false"
+          }
+        },
+        {
+          "name": "application-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "kunde01",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde01@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 01",
+      "attributes": {
+        "customer_guid": [
+          "32367a4c-a218-3dec-8d40-facae47a4783"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kunde02",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde02@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 02",
+      "attributes": {
+        "customer_guid": [
+          "f5627295-3225-3596-a1c2-154cb600f1ad"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kunde03",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde03@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 03",
+      "attributes": {
+        "customer_guid": [
+          "4a1eb476-f4c9-3fd5-9239-da20d0854930"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kunde04",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde04@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 04",
+      "attributes": {
+        "customer_guid": [
+          "133970b0-4290-3946-8cdc-d2fcc8443a02"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kunde05",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde05@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 05",
+      "attributes": {
+        "customer_guid": [
+          "6f5b69b7-f567-3f40-8dac-1ef2d14d92bc"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kunde06",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde06@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 06",
+      "attributes": {
+        "customer_guid": [
+          "20441415-15fc-3ce4-b36f-bd50f5a61722"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kunde07",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde07@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 07",
+      "attributes": {
+        "customer_guid": [
+          "583990e6-a565-30fc-be7a-afcb7805e158"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kunde08",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde08@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 08",
+      "attributes": {
+        "customer_guid": [
+          "62fdbfa6-b58b-3778-9755-fac2a25f506f"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kunde09",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde09@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 09",
+      "attributes": {
+        "customer_guid": [
+          "1b1f7e42-d853-3c7e-acea-815181dd74fd"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kunde10",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde10@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 10",
+      "attributes": {
+        "customer_guid": [
+          "613eda47-b6f1-332d-b358-abb272be9801"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kunde11",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde11@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 11",
+      "attributes": {
+        "customer_guid": [
+          "5b43585e-3a97-3160-9154-f0c9f750f642"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kunde12",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde12@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 12",
+      "attributes": {
+        "customer_guid": [
+          "cd947ae8-ce07-3180-9ce9-f7e97e8bdea5"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kunde13",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde13@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 13",
+      "attributes": {
+        "customer_guid": [
+          "1d2b93a0-9d2b-3b7f-b9cd-cd0a1f12a7f8"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kunde14",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde14@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 14",
+      "attributes": {
+        "customer_guid": [
+          "518f5f3b-f343-3ea3-8e29-543248c2ed6b"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kunde15",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde15@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 15",
+      "attributes": {
+        "customer_guid": [
+          "27f0cb0c-1d23-332f-96b3-2f8f1a82ace2"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kunde16",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde16@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 16",
+      "attributes": {
+        "customer_guid": [
+          "025da5ba-68fb-3bf0-a045-d9e09173a874"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kunde17",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde17@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 17",
+      "attributes": {
+        "customer_guid": [
+          "a26b7e8e-38b2-3175-a849-61c0de59c2ae"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kunde18",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde18@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 18",
+      "attributes": {
+        "customer_guid": [
+          "fae821ee-a059-3fe8-b3c3-837e65d72da6"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kunde19",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde19@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 19",
+      "attributes": {
+        "customer_guid": [
+          "b3914934-7a88-36a2-93ce-c70238049179"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kunde20",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kunde20@aj-demo.example",
+      "firstName": "Demo",
+      "lastName": "Kunde 20",
+      "attributes": {
+        "customer_guid": [
+          "65e2a719-d7ef-3b53-b735-7c5117b94f0e"
+        ]
+      },
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "eksamen-admin",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "admin@aj-demo.example",
+      "firstName": "Eksamen",
+      "lastName": "Administrator",
+      "realmRoles": [
+        "admin"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Admin123!",
+          "temporary": false
+        }
+      ]
+    }
+  ],
+  "defaultRoles": [
+    "customer"
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "name": "aj-product-synchronizer",
+  "services": {
+    "product-synchronizer": {
+      "build": {
+        "context": "..",
+        "dockerfile": "Dockerfile",
+        "args": {
+          "SERVICE": "product-synchronizer"
+        }
+      },
+      "image": "aj-product-synchronizer:local",
+      "restart": "unless-stopped",
+      "environment": {
+        "PORT": "7000",
+        "RABBITMQ_URL": "amqp://aj:aj-local@rabbitmq:5672/%2f",
+        "PRODUCT_VIEW_URL": "http://product-view:7000",
+        "PROJECTION_API_TOKEN": "${PROJECTION_API_TOKEN:-aj-projection-local}"
+      },
+      "ports": [
+        "127.0.0.1:7007:7000"
+      ],
+      "networks": [
+        "backend"
+      ]
+    }
+  },
+  "networks": {
+    "backend": {
+      "external": true,
+      "name": "aj-backend"
+    }
+  }
+}

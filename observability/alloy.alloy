@@ -1,0 +1,13 @@
+discovery.docker "aj" {
+  host = "unix:///var/run/docker.sock"
+  filter { name = "label" values = ["com.docker.compose.project=aj"] }
+}
+loki.source.docker "aj" {
+  host = "unix:///var/run/docker.sock"
+  targets = discovery.docker.aj.targets
+  forward_to = [loki.write.local.receiver]
+  labels = {project = "aj"}
+}
+loki.write "local" {
+  endpoint { url = "http://loki:3100/loki/api/v1/push" }
+}

@@ -1,0 +1,31 @@
+name: products CI
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'products/**'
+      - 'service-common/**'
+      - 'pom.xml'
+      - '.github/workflows/service-ci.yaml'
+      - '.github/workflows/products.yaml'
+  pull_request:
+    paths:
+      - 'products/**'
+      - 'service-common/**'
+      - 'pom.xml'
+      - '.github/workflows/service-ci.yaml'
+      - '.github/workflows/products.yaml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: products-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    uses: ./.github/workflows/service-ci.yaml
+    with:
+      service: products

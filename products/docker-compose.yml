@@ -1,47 +1,78 @@
-services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: products-app
-    restart: unless-stopped
-    networks:
-      - backend
-    ports:
-      - "7070:7070"
-    environment:
-      DB_URL: jdbc:postgresql://db:5432/products_db
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_DRIVER: org.postgresql.Driver
-    depends_on:
-      db:
-        condition: service_healthy
-
-  db:
-    image: postgres:16-alpine
-    container_name: products-db
-    restart: unless-stopped
-    networks:
-      - backend
-    environment:
-      POSTGRES_DB: products_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d products_db"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
-networks:
-  backend:
-    driver: bridge
-
-volumes:
-  postgres_data:
+{
+  "name": "aj-products",
+  "services": {
+    "products-db": {
+      "image": "postgres:16-alpine",
+      "restart": "unless-stopped",
+      "environment": {
+        "POSTGRES_DB": "products",
+        "POSTGRES_USER": "postgres",
+        "POSTGRES_PASSWORD": "postgres"
+      },
+      "ports": [
+        "127.0.0.1:5434:5432"
+      ],
+      "volumes": [
+        "products-postgres-data:/var/lib/postgresql/data"
+      ],
+      "networks": [
+        "products-data"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U postgres -d products"
+        ],
+        "interval": "5s",
+        "timeout": "3s",
+        "retries": 20
+      }
+    },
+    "products": {
+      "build": {
+        "context": "..",
+        "dockerfile": "Dockerfile",
+        "args": {
+          "SERVICE": "products"
+        }
+      },
+      "image": "aj-products:local",
+      "restart": "unless-stopped",
+      "environment": {
+        "PORT": "7000",
+        "DB_URL": "jdbc:postgresql://products-db:5432/products",
+        "DB_USER": "postgres",
+        "DB_PASSWORD": "postgres",
+        "RABBITMQ_URL": "amqp://aj:aj-local@rabbitmq:5672/%2f",
+        "DEMO_DATA_ENABLED": "${DEMO_DATA_ENABLED:-true}",
+        "OIDC_ISSUER": "http://localhost:8180/realms/aj",
+        "OIDC_JWKS_URL": "http://keycloak:8180/realms/aj/protocol/openid-connect/certs",
+        "DB_BASELINE_EXISTING": "true",
+        "OLLAMA_URL": "${OLLAMA_URL:-http://host.docker.internal:11434}",
+        "OLLAMA_MODEL": "${OLLAMA_MODEL:-llama3.2:3b}"
+      },
+      "ports": [
+        "127.0.0.1:7003:7000"
+      ],
+      "networks": [
+        "backend",
+        "products-data"
+      ],
+      "depends_on": {
+        "products-db": {
+          "condition": "service_healthy"
+        }
+      }
+    }
+  },
+  "volumes": {
+    "products-postgres-data": {}
+  },
+  "networks": {
+    "products-data": {},
+    "backend": {
+      "external": true,
+      "name": "aj-backend"
+    }
+  }
+}

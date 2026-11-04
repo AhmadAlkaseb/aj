@@ -1,0 +1,17 @@
+**/target
+**/.idea
+.git
+system-integration
+documentation
+node_modules
+test-results
+*.log
+**/*.log
+
+**/node_modules
+backups
+.env
+.env.*
+tools
+k8s
+observability

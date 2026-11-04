@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "scripts": {
+    "validate": "node validate.cjs"
+  },
+  "devDependencies": {
+    "@asyncapi/parser": "3.4.0"
+  }
+}

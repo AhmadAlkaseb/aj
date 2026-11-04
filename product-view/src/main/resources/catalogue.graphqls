@@ -1,0 +1,25 @@
+type Query {
+  products(filter: ProductFilter, offset: Int = 0, limit: Int = 24): Catalogue!
+  product(guid: ID!): Product
+}
+input ProductFilter {
+  search: String
+  brand: String
+  status: String
+  minPrice: Float
+  maxPrice: Float
+  minYear: Int
+  maxYear: Int
+  maxMileage: Int
+}
+type Catalogue { items: [Product!]!, total: Int!, hasMore: Boolean! }
+type Product {
+  guid: ID!, brand: String!, model: String!, year: Int!, description: String
+  price: Float!, currency: String!, status: String!, mileage: Int, color: String
+  fuelType: String, transmission: String, equipment: [String!], images: [String!]
+  engine: Engine, performance: Performance, dimensions: Dimensions
+  createdAt: String, updatedAt: String, version: Float!
+}
+type Engine { type: String, powerHp: Int, capacityLiters: Float }
+type Performance { topSpeedKmh: Int, zeroTo100: Float }
+type Dimensions { length: Int, width: Int, height: Int }

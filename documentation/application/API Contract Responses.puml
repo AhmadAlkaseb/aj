@@ -1,0 +1,169 @@
+@startuml
+!pragma layout smetana
+title AJ Motors - API Contract Responses (implemented response shapes)
+hide circle
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam defaultFontName SansSerif
+left to right direction
+
+class UserResponse <<JSON>> {
+  guid : UUID
+  firstName : String
+  lastName : String
+  email : String
+  phoneNumber : String
+  address : String
+  postalCode : String
+  city : String
+}
+class UserUpdated <<JSON>> {
+  guid : UUID
+  updatedAt : ISO-8601 Instant
+}
+note top of UserResponse
+  POST /users -> 201 UserResponse
+  GET /users -> 200 UserResponse[]
+  GET /users/{userGuid} -> 200 UserResponse
+  PUT /users/{userGuid} -> 200 UserUpdated
+  DELETE /users/{userGuid} -> 204 (empty body)
+  Errors: POST 400/409; GET item 400/404;
+  PUT 400/404/409; DELETE 400/404; all may return 503.
+end note
+UserResponse -[hidden]-> UserUpdated
+
+class ProductResponse <<JSON>> {
+  guid : UUID
+  brand : String
+  model : String
+  year : Integer
+  description : String
+  price : Decimal
+  currency : String
+  status : AVAILABLE | UNAVAILABLE | RESERVED | SOLD
+  mileage : Integer
+  color : String
+  fuelType : String
+  transmission : String
+  engine : { type, powerHp, capacityLiters }
+  performance : { topSpeedKmh, zeroTo100 }
+  dimensions : { length, width, height }
+  equipment : String[]
+  images : String[]
+  createdAt : ISO-8601 Instant
+  updatedAt : ISO-8601 Instant
+  version : Long
+}
+note top of ProductResponse
+  POST /products -> 201 ProductResponse
+  PUT /products/{productGuid} -> 200 ProductResponse
+  GET /products[?status=...] -> 200 ProductResponse[]
+  GET /products/{productGuid} -> 200 ProductResponse
+  DELETE /products/{productGuid} -> 204 (empty body)
+  Errors: POST 400/409; GET list 400; GET item 400/404;
+  PUT 400/404/409; DELETE 400/404/409; all may return 503.
+  Lists currently contain full snapshots, not reduced summaries.
+end note
+
+class OrderResponse <<JSON>> {
+  guid : UUID
+  userGuid : UUID
+  productGuid : UUID
+  status : PENDING | RESERVING | RESERVED | PAYMENT_PENDING
+  status (continued) : COMPLETED | FAILED | REJECTED | CANCELLED
+  totalAmount : Decimal or null
+  currency : String or null
+  shippingAddress : String
+  createdAt : ISO-8601 UTC LocalDateTime
+  updatedAt : ISO-8601 UTC LocalDateTime
+  notes : String
+}
+note top of OrderResponse
+  POST /orders -> 201 PENDING; null amount/currency until reserved
+  POST /orders -> 201 OrderResponse
+  GET /orders -> 200 OrderResponse[]
+  GET /orders/{orderGuid} -> 200 OrderResponse
+  GET /users/{userGuid}/orders -> 200 OrderResponse[]
+  PUT /orders/{orderGuid} -> 200 OrderResponse
+  DELETE /orders/{orderGuid} -> 204 (empty body)
+  Errors: POST 400/409; GET item 400/404; nested 400;
+  PUT 400/404/409; DELETE 400/404/409; all may return 503.
+end note
+
+class PaymentResponse <<JSON>> {
+  guid : UUID
+  orderGuid : UUID
+  amount : Decimal or null
+  currency : String or null
+  paymentMethod : MANUAL | BANK_TRANSFER | CASH
+  status : REQUESTED | PENDING | REJECTED | COMPLETED | FAILED
+  transactionReference : String
+  paidAt : ISO-8601 UTC LocalDateTime or null
+  createdAt : ISO-8601 UTC LocalDateTime
+}
+note top of PaymentResponse
+  POST /payments -> 201 PaymentResponse (REQUESTED, null amount/currency)
+  POST /payments -> 200 PaymentResponse (retry)
+  GET /payments -> 200 PaymentResponse[]
+  GET /payments/{paymentGuid} -> 200 PaymentResponse
+  GET /orders/{orderGuid}/payments -> 200 PaymentResponse[]
+  PUT /payments/{paymentGuid} -> 200 PaymentResponse
+  Errors: POST 400/409; GET item 400/404; nested 400;
+  PUT 400/404/409; all may return 503.
+end note
+
+class ErrorResponse <<JSON>> {
+  status : HTTP status integer
+  service : String
+  message : String
+  timestamp : ISO-8601 Instant
+}
+note bottom of ErrorResponse
+  400 invalid input; 404 missing/deleted resource;
+  409 duplicate or disallowed transition; 503 dependency outage.
+  Internal SQL IDs are never included in public DTOs.
+  201 responses include a Location header.
+  Endpoint paths in notes are prefixed with /api/v1.
+end note
+class HealthResponse <<JSON>> {
+  service : String
+  status : UP | DOWN
+}
+note top of HealthResponse
+  Internal product projection PUT: 204 after stored/obsolete version.
+  Invalid event: 400; missing/wrong service token: 401.
+  Storage/temporary failure: 503; sender must retry.
+end note
+class SystemStatus <<JSON>> {
+  status : UP | DEGRADED
+  services : ServiceStatus[]
+  message : String
+}
+class ServiceStatus <<JSON>> {
+  service : String
+  status : UP | DOWN
+}
+class SessionIdentity <<JSON>> {
+  subject : String
+  username : String
+  name : String or null
+  customerGuid : UUID or null
+  roles : String[]
+}
+note bottom of SessionIdentity
+  GET /api/v1/auth/session -> 200 SessionIdentity
+  Missing/invalid/expired token -> 401 ErrorResponse
+  Provider key retrieval failure -> 503 ErrorResponse
+end note
+SystemStatus *-- ServiceStatus
+note bottom of HealthResponse
+  /health/live: 200 UP if process serves HTTP.
+  /health: 200 UP or 503 DOWN for local dependencies.
+  Gateway/frontend health concerns their own process.
+end note
+note bottom of SystemStatus
+  GET /api/v1/status -> 200 even when DEGRADED.
+  Six backend services and Keycloak are checked.
+  Gateway unavailable -> frontend returns 503 ErrorResponse.
+end note
+@enduml

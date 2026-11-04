@@ -1,65 +1,84 @@
 package org.example.book;
 
-import org.apache.dubbo.common.stream.StreamObserver;
+import io.grpc.Status;
+import io.grpc.stub.StreamObserver;
+import io.grpc.stub.ServerCallStreamObserver;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
-public final class BookServiceImpl extends DubboBookServiceTriple.BookServiceImplBase {
-    // Repository og aktive abonnenter lever så længe serveren kører.
-    private final BookRepository repository = new BookRepository();
-    private final List<StreamObserver<Book>> subscribers = new CopyOnWriteArrayList<>();
-    private final Object subscriptionLock = new Object();
+public final class BookServiceImpl extends BookServiceGrpc.BookServiceImplBase {
+    private final BookRepository repository;
+    private final List<ServerCallStreamObserver<Book>> subscribers = new ArrayList<>();
 
-    // Returnerer bogen med det ønskede ID.
+    // Bruger serverens fælles datalager.
+    BookServiceImpl(BookRepository repository) {
+        this.repository = repository;
+    }
+
+    // Registrerer klienten til fremtidige bøger.
     @Override
-    public Book getBookById(GetBookByIdRequest request) {
+    public synchronized void watchBooks(WatchBooksRequest request, StreamObserver<Book> response) {
+        ServerCallStreamObserver<Book> subscriber = (ServerCallStreamObserver<Book>) response;
+        // Fjerner abonnementet, når klienten afbryder.
+        subscriber.setOnCancelHandler(() -> removeSubscriber(subscriber));
+        if (!subscriber.isCancelled()) {
+            subscribers.add(subscriber);
+            // repository.findAll().forEach(subscriber::onNext);
+        }
+        // Ingen onCompleted: streamen skal forblive åben til nye bøger.
+    }
+
+    // Fjerner en abonnent med samme lås som tilmelding og udsendelse.
+    private synchronized void removeSubscriber(ServerCallStreamObserver<Book> subscriber) {
+        subscribers.remove(subscriber);
+    }
+
+    // Returnerer bogen eller en gRPC-fejl, hvis ID er ugyldigt eller ukendt.
+    @Override
+    public void getBookById(GetBookByIdRequest request, StreamObserver<Book> response) {
+        if (request.getBookId() <= 0) {
+            response.onError(Status.INVALID_ARGUMENT.withDescription("Bog-ID skal være større end 0.")
+                    .asRuntimeException());
+            return;
+        }
         Book book = repository.findById(request.getBookId());
         if (book == null) {
-            throw new IllegalArgumentException("Bog ikke fundet: " + request.getBookId());
+            response.onError(Status.NOT_FOUND.withDescription("Bog ikke fundet: " + request.getBookId())
+                    .asRuntimeException());
+            return;
         }
-        return book;
+        response.onNext(book);
+        response.onCompleted();
     }
 
-    // Opretter en bog og sender den videre til alle aktive abonnenter.
+    // Opretter bogen, giver abonnenter besked og svarer den klient, der oprettede den.
+    // Samme lås som watchBooks sikrer rækkefølgen ved samtidige kald.
     @Override
-    public CreateBookResponse createBook(CreateBookRequest request) {
-        Book book;
-        synchronized (subscriptionLock) {
-            book = repository.create(request);
-            notifySubscribers(book);
+    public synchronized void createBook(CreateBookRequest request, StreamObserver<CreateBookResponse> response) {
+        if (request.getName().isBlank() || request.getAuthorId() <= 0
+                || request.getPublisherId() <= 0 || request.getPublicationYear() <= 0) {
+            response.onError(Status.INVALID_ARGUMENT
+                    .withDescription("Titel skal udfyldes, og ID'er og udgivelsesår skal være større end 0.")
+                    .asRuntimeException());
+            return;
         }
-        return CreateBookResponse.newBuilder()
-                .setBook(book)
-                .build();
-    }
+        Book book = repository.create(request);
 
-    // Sender først alle eksisterende bøger og holder derefter klienten opdateret.
-    @Override
-    public void watchBooks(WatchBooksRequest request, StreamObserver<Book> responseObserver) {
-        synchronized (subscriptionLock) {
-            subscribers.add(responseObserver);
-            for (Book book : repository.findAll()) {
-                try {
-                    responseObserver.onNext(book);
-                } catch (RuntimeException exception) {
-                    subscribers.remove(responseObserver);
-                    responseObserver.onError(exception);
-                    return;
-                }
+        var iterator = subscribers.iterator();
+        while (iterator.hasNext()) {
+            var subscriber = iterator.next();
+            if (subscriber.isCancelled()) {
+                iterator.remove();
+                continue;
             }
-        }
-    }
-
-    // Sender en ny bog til alle abonnenter og fjerner dem, der fejler.
-    private void notifySubscribers(Book book) {
-        for (StreamObserver<Book> subscriber : subscribers) {
             try {
                 subscriber.onNext(book);
             } catch (RuntimeException exception) {
-                subscribers.remove(subscriber);
-                subscriber.onError(exception);
+                iterator.remove();
             }
         }
+        response.onNext(CreateBookResponse.newBuilder().setBook(book).build());
+        response.onCompleted();
     }
 }

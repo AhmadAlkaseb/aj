@@ -1,0 +1,39 @@
+{
+  "name": "aj-apigateway",
+  "services": {
+    "apigateway": {
+      "build": {
+        "context": "..",
+        "dockerfile": "Dockerfile",
+        "args": {
+          "SERVICE": "apigateway"
+        }
+      },
+      "image": "aj-apigateway:local",
+      "restart": "unless-stopped",
+      "environment": {
+        "PORT": "7000",
+        "OIDC_ISSUER": "http://localhost:8180/realms/aj",
+        "OIDC_JWKS_URL": "http://keycloak:8180/realms/aj/protocol/openid-connect/certs",
+        "KEYCLOAK_URL": "http://keycloak:8180"
+      },
+      "ports": [
+        "127.0.0.1:8080:7000"
+      ],
+      "networks": [
+        "backend",
+        "edge"
+      ]
+    }
+  },
+  "networks": {
+    "backend": {
+      "external": true,
+      "name": "aj-backend"
+    },
+    "edge": {
+      "external": true,
+      "name": "aj-edge"
+    }
+  }
+}

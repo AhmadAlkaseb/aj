@@ -1,39 +1,76 @@
-services:
-  db:
-    image: postgres:16-alpine
-    container_name: orders-db
-    environment:
-      POSTGRES_DB: orders
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5434:5432"
-    volumes:
-      - orders_pg_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d orders"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: orders-app
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      HOST: 0.0.0.0
-      PORT: 7000
-      DB_URL: jdbc:postgresql://db:5432/orders
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      HIBERNATE_DDL_AUTO: update
-      HIBERNATE_SHOW_SQL: "false"
-    ports:
-      - "7000:7000"
-
-volumes:
-  orders_pg_data:
+{
+  "name": "aj-orders",
+  "services": {
+    "orders-db": {
+      "image": "postgres:16-alpine",
+      "restart": "unless-stopped",
+      "environment": {
+        "POSTGRES_DB": "orders",
+        "POSTGRES_USER": "postgres",
+        "POSTGRES_PASSWORD": "postgres"
+      },
+      "ports": [
+        "127.0.0.1:5435:5432"
+      ],
+      "volumes": [
+        "orders-postgres-data:/var/lib/postgresql/data"
+      ],
+      "networks": [
+        "orders-data"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U postgres -d orders"
+        ],
+        "interval": "5s",
+        "timeout": "3s",
+        "retries": 20
+      }
+    },
+    "orders": {
+      "build": {
+        "context": "..",
+        "dockerfile": "Dockerfile",
+        "args": {
+          "SERVICE": "orders"
+        }
+      },
+      "image": "aj-orders:local",
+      "restart": "unless-stopped",
+      "environment": {
+        "PORT": "7000",
+        "DB_URL": "jdbc:postgresql://orders-db:5432/orders",
+        "DB_USER": "postgres",
+        "DB_PASSWORD": "postgres",
+        "RABBITMQ_URL": "amqp://aj:aj-local@rabbitmq:5672/%2f",
+        "DEMO_DATA_ENABLED": "${DEMO_DATA_ENABLED:-true}",
+        "OIDC_ISSUER": "http://localhost:8180/realms/aj",
+        "OIDC_JWKS_URL": "http://keycloak:8180/realms/aj/protocol/openid-connect/certs",
+        "DB_BASELINE_EXISTING": "true"
+      },
+      "ports": [
+        "127.0.0.1:7004:7000"
+      ],
+      "networks": [
+        "backend",
+        "orders-data"
+      ],
+      "depends_on": {
+        "orders-db": {
+          "condition": "service_healthy"
+        }
+      }
+    }
+  },
+  "volumes": {
+    "orders-postgres-data": {}
+  },
+  "networks": {
+    "orders-data": {},
+    "backend": {
+      "external": true,
+      "name": "aj-backend"
+    }
+  }
+}

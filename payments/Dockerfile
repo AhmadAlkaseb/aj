@@ -1,26 +1,15 @@
 FROM maven:3.9.9-eclipse-temurin-17 AS build
 WORKDIR /workspace
+COPY . .
+RUN --mount=type=cache,target=/root/.m2 mvn -B -ntp package -DskipTests
 
-COPY pom.xml ./
-RUN mvn dependency:go-offline
-
-COPY src ./src
-RUN mvn test && mvn package dependency:copy-dependencies -DincludeScope=runtime
-
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:17-jre-jammy
+ARG SERVICE=payments
 WORKDIR /app
-
-COPY --from=build /workspace/target/classes ./classes
-COPY --from=build /workspace/target/dependency ./dependency
-
-ENV HOST=0.0.0.0
+RUN groupadd --system aj && useradd --system --gid aj aj
+COPY --from=build /workspace/${SERVICE}/target/app.jar /app/app.jar
+USER aj
 ENV PORT=7000
-ENV DB_URL=jdbc:postgresql://db:5432/payments
-ENV DB_USER=postgres
-ENV DB_PASSWORD=postgres
-ENV HIBERNATE_DDL_AUTO=update
-ENV HIBERNATE_SHOW_SQL=false
-
 EXPOSE 7000
-
-CMD ["java", "-cp", "/app/classes:/app/dependency/*", "app.Application"]
+HEALTHCHECK --interval=10s --timeout=8s --start-period=40s --retries=3 CMD ["java", "-cp", "/app/app.jar", "com.aj.common.HealthProbe"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=70", "-jar", "/app/app.jar"]

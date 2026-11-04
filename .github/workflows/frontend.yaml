@@ -1,0 +1,31 @@
+name: frontend CI
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'frontend/**'
+      - 'service-common/**'
+      - 'pom.xml'
+      - '.github/workflows/service-ci.yaml'
+      - '.github/workflows/frontend.yaml'
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - 'service-common/**'
+      - 'pom.xml'
+      - '.github/workflows/service-ci.yaml'
+      - '.github/workflows/frontend.yaml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    uses: ./.github/workflows/service-ci.yaml
+    with:
+      service: frontend

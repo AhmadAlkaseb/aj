@@ -1,0 +1,14 @@
+name: Confirmation job
+on:
+  push:
+    paths: ['confirmation-job/**', 'service-common/**', 'pom.xml', '.github/workflows/**']
+  pull_request:
+    paths: ['confirmation-job/**', 'service-common/**', 'pom.xml', '.github/workflows/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    uses: ./.github/workflows/service-ci.yaml
+    with:
+      service: confirmation-job

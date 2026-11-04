@@ -1,0 +1,3662 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "Namespace",
+      "metadata": {
+        "name": "aj"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "ConfigMap",
+      "metadata": {
+        "name": "aj-realm",
+        "namespace": "aj"
+      },
+      "data": {
+        "aj-realm.json": "{\"realm\": \"aj\", \"displayName\": \"AJ Motors\", \"enabled\": true, \"sslRequired\": \"none\", \"registrationAllowed\": true, \"resetPasswordAllowed\": false, \"rememberMe\": false, \"loginWithEmailAllowed\": true, \"duplicateEmailsAllowed\": false, \"accessTokenLifespan\": 300, \"ssoSessionIdleTimeout\": 1800, \"ssoSessionMaxLifespan\": 36000, \"roles\": {\"realm\": [{\"name\": \"admin\"}, {\"name\": \"customer\"}]}, \"clients\": [{\"clientId\": \"aj-frontend\", \"name\": \"AJ Motors frontend\", \"enabled\": true, \"protocol\": \"openid-connect\", \"publicClient\": true, \"standardFlowEnabled\": true, \"implicitFlowEnabled\": false, \"directAccessGrantsEnabled\": false, \"serviceAccountsEnabled\": false, \"redirectUris\": [\"http://localhost:3000/*\", \"http://127.0.0.1:3000/*\", \"https://localhost:8443/*\"], \"webOrigins\": [\"http://localhost:3000\", \"http://127.0.0.1:3000\", \"https://localhost:8443\"], \"attributes\": {\"pkce.code.challenge.method\": \"S256\", \"post.logout.redirect.uris\": \"http://localhost:3000/*##http://127.0.0.1:3000/*##https://localhost:8443/*\"}, \"protocolMappers\": [{\"name\": \"api-audience\", \"protocol\": \"openid-connect\", \"protocolMapper\": \"oidc-audience-mapper\", \"consentRequired\": false, \"config\": {\"included.custom.audience\": \"aj-api\", \"access.token.claim\": \"true\", \"id.token.claim\": \"false\"}}, {\"name\": \"customer-reference\", \"protocol\": \"openid-connect\", \"protocolMapper\": \"oidc-usermodel-attribute-mapper\", \"consentRequired\": false, \"config\": {\"user.attribute\": \"customer_guid\", \"claim.name\": \"customerGuid\", \"jsonType.label\": \"String\", \"access.token.claim\": \"true\", \"id.token.claim\": \"true\", \"userinfo.token.claim\": \"true\", \"multivalued\": \"false\"}}, {\"name\": \"application-roles\", \"protocol\": \"openid-connect\", \"protocolMapper\": \"oidc-usermodel-realm-role-mapper\", \"consentRequired\": false, \"config\": {\"multivalued\": \"true\", \"claim.name\": \"realm_access.roles\", \"jsonType.label\": \"String\", \"access.token.claim\": \"true\", \"id.token.claim\": \"false\", \"userinfo.token.claim\": \"false\"}}]}], \"users\": [{\"username\": \"kunde01\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde01@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 01\", \"attributes\": {\"customer_guid\": [\"32367a4c-a218-3dec-8d40-facae47a4783\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"kunde02\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde02@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 02\", \"attributes\": {\"customer_guid\": [\"f5627295-3225-3596-a1c2-154cb600f1ad\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"kunde03\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde03@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 03\", \"attributes\": {\"customer_guid\": [\"4a1eb476-f4c9-3fd5-9239-da20d0854930\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"kunde04\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde04@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 04\", \"attributes\": {\"customer_guid\": [\"133970b0-4290-3946-8cdc-d2fcc8443a02\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"kunde05\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde05@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 05\", \"attributes\": {\"customer_guid\": [\"6f5b69b7-f567-3f40-8dac-1ef2d14d92bc\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"kunde06\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde06@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 06\", \"attributes\": {\"customer_guid\": [\"20441415-15fc-3ce4-b36f-bd50f5a61722\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"kunde07\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde07@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 07\", \"attributes\": {\"customer_guid\": [\"583990e6-a565-30fc-be7a-afcb7805e158\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"kunde08\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde08@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 08\", \"attributes\": {\"customer_guid\": [\"62fdbfa6-b58b-3778-9755-fac2a25f506f\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"kunde09\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde09@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 09\", \"attributes\": {\"customer_guid\": [\"1b1f7e42-d853-3c7e-acea-815181dd74fd\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"kunde10\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde10@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 10\", \"attributes\": {\"customer_guid\": [\"613eda47-b6f1-332d-b358-abb272be9801\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"kunde11\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde11@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 11\", \"attributes\": {\"customer_guid\": [\"5b43585e-3a97-3160-9154-f0c9f750f642\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"kunde12\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde12@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 12\", \"attributes\": {\"customer_guid\": [\"cd947ae8-ce07-3180-9ce9-f7e97e8bdea5\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"kunde13\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde13@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 13\", \"attributes\": {\"customer_guid\": [\"1d2b93a0-9d2b-3b7f-b9cd-cd0a1f12a7f8\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"kunde14\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde14@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 14\", \"attributes\": {\"customer_guid\": [\"518f5f3b-f343-3ea3-8e29-543248c2ed6b\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"kunde15\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde15@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 15\", \"attributes\": {\"customer_guid\": [\"27f0cb0c-1d23-332f-96b3-2f8f1a82ace2\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"kunde16\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde16@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 16\", \"attributes\": {\"customer_guid\": [\"025da5ba-68fb-3bf0-a045-d9e09173a874\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"kunde17\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde17@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 17\", \"attributes\": {\"customer_guid\": [\"a26b7e8e-38b2-3175-a849-61c0de59c2ae\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"kunde18\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde18@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 18\", \"attributes\": {\"customer_guid\": [\"fae821ee-a059-3fe8-b3c3-837e65d72da6\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"kunde19\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde19@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 19\", \"attributes\": {\"customer_guid\": [\"b3914934-7a88-36a2-93ce-c70238049179\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"kunde20\", \"enabled\": true, \"emailVerified\": true, \"email\": \"kunde20@aj-demo.example\", \"firstName\": \"Demo\", \"lastName\": \"Kunde 20\", \"attributes\": {\"customer_guid\": [\"65e2a719-d7ef-3b53-b735-7c5117b94f0e\"]}, \"realmRoles\": [\"customer\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Demo123!\", \"temporary\": false}]}, {\"username\": \"eksamen-admin\", \"enabled\": true, \"emailVerified\": true, \"email\": \"admin@aj-demo.example\", \"firstName\": \"Eksamen\", \"lastName\": \"Administrator\", \"realmRoles\": [\"admin\"], \"credentials\": [{\"type\": \"password\", \"value\": \"Admin123!\", \"temporary\": false}]}], \"defaultRoles\": [\"customer\"]}"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "users-db-data",
+        "namespace": "aj"
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "resources": {
+          "requests": {
+            "storage": "1Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "users-db",
+        "namespace": "aj"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "users-db"
+          }
+        },
+        "strategy": {
+          "type": "Recreate"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "users-db",
+              "tier": "infrastructure"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "users-db",
+                "image": "postgres:16-alpine",
+                "imagePullPolicy": "IfNotPresent",
+                "env": [
+                  {
+                    "name": "POSTGRES_DB",
+                    "value": "users"
+                  },
+                  {
+                    "name": "POSTGRES_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "database-password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "POSTGRES_USER",
+                    "value": "postgres"
+                  }
+                ],
+                "ports": [
+                  {
+                    "name": "data",
+                    "containerPort": 5432
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "512Mi"
+                  }
+                },
+                "readinessProbe": {
+                  "exec": {
+                    "command": [
+                      "pg_isready",
+                      "-U",
+                      "postgres",
+                      "-d",
+                      "users"
+                    ]
+                  },
+                  "periodSeconds": 5
+                },
+                "volumeMounts": [
+                  {
+                    "name": "data",
+                    "mountPath": "/var/lib/postgresql/data"
+                  }
+                ]
+              }
+            ],
+            "volumes": [
+              {
+                "name": "data",
+                "persistentVolumeClaim": {
+                  "claimName": "users-db-data"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "users-db",
+        "namespace": "aj"
+      },
+      "spec": {
+        "selector": {
+          "app": "users-db"
+        },
+        "ports": [
+          {
+            "name": "data",
+            "port": 5432,
+            "targetPort": 5432
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "products-db-data",
+        "namespace": "aj"
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "resources": {
+          "requests": {
+            "storage": "1Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "products-db",
+        "namespace": "aj"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "products-db"
+          }
+        },
+        "strategy": {
+          "type": "Recreate"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "products-db",
+              "tier": "infrastructure"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "products-db",
+                "image": "postgres:16-alpine",
+                "imagePullPolicy": "IfNotPresent",
+                "env": [
+                  {
+                    "name": "POSTGRES_DB",
+                    "value": "products"
+                  },
+                  {
+                    "name": "POSTGRES_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "database-password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "POSTGRES_USER",
+                    "value": "postgres"
+                  }
+                ],
+                "ports": [
+                  {
+                    "name": "data",
+                    "containerPort": 5432
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "512Mi"
+                  }
+                },
+                "readinessProbe": {
+                  "exec": {
+                    "command": [
+                      "pg_isready",
+                      "-U",
+                      "postgres",
+                      "-d",
+                      "products"
+                    ]
+                  },
+                  "periodSeconds": 5
+                },
+                "volumeMounts": [
+                  {
+                    "name": "data",
+                    "mountPath": "/var/lib/postgresql/data"
+                  }
+                ]
+              }
+            ],
+            "volumes": [
+              {
+                "name": "data",
+                "persistentVolumeClaim": {
+                  "claimName": "products-db-data"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "products-db",
+        "namespace": "aj"
+      },
+      "spec": {
+        "selector": {
+          "app": "products-db"
+        },
+        "ports": [
+          {
+            "name": "data",
+            "port": 5432,
+            "targetPort": 5432
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "orders-db-data",
+        "namespace": "aj"
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "resources": {
+          "requests": {
+            "storage": "1Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "orders-db",
+        "namespace": "aj"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "orders-db"
+          }
+        },
+        "strategy": {
+          "type": "Recreate"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "orders-db",
+              "tier": "infrastructure"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "orders-db",
+                "image": "postgres:16-alpine",
+                "imagePullPolicy": "IfNotPresent",
+                "env": [
+                  {
+                    "name": "POSTGRES_DB",
+                    "value": "orders"
+                  },
+                  {
+                    "name": "POSTGRES_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "database-password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "POSTGRES_USER",
+                    "value": "postgres"
+                  }
+                ],
+                "ports": [
+                  {
+                    "name": "data",
+                    "containerPort": 5432
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "512Mi"
+                  }
+                },
+                "readinessProbe": {
+                  "exec": {
+                    "command": [
+                      "pg_isready",
+                      "-U",
+                      "postgres",
+                      "-d",
+                      "orders"
+                    ]
+                  },
+                  "periodSeconds": 5
+                },
+                "volumeMounts": [
+                  {
+                    "name": "data",
+                    "mountPath": "/var/lib/postgresql/data"
+                  }
+                ]
+              }
+            ],
+            "volumes": [
+              {
+                "name": "data",
+                "persistentVolumeClaim": {
+                  "claimName": "orders-db-data"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "orders-db",
+        "namespace": "aj"
+      },
+      "spec": {
+        "selector": {
+          "app": "orders-db"
+        },
+        "ports": [
+          {
+            "name": "data",
+            "port": 5432,
+            "targetPort": 5432
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "payments-db-data",
+        "namespace": "aj"
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "resources": {
+          "requests": {
+            "storage": "1Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "payments-db",
+        "namespace": "aj"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "payments-db"
+          }
+        },
+        "strategy": {
+          "type": "Recreate"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "payments-db",
+              "tier": "infrastructure"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "payments-db",
+                "image": "postgres:16-alpine",
+                "imagePullPolicy": "IfNotPresent",
+                "env": [
+                  {
+                    "name": "POSTGRES_DB",
+                    "value": "payments"
+                  },
+                  {
+                    "name": "POSTGRES_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "database-password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "POSTGRES_USER",
+                    "value": "postgres"
+                  }
+                ],
+                "ports": [
+                  {
+                    "name": "data",
+                    "containerPort": 5432
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "512Mi"
+                  }
+                },
+                "readinessProbe": {
+                  "exec": {
+                    "command": [
+                      "pg_isready",
+                      "-U",
+                      "postgres",
+                      "-d",
+                      "payments"
+                    ]
+                  },
+                  "periodSeconds": 5
+                },
+                "volumeMounts": [
+                  {
+                    "name": "data",
+                    "mountPath": "/var/lib/postgresql/data"
+                  }
+                ]
+              }
+            ],
+            "volumes": [
+              {
+                "name": "data",
+                "persistentVolumeClaim": {
+                  "claimName": "payments-db-data"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "payments-db",
+        "namespace": "aj"
+      },
+      "spec": {
+        "selector": {
+          "app": "payments-db"
+        },
+        "ports": [
+          {
+            "name": "data",
+            "port": 5432,
+            "targetPort": 5432
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "keycloak-db-data",
+        "namespace": "aj"
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "resources": {
+          "requests": {
+            "storage": "1Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "keycloak-db",
+        "namespace": "aj"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "keycloak-db"
+          }
+        },
+        "strategy": {
+          "type": "Recreate"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "keycloak-db",
+              "tier": "infrastructure"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "keycloak-db",
+                "image": "postgres:16-alpine",
+                "imagePullPolicy": "IfNotPresent",
+                "env": [
+                  {
+                    "name": "POSTGRES_DB",
+                    "value": "keycloak"
+                  },
+                  {
+                    "name": "POSTGRES_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "database-password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "POSTGRES_USER",
+                    "value": "keycloak"
+                  }
+                ],
+                "ports": [
+                  {
+                    "name": "data",
+                    "containerPort": 5432
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "512Mi"
+                  }
+                },
+                "readinessProbe": {
+                  "exec": {
+                    "command": [
+                      "pg_isready",
+                      "-U",
+                      "keycloak",
+                      "-d",
+                      "keycloak"
+                    ]
+                  },
+                  "periodSeconds": 5
+                },
+                "volumeMounts": [
+                  {
+                    "name": "data",
+                    "mountPath": "/var/lib/postgresql/data"
+                  }
+                ]
+              }
+            ],
+            "volumes": [
+              {
+                "name": "data",
+                "persistentVolumeClaim": {
+                  "claimName": "keycloak-db-data"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "keycloak-db",
+        "namespace": "aj"
+      },
+      "spec": {
+        "selector": {
+          "app": "keycloak-db"
+        },
+        "ports": [
+          {
+            "name": "data",
+            "port": 5432,
+            "targetPort": 5432
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "product-view-mongo-data",
+        "namespace": "aj"
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "resources": {
+          "requests": {
+            "storage": "1Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "product-view-mongo",
+        "namespace": "aj"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "product-view-mongo"
+          }
+        },
+        "strategy": {
+          "type": "Recreate"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "product-view-mongo",
+              "tier": "infrastructure"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "product-view-mongo",
+                "image": "mongo:7",
+                "imagePullPolicy": "IfNotPresent",
+                "env": [],
+                "ports": [
+                  {
+                    "name": "data",
+                    "containerPort": 27017
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "768Mi"
+                  }
+                },
+                "volumeMounts": [
+                  {
+                    "name": "data",
+                    "mountPath": "/data/db"
+                  }
+                ]
+              }
+            ],
+            "volumes": [
+              {
+                "name": "data",
+                "persistentVolumeClaim": {
+                  "claimName": "product-view-mongo-data"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "product-view-mongo",
+        "namespace": "aj"
+      },
+      "spec": {
+        "selector": {
+          "app": "product-view-mongo"
+        },
+        "ports": [
+          {
+            "name": "data",
+            "port": 27017,
+            "targetPort": 27017
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "rabbitmq-data",
+        "namespace": "aj"
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "resources": {
+          "requests": {
+            "storage": "1Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "rabbitmq",
+        "namespace": "aj"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "rabbitmq"
+          }
+        },
+        "strategy": {
+          "type": "Recreate"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "rabbitmq",
+              "tier": "infrastructure"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "rabbitmq",
+                "image": "rabbitmq:4.1-management-alpine",
+                "imagePullPolicy": "IfNotPresent",
+                "env": [
+                  {
+                    "name": "RABBITMQ_DEFAULT_PASS",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "rabbit-password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "RABBITMQ_DEFAULT_USER",
+                    "value": "aj"
+                  }
+                ],
+                "ports": [
+                  {
+                    "name": "data",
+                    "containerPort": 5672
+                  },
+                  {
+                    "name": "management",
+                    "containerPort": 15672
+                  },
+                  {
+                    "name": "metrics",
+                    "containerPort": 15692
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "512Mi"
+                  }
+                },
+                "command": [
+                  "/bin/sh",
+                  "-c",
+                  "rabbitmq-plugins enable --offline rabbitmq_prometheus && exec rabbitmq-server"
+                ],
+                "readinessProbe": {
+                  "exec": {
+                    "command": [
+                      "rabbitmq-diagnostics",
+                      "-q",
+                      "ping"
+                    ]
+                  },
+                  "periodSeconds": 10,
+                  "timeoutSeconds": 5
+                },
+                "volumeMounts": [
+                  {
+                    "name": "data",
+                    "mountPath": "/var/lib/rabbitmq"
+                  }
+                ]
+              }
+            ],
+            "volumes": [
+              {
+                "name": "data",
+                "persistentVolumeClaim": {
+                  "claimName": "rabbitmq-data"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "rabbitmq",
+        "namespace": "aj"
+      },
+      "spec": {
+        "selector": {
+          "app": "rabbitmq"
+        },
+        "ports": [
+          {
+            "name": "data",
+            "port": 5672,
+            "targetPort": 5672
+          },
+          {
+            "name": "management",
+            "port": 15672,
+            "targetPort": 15672
+          },
+          {
+            "name": "metrics",
+            "port": 15692,
+            "targetPort": 15692
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "keycloak",
+        "namespace": "aj"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "keycloak"
+          }
+        },
+        "strategy": {
+          "type": "Recreate"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "keycloak",
+              "tier": "infrastructure"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "keycloak",
+                "image": "quay.io/keycloak/keycloak:26.8.1",
+                "imagePullPolicy": "IfNotPresent",
+                "env": [
+                  {
+                    "name": "KC_BOOTSTRAP_ADMIN_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "identity-admin-password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "KC_BOOTSTRAP_ADMIN_USERNAME",
+                    "value": "keycloak-admin"
+                  },
+                  {
+                    "name": "KC_DB",
+                    "value": "postgres"
+                  },
+                  {
+                    "name": "KC_DB_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "database-password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "KC_DB_URL",
+                    "value": "jdbc:postgresql://keycloak-db:5432/keycloak"
+                  },
+                  {
+                    "name": "KC_DB_USERNAME",
+                    "value": "keycloak"
+                  },
+                  {
+                    "name": "KC_HEALTH_ENABLED",
+                    "value": "true"
+                  },
+                  {
+                    "name": "KC_HOSTNAME",
+                    "value": "https://localhost:8443/identity"
+                  },
+                  {
+                    "name": "KC_HTTP_PORT",
+                    "value": "8180"
+                  },
+                  {
+                    "name": "KC_HTTP_RELATIVE_PATH",
+                    "value": "/identity"
+                  }
+                ],
+                "ports": [
+                  {
+                    "name": "http",
+                    "containerPort": 8180
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "768Mi"
+                  }
+                },
+                "args": [
+                  "start-dev",
+                  "--import-realm"
+                ],
+                "volumeMounts": [
+                  {
+                    "name": "realm",
+                    "mountPath": "/opt/keycloak/data/import",
+                    "readOnly": true
+                  }
+                ],
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/identity/realms/aj/.well-known/openid-configuration",
+                    "port": 8180
+                  },
+                  "periodSeconds": 5,
+                  "timeoutSeconds": 3
+                }
+              }
+            ],
+            "volumes": [
+              {
+                "name": "realm",
+                "configMap": {
+                  "name": "aj-realm"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "keycloak",
+        "namespace": "aj"
+      },
+      "spec": {
+        "selector": {
+          "app": "keycloak"
+        },
+        "ports": [
+          {
+            "name": "http",
+            "port": 8180,
+            "targetPort": 8180
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "users",
+        "namespace": "aj"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "users"
+          }
+        },
+        "strategy": {
+          "type": "RollingUpdate"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "users",
+              "tier": "application"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "users",
+                "image": "aj-users:local",
+                "imagePullPolicy": "Never",
+                "env": [
+                  {
+                    "name": "DB_BASELINE_EXISTING",
+                    "value": "false"
+                  },
+                  {
+                    "name": "DB_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "database-password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "DB_URL",
+                    "value": "jdbc:postgresql://users-db:5432/users"
+                  },
+                  {
+                    "name": "DB_USER",
+                    "value": "postgres"
+                  },
+                  {
+                    "name": "DEMO_DATA_ENABLED",
+                    "value": "true"
+                  },
+                  {
+                    "name": "OIDC_ISSUER",
+                    "value": "https://localhost:8443/identity/realms/aj"
+                  },
+                  {
+                    "name": "OIDC_JWKS_URL",
+                    "value": "http://keycloak:8180/identity/realms/aj/protocol/openid-connect/certs"
+                  },
+                  {
+                    "name": "PORT",
+                    "value": "7000"
+                  },
+                  {
+                    "name": "RABBITMQ_URL",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "rabbit-url"
+                      }
+                    }
+                  }
+                ],
+                "ports": [
+                  {
+                    "name": "http",
+                    "containerPort": 7000
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "512Mi"
+                  }
+                },
+                "securityContext": {
+                  "runAsUser": 10001,
+                  "runAsGroup": 10001,
+                  "runAsNonRoot": true,
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 7000
+                  },
+                  "periodSeconds": 5,
+                  "timeoutSeconds": 5
+                },
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": 7000
+                  },
+                  "periodSeconds": 10,
+                  "timeoutSeconds": 3
+                },
+                "startupProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": 7000
+                  },
+                  "periodSeconds": 5,
+                  "failureThreshold": 36
+                }
+              }
+            ],
+            "initContainers": [
+              {
+                "name": "migrate",
+                "image": "aj-users:local",
+                "imagePullPolicy": "Never",
+                "env": [
+                  {
+                    "name": "DB_BASELINE_EXISTING",
+                    "value": "false"
+                  },
+                  {
+                    "name": "DB_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "database-password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "DB_URL",
+                    "value": "jdbc:postgresql://users-db:5432/users"
+                  },
+                  {
+                    "name": "DB_USER",
+                    "value": "postgres"
+                  },
+                  {
+                    "name": "DEMO_DATA_ENABLED",
+                    "value": "true"
+                  },
+                  {
+                    "name": "OIDC_ISSUER",
+                    "value": "https://localhost:8443/identity/realms/aj"
+                  },
+                  {
+                    "name": "OIDC_JWKS_URL",
+                    "value": "http://keycloak:8180/identity/realms/aj/protocol/openid-connect/certs"
+                  },
+                  {
+                    "name": "PORT",
+                    "value": "7000"
+                  },
+                  {
+                    "name": "RABBITMQ_URL",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "rabbit-url"
+                      }
+                    }
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "512Mi"
+                  }
+                },
+                "securityContext": {
+                  "runAsUser": 10001,
+                  "runAsGroup": 10001,
+                  "runAsNonRoot": true,
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "command": [
+                  "java",
+                  "-cp",
+                  "/app/app.jar",
+                  "com.aj.common.Migrate",
+                  "users"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "users",
+        "namespace": "aj"
+      },
+      "spec": {
+        "selector": {
+          "app": "users"
+        },
+        "ports": [
+          {
+            "name": "http",
+            "port": 7000,
+            "targetPort": 7000
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "products",
+        "namespace": "aj"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "products"
+          }
+        },
+        "strategy": {
+          "type": "RollingUpdate"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "products",
+              "tier": "application"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "products",
+                "image": "aj-products:local",
+                "imagePullPolicy": "Never",
+                "env": [
+                  {
+                    "name": "DB_BASELINE_EXISTING",
+                    "value": "false"
+                  },
+                  {
+                    "name": "DB_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "database-password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "DB_URL",
+                    "value": "jdbc:postgresql://products-db:5432/products"
+                  },
+                  {
+                    "name": "DB_USER",
+                    "value": "postgres"
+                  },
+                  {
+                    "name": "DEMO_DATA_ENABLED",
+                    "value": "true"
+                  },
+                  {
+                    "name": "OIDC_ISSUER",
+                    "value": "https://localhost:8443/identity/realms/aj"
+                  },
+                  {
+                    "name": "OIDC_JWKS_URL",
+                    "value": "http://keycloak:8180/identity/realms/aj/protocol/openid-connect/certs"
+                  },
+                  {
+                    "name": "OLLAMA_MODEL",
+                    "value": "llama3.2:3b"
+                  },
+                  {
+                    "name": "OLLAMA_URL",
+                    "value": "http://host.docker.internal:11434"
+                  },
+                  {
+                    "name": "PORT",
+                    "value": "7000"
+                  },
+                  {
+                    "name": "RABBITMQ_URL",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "rabbit-url"
+                      }
+                    }
+                  }
+                ],
+                "ports": [
+                  {
+                    "name": "http",
+                    "containerPort": 7000
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "512Mi"
+                  }
+                },
+                "securityContext": {
+                  "runAsUser": 10001,
+                  "runAsGroup": 10001,
+                  "runAsNonRoot": true,
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 7000
+                  },
+                  "periodSeconds": 5,
+                  "timeoutSeconds": 5
+                },
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": 7000
+                  },
+                  "periodSeconds": 10,
+                  "timeoutSeconds": 3
+                },
+                "startupProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": 7000
+                  },
+                  "periodSeconds": 5,
+                  "failureThreshold": 36
+                }
+              }
+            ],
+            "initContainers": [
+              {
+                "name": "migrate",
+                "image": "aj-products:local",
+                "imagePullPolicy": "Never",
+                "env": [
+                  {
+                    "name": "DB_BASELINE_EXISTING",
+                    "value": "false"
+                  },
+                  {
+                    "name": "DB_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "database-password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "DB_URL",
+                    "value": "jdbc:postgresql://products-db:5432/products"
+                  },
+                  {
+                    "name": "DB_USER",
+                    "value": "postgres"
+                  },
+                  {
+                    "name": "DEMO_DATA_ENABLED",
+                    "value": "true"
+                  },
+                  {
+                    "name": "OIDC_ISSUER",
+                    "value": "https://localhost:8443/identity/realms/aj"
+                  },
+                  {
+                    "name": "OIDC_JWKS_URL",
+                    "value": "http://keycloak:8180/identity/realms/aj/protocol/openid-connect/certs"
+                  },
+                  {
+                    "name": "OLLAMA_MODEL",
+                    "value": "llama3.2:3b"
+                  },
+                  {
+                    "name": "OLLAMA_URL",
+                    "value": "http://host.docker.internal:11434"
+                  },
+                  {
+                    "name": "PORT",
+                    "value": "7000"
+                  },
+                  {
+                    "name": "RABBITMQ_URL",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "rabbit-url"
+                      }
+                    }
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "512Mi"
+                  }
+                },
+                "securityContext": {
+                  "runAsUser": 10001,
+                  "runAsGroup": 10001,
+                  "runAsNonRoot": true,
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "command": [
+                  "java",
+                  "-cp",
+                  "/app/app.jar",
+                  "com.aj.common.Migrate",
+                  "products"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "products",
+        "namespace": "aj"
+      },
+      "spec": {
+        "selector": {
+          "app": "products"
+        },
+        "ports": [
+          {
+            "name": "http",
+            "port": 7000,
+            "targetPort": 7000
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "orders",
+        "namespace": "aj"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "orders"
+          }
+        },
+        "strategy": {
+          "type": "RollingUpdate"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "orders",
+              "tier": "application"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "orders",
+                "image": "aj-orders:local",
+                "imagePullPolicy": "Never",
+                "env": [
+                  {
+                    "name": "CONFIRMATION_TOKEN",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "confirmation-token"
+                      }
+                    }
+                  },
+                  {
+                    "name": "DB_BASELINE_EXISTING",
+                    "value": "false"
+                  },
+                  {
+                    "name": "DB_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "database-password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "DB_URL",
+                    "value": "jdbc:postgresql://orders-db:5432/orders"
+                  },
+                  {
+                    "name": "DB_USER",
+                    "value": "postgres"
+                  },
+                  {
+                    "name": "DEMO_DATA_ENABLED",
+                    "value": "true"
+                  },
+                  {
+                    "name": "OIDC_ISSUER",
+                    "value": "https://localhost:8443/identity/realms/aj"
+                  },
+                  {
+                    "name": "OIDC_JWKS_URL",
+                    "value": "http://keycloak:8180/identity/realms/aj/protocol/openid-connect/certs"
+                  },
+                  {
+                    "name": "PORT",
+                    "value": "7000"
+                  },
+                  {
+                    "name": "RABBITMQ_URL",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "rabbit-url"
+                      }
+                    }
+                  }
+                ],
+                "ports": [
+                  {
+                    "name": "http",
+                    "containerPort": 7000
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "512Mi"
+                  }
+                },
+                "securityContext": {
+                  "runAsUser": 10001,
+                  "runAsGroup": 10001,
+                  "runAsNonRoot": true,
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 7000
+                  },
+                  "periodSeconds": 5,
+                  "timeoutSeconds": 5
+                },
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": 7000
+                  },
+                  "periodSeconds": 10,
+                  "timeoutSeconds": 3
+                },
+                "startupProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": 7000
+                  },
+                  "periodSeconds": 5,
+                  "failureThreshold": 36
+                }
+              }
+            ],
+            "initContainers": [
+              {
+                "name": "migrate",
+                "image": "aj-orders:local",
+                "imagePullPolicy": "Never",
+                "env": [
+                  {
+                    "name": "CONFIRMATION_TOKEN",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "confirmation-token"
+                      }
+                    }
+                  },
+                  {
+                    "name": "DB_BASELINE_EXISTING",
+                    "value": "false"
+                  },
+                  {
+                    "name": "DB_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "database-password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "DB_URL",
+                    "value": "jdbc:postgresql://orders-db:5432/orders"
+                  },
+                  {
+                    "name": "DB_USER",
+                    "value": "postgres"
+                  },
+                  {
+                    "name": "DEMO_DATA_ENABLED",
+                    "value": "true"
+                  },
+                  {
+                    "name": "OIDC_ISSUER",
+                    "value": "https://localhost:8443/identity/realms/aj"
+                  },
+                  {
+                    "name": "OIDC_JWKS_URL",
+                    "value": "http://keycloak:8180/identity/realms/aj/protocol/openid-connect/certs"
+                  },
+                  {
+                    "name": "PORT",
+                    "value": "7000"
+                  },
+                  {
+                    "name": "RABBITMQ_URL",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "rabbit-url"
+                      }
+                    }
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "512Mi"
+                  }
+                },
+                "securityContext": {
+                  "runAsUser": 10001,
+                  "runAsGroup": 10001,
+                  "runAsNonRoot": true,
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "command": [
+                  "java",
+                  "-cp",
+                  "/app/app.jar",
+                  "com.aj.common.Migrate",
+                  "orders"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "orders",
+        "namespace": "aj"
+      },
+      "spec": {
+        "selector": {
+          "app": "orders"
+        },
+        "ports": [
+          {
+            "name": "http",
+            "port": 7000,
+            "targetPort": 7000
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "payments",
+        "namespace": "aj"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "payments"
+          }
+        },
+        "strategy": {
+          "type": "RollingUpdate"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "payments",
+              "tier": "application"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "payments",
+                "image": "aj-payments:local",
+                "imagePullPolicy": "Never",
+                "env": [
+                  {
+                    "name": "DB_BASELINE_EXISTING",
+                    "value": "false"
+                  },
+                  {
+                    "name": "DB_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "database-password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "DB_URL",
+                    "value": "jdbc:postgresql://payments-db:5432/payments"
+                  },
+                  {
+                    "name": "DB_USER",
+                    "value": "postgres"
+                  },
+                  {
+                    "name": "DEMO_DATA_ENABLED",
+                    "value": "true"
+                  },
+                  {
+                    "name": "OIDC_ISSUER",
+                    "value": "https://localhost:8443/identity/realms/aj"
+                  },
+                  {
+                    "name": "OIDC_JWKS_URL",
+                    "value": "http://keycloak:8180/identity/realms/aj/protocol/openid-connect/certs"
+                  },
+                  {
+                    "name": "PORT",
+                    "value": "7000"
+                  },
+                  {
+                    "name": "RABBITMQ_URL",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "rabbit-url"
+                      }
+                    }
+                  }
+                ],
+                "ports": [
+                  {
+                    "name": "http",
+                    "containerPort": 7000
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "512Mi"
+                  }
+                },
+                "securityContext": {
+                  "runAsUser": 10001,
+                  "runAsGroup": 10001,
+                  "runAsNonRoot": true,
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 7000
+                  },
+                  "periodSeconds": 5,
+                  "timeoutSeconds": 5
+                },
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": 7000
+                  },
+                  "periodSeconds": 10,
+                  "timeoutSeconds": 3
+                },
+                "startupProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": 7000
+                  },
+                  "periodSeconds": 5,
+                  "failureThreshold": 36
+                }
+              }
+            ],
+            "initContainers": [
+              {
+                "name": "migrate",
+                "image": "aj-payments:local",
+                "imagePullPolicy": "Never",
+                "env": [
+                  {
+                    "name": "DB_BASELINE_EXISTING",
+                    "value": "false"
+                  },
+                  {
+                    "name": "DB_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "database-password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "DB_URL",
+                    "value": "jdbc:postgresql://payments-db:5432/payments"
+                  },
+                  {
+                    "name": "DB_USER",
+                    "value": "postgres"
+                  },
+                  {
+                    "name": "DEMO_DATA_ENABLED",
+                    "value": "true"
+                  },
+                  {
+                    "name": "OIDC_ISSUER",
+                    "value": "https://localhost:8443/identity/realms/aj"
+                  },
+                  {
+                    "name": "OIDC_JWKS_URL",
+                    "value": "http://keycloak:8180/identity/realms/aj/protocol/openid-connect/certs"
+                  },
+                  {
+                    "name": "PORT",
+                    "value": "7000"
+                  },
+                  {
+                    "name": "RABBITMQ_URL",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "rabbit-url"
+                      }
+                    }
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "512Mi"
+                  }
+                },
+                "securityContext": {
+                  "runAsUser": 10001,
+                  "runAsGroup": 10001,
+                  "runAsNonRoot": true,
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "command": [
+                  "java",
+                  "-cp",
+                  "/app/app.jar",
+                  "com.aj.common.Migrate",
+                  "payments"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "payments",
+        "namespace": "aj"
+      },
+      "spec": {
+        "selector": {
+          "app": "payments"
+        },
+        "ports": [
+          {
+            "name": "http",
+            "port": 7000,
+            "targetPort": 7000
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "product-view",
+        "namespace": "aj"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "product-view"
+          }
+        },
+        "strategy": {
+          "type": "RollingUpdate"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "product-view",
+              "tier": "application"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "product-view",
+                "image": "aj-product-view:local",
+                "imagePullPolicy": "Never",
+                "env": [
+                  {
+                    "name": "MONGO_DB",
+                    "value": "product_view"
+                  },
+                  {
+                    "name": "MONGO_URI",
+                    "value": "mongodb://product-view-mongo:27017"
+                  },
+                  {
+                    "name": "PORT",
+                    "value": "7000"
+                  },
+                  {
+                    "name": "PROJECTION_API_TOKEN",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "projection-token"
+                      }
+                    }
+                  }
+                ],
+                "ports": [
+                  {
+                    "name": "http",
+                    "containerPort": 7000
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "512Mi"
+                  }
+                },
+                "securityContext": {
+                  "runAsUser": 10001,
+                  "runAsGroup": 10001,
+                  "runAsNonRoot": true,
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 7000
+                  },
+                  "periodSeconds": 5,
+                  "timeoutSeconds": 5
+                },
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": 7000
+                  },
+                  "periodSeconds": 10,
+                  "timeoutSeconds": 3
+                },
+                "startupProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": 7000
+                  },
+                  "periodSeconds": 5,
+                  "failureThreshold": 36
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "product-view",
+        "namespace": "aj"
+      },
+      "spec": {
+        "selector": {
+          "app": "product-view"
+        },
+        "ports": [
+          {
+            "name": "http",
+            "port": 7000,
+            "targetPort": 7000
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "product-synchronizer",
+        "namespace": "aj"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "product-synchronizer"
+          }
+        },
+        "strategy": {
+          "type": "RollingUpdate"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "product-synchronizer",
+              "tier": "application"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "product-synchronizer",
+                "image": "aj-product-synchronizer:local",
+                "imagePullPolicy": "Never",
+                "env": [
+                  {
+                    "name": "PORT",
+                    "value": "7000"
+                  },
+                  {
+                    "name": "PRODUCT_VIEW_URL",
+                    "value": "http://product-view:7000"
+                  },
+                  {
+                    "name": "PROJECTION_API_TOKEN",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "projection-token"
+                      }
+                    }
+                  },
+                  {
+                    "name": "RABBITMQ_URL",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "aj-secrets",
+                        "key": "rabbit-url"
+                      }
+                    }
+                  }
+                ],
+                "ports": [
+                  {
+                    "name": "http",
+                    "containerPort": 7000
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "512Mi"
+                  }
+                },
+                "securityContext": {
+                  "runAsUser": 10001,
+                  "runAsGroup": 10001,
+                  "runAsNonRoot": true,
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 7000
+                  },
+                  "periodSeconds": 5,
+                  "timeoutSeconds": 5
+                },
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": 7000
+                  },
+                  "periodSeconds": 10,
+                  "timeoutSeconds": 3
+                },
+                "startupProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": 7000
+                  },
+                  "periodSeconds": 5,
+                  "failureThreshold": 36
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "product-synchronizer",
+        "namespace": "aj"
+      },
+      "spec": {
+        "selector": {
+          "app": "product-synchronizer"
+        },
+        "ports": [
+          {
+            "name": "http",
+            "port": 7000,
+            "targetPort": 7000
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "apigateway",
+        "namespace": "aj"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "apigateway"
+          }
+        },
+        "strategy": {
+          "type": "RollingUpdate"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "apigateway",
+              "tier": "application"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "apigateway",
+                "image": "aj-apigateway:local",
+                "imagePullPolicy": "Never",
+                "env": [
+                  {
+                    "name": "KEYCLOAK_URL",
+                    "value": "http://keycloak:8180"
+                  },
+                  {
+                    "name": "OIDC_ISSUER",
+                    "value": "https://localhost:8443/identity/realms/aj"
+                  },
+                  {
+                    "name": "OIDC_JWKS_URL",
+                    "value": "http://keycloak:8180/identity/realms/aj/protocol/openid-connect/certs"
+                  },
+                  {
+                    "name": "PORT",
+                    "value": "7000"
+                  }
+                ],
+                "ports": [
+                  {
+                    "name": "http",
+                    "containerPort": 7000
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "512Mi"
+                  }
+                },
+                "securityContext": {
+                  "runAsUser": 10001,
+                  "runAsGroup": 10001,
+                  "runAsNonRoot": true,
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 7000
+                  },
+                  "periodSeconds": 5,
+                  "timeoutSeconds": 5
+                },
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": 7000
+                  },
+                  "periodSeconds": 10,
+                  "timeoutSeconds": 3
+                },
+                "startupProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": 7000
+                  },
+                  "periodSeconds": 5,
+                  "failureThreshold": 36
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "apigateway",
+        "namespace": "aj"
+      },
+      "spec": {
+        "selector": {
+          "app": "apigateway"
+        },
+        "ports": [
+          {
+            "name": "http",
+            "port": 7000,
+            "targetPort": 7000
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "frontend",
+        "namespace": "aj"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "frontend"
+          }
+        },
+        "strategy": {
+          "type": "RollingUpdate"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "frontend",
+              "tier": "application"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "frontend",
+                "image": "aj-frontend:local",
+                "imagePullPolicy": "Never",
+                "env": [
+                  {
+                    "name": "GATEWAY_URL",
+                    "value": "http://apigateway:7000"
+                  },
+                  {
+                    "name": "PORT",
+                    "value": "7000"
+                  },
+                  {
+                    "name": "OIDC_PUBLIC_URL",
+                    "value": "https://localhost:8443/identity"
+                  }
+                ],
+                "ports": [
+                  {
+                    "name": "http",
+                    "containerPort": 7000
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1000m",
+                    "memory": "512Mi"
+                  }
+                },
+                "securityContext": {
+                  "runAsUser": 10001,
+                  "runAsGroup": 10001,
+                  "runAsNonRoot": true,
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 7000
+                  },
+                  "periodSeconds": 5,
+                  "timeoutSeconds": 5
+                },
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": 7000
+                  },
+                  "periodSeconds": 10,
+                  "timeoutSeconds": 3
+                },
+                "startupProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": 7000
+                  },
+                  "periodSeconds": 5,
+                  "failureThreshold": 36
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "frontend",
+        "namespace": "aj"
+      },
+      "spec": {
+        "selector": {
+          "app": "frontend"
+        },
+        "ports": [
+          {
+            "name": "http",
+            "port": 7000,
+            "targetPort": 7000
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "default-deny-ingress",
+        "namespace": "aj"
+      },
+      "spec": {
+        "podSelector": {},
+        "policyTypes": [
+          "Ingress"
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "owner-users-db",
+        "namespace": "aj"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "users-db"
+          }
+        },
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "users"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "owner-products-db",
+        "namespace": "aj"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "products-db"
+          }
+        },
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "products"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "owner-orders-db",
+        "namespace": "aj"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "orders-db"
+          }
+        },
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "orders"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "owner-payments-db",
+        "namespace": "aj"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "payments-db"
+          }
+        },
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "payments"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "owner-keycloak-db",
+        "namespace": "aj"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "keycloak-db"
+          }
+        },
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "keycloak"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "owner-product-view-mongo",
+        "namespace": "aj"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "product-view-mongo"
+          }
+        },
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "product-view"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "callers-users",
+        "namespace": "aj"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "users"
+          }
+        },
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "apigateway"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "callers-products",
+        "namespace": "aj"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "products"
+          }
+        },
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "apigateway"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "callers-orders",
+        "namespace": "aj"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "orders"
+          }
+        },
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "apigateway"
+                  }
+                }
+              },
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "confirmation-job"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "callers-payments",
+        "namespace": "aj"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "payments"
+          }
+        },
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "apigateway"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "callers-product-view",
+        "namespace": "aj"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "product-view"
+          }
+        },
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "apigateway"
+                  }
+                }
+              },
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "product-synchronizer"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "callers-product-synchronizer",
+        "namespace": "aj"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "product-synchronizer"
+          }
+        },
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "apigateway"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "callers-apigateway",
+        "namespace": "aj"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "apigateway"
+          }
+        },
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "apigateway"
+                  }
+                }
+              },
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "frontend"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "callers-frontend",
+        "namespace": "aj"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "frontend"
+          }
+        },
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "traefik"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "callers-keycloak",
+        "namespace": "aj"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "keycloak"
+          }
+        },
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "users"
+                  }
+                }
+              },
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "products"
+                  }
+                }
+              },
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "orders"
+                  }
+                }
+              },
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "payments"
+                  }
+                }
+              },
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "product-view"
+                  }
+                }
+              },
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "product-synchronizer"
+                  }
+                }
+              },
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "apigateway"
+                  }
+                }
+              },
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "frontend"
+                  }
+                }
+              },
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "traefik"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "callers-rabbitmq",
+        "namespace": "aj"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "rabbitmq"
+          }
+        },
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "users"
+                  }
+                }
+              },
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "products"
+                  }
+                }
+              },
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "orders"
+                  }
+                }
+              },
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "payments"
+                  }
+                }
+              },
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "product-view"
+                  }
+                }
+              },
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "product-synchronizer"
+                  }
+                }
+              },
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "apigateway"
+                  }
+                }
+              },
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "frontend"
+                  }
+                }
+              },
+              {
+                "podSelector": {
+                  "matchLabels": {
+                    "app": "confirmation-job"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "keda-broker",
+        "namespace": "aj"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "rabbitmq"
+          }
+        },
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "namespaceSelector": {
+                  "matchLabels": {
+                    "kubernetes.io/metadata.name": "keda"
+                  }
+                }
+              }
+            ],
+            "ports": [
+              {
+                "port": 5672
+              },
+              {
+                "port": 15672
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "autoscaling/v2",
+      "kind": "HorizontalPodAutoscaler",
+      "metadata": {
+        "name": "frontend",
+        "namespace": "aj"
+      },
+      "spec": {
+        "scaleTargetRef": {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "name": "frontend"
+        },
+        "minReplicas": 1,
+        "maxReplicas": 2,
+        "metrics": [
+          {
+            "type": "Resource",
+            "resource": {
+              "name": "cpu",
+              "target": {
+                "type": "Utilization",
+                "averageUtilization": 60
+              }
+            }
+          }
+        ],
+        "behavior": {
+          "scaleUp": {
+            "stabilizationWindowSeconds": 0
+          },
+          "scaleDown": {
+            "stabilizationWindowSeconds": 60
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "keda.sh/v1alpha1",
+      "kind": "TriggerAuthentication",
+      "metadata": {
+        "name": "confirmation-broker",
+        "namespace": "aj"
+      },
+      "spec": {
+        "secretTargetRef": [
+          {
+            "parameter": "host",
+            "name": "aj-secrets",
+            "key": "rabbit-url"
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "keda.sh/v1alpha1",
+      "kind": "ScaledJob",
+      "metadata": {
+        "name": "confirmation",
+        "namespace": "aj"
+      },
+      "spec": {
+        "pollingInterval": 5,
+        "minReplicaCount": 0,
+        "maxReplicaCount": 2,
+        "successfulJobsHistoryLimit": 3,
+        "failedJobsHistoryLimit": 3,
+        "jobTargetRef": {
+          "backoffLimit": 2,
+          "activeDeadlineSeconds": 60,
+          "template": {
+            "metadata": {
+              "labels": {
+                "app": "confirmation-job"
+              }
+            },
+            "spec": {
+              "restartPolicy": "Never",
+              "containers": [
+                {
+                  "name": "confirmation",
+                  "image": "aj-confirmation-job:local",
+                  "imagePullPolicy": "Never",
+                  "env": [
+                    {
+                      "name": "RABBITMQ_URL",
+                      "valueFrom": {
+                        "secretKeyRef": {
+                          "name": "aj-secrets",
+                          "key": "rabbit-url"
+                        }
+                      }
+                    },
+                    {
+                      "name": "ORDERS_URL",
+                      "value": "http://orders:7000"
+                    },
+                    {
+                      "name": "CONFIRMATION_TOKEN",
+                      "valueFrom": {
+                        "secretKeyRef": {
+                          "name": "aj-secrets",
+                          "key": "confirmation-token"
+                        }
+                      }
+                    }
+                  ],
+                  "resources": {
+                    "requests": {
+                      "cpu": "50m",
+                      "memory": "128Mi"
+                    },
+                    "limits": {
+                      "cpu": "500m",
+                      "memory": "256Mi"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "triggers": [
+          {
+            "type": "rabbitmq",
+            "metadata": {
+              "queueName": "aj.confirmations",
+              "mode": "QueueLength",
+              "value": "1",
+              "protocol": "amqp"
+            },
+            "authenticationRef": {
+              "name": "confirmation-broker"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "ServiceAccount",
+      "metadata": {
+        "name": "traefik",
+        "namespace": "aj"
+      }
+    },
+    {
+      "apiVersion": "rbac.authorization.k8s.io/v1",
+      "kind": "Role",
+      "metadata": {
+        "name": "traefik",
+        "namespace": "aj"
+      },
+      "rules": [
+        {
+          "apiGroups": [
+            ""
+          ],
+          "resources": [
+            "services",
+            "endpoints",
+            "secrets"
+          ],
+          "verbs": [
+            "get",
+            "list",
+            "watch"
+          ]
+        },
+        {
+          "apiGroups": [
+            "discovery.k8s.io"
+          ],
+          "resources": [
+            "endpointslices"
+          ],
+          "verbs": [
+            "get",
+            "list",
+            "watch"
+          ]
+        },
+        {
+          "apiGroups": [
+            "networking.k8s.io"
+          ],
+          "resources": [
+            "ingresses"
+          ],
+          "verbs": [
+            "get",
+            "list",
+            "watch"
+          ]
+        },
+        {
+          "apiGroups": [
+            "networking.k8s.io"
+          ],
+          "resources": [
+            "ingresses/status"
+          ],
+          "verbs": [
+            "update"
+          ]
+        }
+      ]
+    },
+    {
+      "apiVersion": "rbac.authorization.k8s.io/v1",
+      "kind": "RoleBinding",
+      "metadata": {
+        "name": "traefik",
+        "namespace": "aj"
+      },
+      "roleRef": {
+        "apiGroup": "rbac.authorization.k8s.io",
+        "kind": "Role",
+        "name": "traefik"
+      },
+      "subjects": [
+        {
+          "kind": "ServiceAccount",
+          "name": "traefik",
+          "namespace": "aj"
+        }
+      ]
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "traefik",
+        "namespace": "aj"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "traefik"
+          }
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "traefik"
+            }
+          },
+          "spec": {
+            "serviceAccountName": "traefik",
+            "containers": [
+              {
+                "name": "traefik",
+                "image": "traefik:v3.3.3",
+                "args": [
+                  "--providers.kubernetesingress=true",
+                  "--providers.kubernetesingress.namespaces=aj",
+                  "--providers.kubernetesingress.disableclusterscoperesources=true",
+                  "--entrypoints.websecure.address=:8443",
+                  "--entrypoints.websecure.http.tls=true"
+                ],
+                "ports": [
+                  {
+                    "containerPort": 8443
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "25m",
+                    "memory": "64Mi"
+                  },
+                  "limits": {
+                    "cpu": "500m",
+                    "memory": "128Mi"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "ingress-controller",
+        "namespace": "aj"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "traefik"
+          }
+        },
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {}
+        ]
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "traefik",
+        "namespace": "aj"
+      },
+      "spec": {
+        "type": "NodePort",
+        "selector": {
+          "app": "traefik"
+        },
+        "ports": [
+          {
+            "port": 8443,
+            "targetPort": 8443,
+            "nodePort": 30443
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "Ingress",
+      "metadata": {
+        "name": "aj",
+        "namespace": "aj"
+      },
+      "spec": {
+        "tls": [
+          {
+            "hosts": [
+              "localhost"
+            ],
+            "secretName": "aj-tls"
+          }
+        ],
+        "rules": [
+          {
+            "host": "localhost",
+            "http": {
+              "paths": [
+                {
+                  "path": "/identity",
+                  "pathType": "Prefix",
+                  "backend": {
+                    "service": {
+                      "name": "keycloak",
+                      "port": {
+                        "number": 8180
+                      }
+                    }
+                  }
+                },
+                {
+                  "path": "/",
+                  "pathType": "Prefix",
+                  "backend": {
+                    "service": {
+                      "name": "frontend",
+                      "port": {
+                        "number": 7000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

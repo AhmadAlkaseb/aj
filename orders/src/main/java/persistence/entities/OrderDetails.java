@@ -28,6 +28,15 @@ import java.time.LocalDateTime;
 @Builder
 public class OrderDetails {
 
+    @Column(name = "user_guid", nullable = false)
+    private java.util.UUID userGuid;
+
+    @Column(name = "product_guid", nullable = false)
+    private java.util.UUID productGuid;
+
+    @Column(name = "payment_guid")
+    private java.util.UUID paymentGuid;
+
     @Id
     @Column(name = "order_id")
     private Long orderId;
@@ -55,6 +64,9 @@ public class OrderDetails {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
 
     @Column(name = "notes")
     private String notes;

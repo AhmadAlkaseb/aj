@@ -1,0 +1,32 @@
+{
+  "name": "aj-frontend",
+  "services": {
+    "frontend": {
+      "build": {
+        "context": "..",
+        "dockerfile": "Dockerfile",
+        "args": {
+          "SERVICE": "frontend"
+        }
+      },
+      "image": "aj-frontend:local",
+      "restart": "unless-stopped",
+      "environment": {
+        "PORT": "7000",
+        "GATEWAY_URL": "http://apigateway:7000"
+      },
+      "ports": [
+        "127.0.0.1:3000:7000"
+      ],
+      "networks": [
+        "edge"
+      ]
+    }
+  },
+  "networks": {
+    "edge": {
+      "external": true,
+      "name": "aj-edge"
+    }
+  }
+}

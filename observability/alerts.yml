@@ -1,0 +1,42 @@
+{
+  "groups": [
+    {
+      "name": "aj-availability",
+      "rules": [
+        {
+          "alert": "AJDependencyDown",
+          "expr": "up == 0",
+          "for": "10s",
+          "labels": {
+            "severity": "warning"
+          },
+          "annotations": {
+            "summary": "A monitored dependency is unavailable"
+          }
+        },
+        {
+          "alert": "AJOutboxDelayed",
+          "expr": "aj_outbox_oldest_seconds > 15",
+          "for": "5s",
+          "labels": {
+            "severity": "warning"
+          },
+          "annotations": {
+            "summary": "Committed messages are waiting for delivery"
+          }
+        },
+        {
+          "alert": "AJDeadLetters",
+          "expr": "rabbitmq_queue_messages{queue=\"aj.dead\"} > 0",
+          "for": "5s",
+          "labels": {
+            "severity": "warning"
+          },
+          "annotations": {
+            "summary": "Operator review required for dead letters"
+          }
+        }
+      ]
+    }
+  ]
+}

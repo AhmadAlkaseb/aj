@@ -1,0 +1,122 @@
+{
+  "name": "aj",
+  "services": {
+    "rabbitmq": {
+      "image": "rabbitmq:4.1-management-alpine",
+      "restart": "unless-stopped",
+      "environment": {
+        "RABBITMQ_DEFAULT_USER": "aj",
+        "RABBITMQ_DEFAULT_PASS": "aj-local",
+        "RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS": "-rabbitmq_prometheus return_per_object_metrics true"
+      },
+      "ports": [
+        "127.0.0.1:5672:5672",
+        "127.0.0.1:15672:15672"
+      ],
+      "volumes": [
+        "rabbitmq-data:/var/lib/rabbitmq"
+      ],
+      "networks": [
+        "backend",
+        "edge"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "rabbitmq-diagnostics",
+          "-q",
+          "ping"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 10
+      },
+      "command": [
+        "/bin/sh",
+        "-c",
+        "rabbitmq-plugins enable --offline rabbitmq_prometheus && exec rabbitmq-server"
+      ]
+    },
+    "keycloak-db": {
+      "image": "postgres:16-alpine",
+      "restart": "unless-stopped",
+      "environment": {
+        "POSTGRES_DB": "keycloak",
+        "POSTGRES_USER": "keycloak",
+        "POSTGRES_PASSWORD": "keycloak-local"
+      },
+      "volumes": [
+        "keycloak-postgres-data:/var/lib/postgresql/data"
+      ],
+      "networks": [
+        "identity-data"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U keycloak -d keycloak"
+        ],
+        "interval": "5s",
+        "timeout": "3s",
+        "retries": 20
+      }
+    },
+    "keycloak": {
+      "image": "quay.io/keycloak/keycloak:26.8.1",
+      "command": [
+        "start-dev",
+        "--import-realm"
+      ],
+      "restart": "unless-stopped",
+      "environment": {
+        "KC_DB": "postgres",
+        "KC_DB_URL": "jdbc:postgresql://keycloak-db:5432/keycloak",
+        "KC_DB_USERNAME": "keycloak",
+        "KC_DB_PASSWORD": "keycloak-local",
+        "KC_BOOTSTRAP_ADMIN_USERNAME": "keycloak-admin",
+        "KC_BOOTSTRAP_ADMIN_PASSWORD": "KeycloakAdmin123!",
+        "KC_HTTP_PORT": "8180",
+        "KC_HOSTNAME": "http://localhost:8180",
+        "KC_HEALTH_ENABLED": "true"
+      },
+      "ports": [
+        "127.0.0.1:8180:8180"
+      ],
+      "volumes": [
+        "./identity/aj-realm.json:/opt/keycloak/data/import/aj-realm.json:ro"
+      ],
+      "networks": [
+        "backend",
+        "identity-data"
+      ],
+      "depends_on": {
+        "keycloak-db": {
+          "condition": "service_healthy"
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "bash -c 'exec 3<>/dev/tcp/127.0.0.1/9000; printf \"GET /health/ready HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "start_period": "90s",
+        "retries": 15
+      }
+    }
+  },
+  "volumes": {
+    "rabbitmq-data": {},
+    "keycloak-postgres-data": {}
+  },
+  "networks": {
+    "backend": {
+      "name": "aj-backend"
+    },
+    "edge": {
+      "name": "aj-edge"
+    },
+    "identity-data": {}
+  }
+}

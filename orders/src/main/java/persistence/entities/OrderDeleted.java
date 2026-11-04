@@ -34,7 +34,7 @@ public class OrderDeleted {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "order_id", nullable = false)
+    @JoinColumn(name = "order_id", nullable = false, unique = true)
     @ToString.Exclude
     private Order order;
 
