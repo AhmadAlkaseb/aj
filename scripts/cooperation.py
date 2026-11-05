@@ -24,7 +24,7 @@ def main():
     names=['users','products','orders','payments','users-db','products-db','orders-db','payments-db','rabbitmq','keycloak','keycloak-db']
     config={'name':project,'services':{n:copy.deepcopy(source['services'][n]) for n in names},'networks':{},'volumes':{}}
     for name,service in config['services'].items():
-        service.pop('build',None);service.pop('restart',None)
+        service.pop('restart',None)
         if name in ['users','products','orders','payments']:service['environment']['JAVA_TOOL_OPTIONS']='-Xms64m -Xmx256m'
         if name=='keycloak':service['environment']['JAVA_OPTS_KC_HEAP']='-Xms128m -Xmx384m'
         if name in ['users','products','orders','payments']:service['depends_on']['rabbitmq']={'condition':'service_healthy'}
