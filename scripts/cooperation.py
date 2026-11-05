@@ -35,12 +35,12 @@ def main():
             if volume['type']=='volume':config['volumes'][volume['source']]={}
     path=OUT/'compose.json';path.write_text(json.dumps(config,indent=2),encoding='utf-8')
     command=['docker','compose','-p',project,'-f',str(path)]
-    def compose(*args):return subprocess.run([*command,*args],cwd=ROOT,check=True,capture_output=True).stdout
+    def compose(*args):return subprocess.run([*command,*args],cwd=ROOT,check=True,stdout=subprocess.PIPE).stdout
     def url(service,port):return 'http://'+compose('port',service,str(port)).decode().strip()
     exclusive='--exclusive' in sys.argv
     if exclusive:subprocess.run(['docker','compose','stop'],cwd=ROOT,check=True,stdout=subprocess.DEVNULL)
     try:
-        compose('up','-d','--wait','--wait-timeout','600')
+        compose('up','-d','--wait','--wait-timeout','1200')
         base=url('keycloak',8180)
         os.environ['KEYCLOAK_TEST_URL']=base
         import configure_identity
