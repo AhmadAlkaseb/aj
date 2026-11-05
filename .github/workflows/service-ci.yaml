@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v6
-        with: {distribution: temurin, java-version: '17', cache: maven}
+        with: { distribution: temurin, java-version: '17', cache: maven }
       - name: Validate service input and Maven configuration
         env:
           SERVICE: ${{ inputs.service }}
@@ -30,9 +30,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v6
-        with: {distribution: temurin, java-version: '17', cache: maven}
+        with: { distribution: temurin, java-version: '17', cache: maven }
       - name: Surefire
-        env: {SERVICE: '${{ inputs.service }}'}
+        env: { SERVICE: '${{ inputs.service }}' }
         run: mvn -B -ntp -pl "$SERVICE" -am test
       - uses: actions/upload-artifact@v7
         if: always()
@@ -48,9 +48,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v6
-        with: {distribution: temurin, java-version: '17', cache: maven}
+        with: { distribution: temurin, java-version: '17', cache: maven }
       - name: Failsafe
-        env: {SERVICE: '${{ inputs.service }}'}
+        env: { SERVICE: '${{ inputs.service }}' }
         run: mvn -B -ntp -pl "$SERVICE" -am verify -DskipUnitTests=true
       - uses: actions/upload-artifact@v7
         if: always()
@@ -66,9 +66,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v6
-        with: {distribution: temurin, java-version: '17', cache: maven}
+        with: { distribution: temurin, java-version: '17', cache: maven }
       - name: Package and checksum
-        env: {SERVICE: '${{ inputs.service }}'}
+        env: { SERVICE: '${{ inputs.service }}' }
         run: |
           mvn -B -ntp -pl "$SERVICE" -am package -DskipTests
           test -s "$SERVICE/target/app.jar"
@@ -90,6 +90,6 @@ jobs:
     timeout-minutes: 2
     steps:
       - name: Require every stage
-        env: {RESULTS: '${{ toJSON(needs) }}'}
+        env: { RESULTS: '${{ toJSON(needs) }}' }
         run: |
           python -c 'import json,os; results=json.loads(os.environ["RESULTS"]); assert all(j["result"]=="success" for j in results.values()), results'

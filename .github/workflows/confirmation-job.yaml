@@ -1,9 +1,25 @@
 name: Confirmation job
 on:
   push:
-    paths: ['confirmation-job/**', 'service-common/**', 'pom.xml', 'Dockerfile', '.dockerignore', '.github/workflows/**']
+    paths:
+      [
+        'confirmation-job/**',
+        'service-common/**',
+        'pom.xml',
+        'Dockerfile',
+        '.dockerignore',
+        '.github/workflows/**',
+      ]
   pull_request:
-    paths: ['confirmation-job/**', 'service-common/**', 'pom.xml', 'Dockerfile', '.dockerignore', '.github/workflows/**']
+    paths:
+      [
+        'confirmation-job/**',
+        'service-common/**',
+        'pom.xml',
+        'Dockerfile',
+        '.dockerignore',
+        '.github/workflows/**',
+      ]
   workflow_dispatch:
 permissions:
   contents: read

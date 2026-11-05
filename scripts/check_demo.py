@@ -21,7 +21,7 @@ DOMAINS = ('users', 'products', 'orders', 'payments')
 
 def guid(domain, index):
     key = 'aj-payment:' + guid('orders', index) if domain == 'payments' else f'aj-demo-v1:{domain}:{index}'
-    return str(uuid.UUID(bytes=hashlib.md5(key.encode('utf-8')).digest(), version=3))
+    return str(uuid.UUID(bytes=hashlib.md5(key.encode('utf-8'), usedforsecurity=False).digest(), version=3))
 
 
 def api(path, method='GET', data=None):

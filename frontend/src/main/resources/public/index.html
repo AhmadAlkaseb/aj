@@ -1,20 +1,187 @@
 <!doctype html>
 <html lang="da">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#172b29"><title>AJ Motors · Find din næste bil</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script><script type="module" src="/auth.js"></script></head>
-<body>
-<header><a class="brand" href="/" aria-label="AJ Motors forside"><span class="brand-mark">aj<span>↗</span></span> MOTORS</a><nav aria-label="Hovedmenu"><button data-page="catalog" class="active">Biler</button><button data-page="customers">Kunder</button><button data-page="orders">Ordrer</button><button data-page="payments">Betalinger</button></nav><div class="identity-controls"><span id="identity-label">Gæst</span><button id="login-button" class="auth-button" disabled>Log ind</button><button id="logout-button" class="auth-button" hidden>Log ud</button></div><button id="system-button" class="system-button"><span class="dot pending"></span><span id="system-label">Forbinder…</span></button></header>
-<main>
-<div id="auth-notice" class="auth-notice" role="alert" hidden></div>
-<div id="outage" class="outage" role="alert" hidden><span class="outage-icon">!</span><div><strong id="outage-title">Vi har mistet forbindelsen</strong><p id="outage-message">Nogle tjenester svarer ikke lige nu. Prøv igen om lidt.</p></div><button id="retry" class="secondary">Prøv igen ↻</button></div>
-<section id="catalog" class="page">
-<div class="hero"><div class="hero-copy"><span class="eyebrow"><span class="tiny-line"></span> GODT PÅ VEJ</span><h1>Et nyt kapitel.<br>En ny <em>køreglæde.</em></h1><p>Find bilen, der passer til dit liv.<br>Udforsk udvalget, og reservér din favorit.</p><a href="#inventory" class="primary link-button">Se vores biler <span>↗</span></a><div class="hero-foot"><span>01 — HÅNDPLUKKEDE BILER</span><span>KLAR TIL NÆSTE TUR</span></div></div><div class="hero-art"><span class="art-label">THE NEXT CHAPTER</span><div id="hero-car"></div><div class="art-bottom"><span>Frihed starter<br>med et godt valg.</span><span class="circle-arrow">↗</span></div></div></div>
-<section id="inventory"><div class="section-heading"><div><span class="eyebrow muted">FIND DIT MATCH</span><h2>Vores biler <span id="car-count" class="count">—</span></h2></div><button id="add-product" class="secondary">＋ Opret bil</button></div><div class="toolbar"><label class="search"><span>⌕</span><input id="search" type="search" placeholder="Søg efter mærke eller model…" aria-label="Søg efter bil"></label><label class="select-wrap">Status <select id="status-filter"><option value="">Alle biler</option><option value="AVAILABLE">Ledige</option><option value="RESERVED">Reserverede</option><option value="SOLD">Solgte</option><option value="UNAVAILABLE">Ikke tilgængelige</option></select></label><button id="refresh-cars" class="icon-button" aria-label="Opdatér biler">↻</button></div><div class="toolbar" aria-label="Bilfiltre"><label>Pris fra<input id="filter-minPrice" type="number" min="0" aria-label="Pris fra"></label><label>Pris til<input id="filter-maxPrice" type="number" min="0" aria-label="Pris til"></label><label>Årgang fra<input id="filter-minYear" type="number" min="0" aria-label="Årgang fra"></label><label>Årgang til<input id="filter-maxYear" type="number" min="0" aria-label="Årgang til"></label><label>Maks. kilometer<input id="filter-maxMileage" type="number" min="0" aria-label="Maks. kilometer"></label></div><div id="cars" class="cards" aria-live="polite"><div class="empty"><span class="empty-symbol">↻</span><h3>Vi henter bilerne…</h3><p>Kataloget er klar om et øjeblik.</p></div></div><div class="form-actions"><button id="previous-cars" class="secondary">Forrige side</button><button id="next-cars" class="secondary">Næste side</button></div></section>
-</section>
-<section id="customers" class="page" hidden><div class="section-heading"><div><span class="eyebrow muted">MENNESKER BAG RATTET</span><h1>Kunder</h1></div><button id="add-customer" class="primary">＋ Opret kunde</button></div><div id="customer-list" class="table-wrap"></div></section>
-<section id="orders" class="page" hidden><div class="section-heading"><div><span class="eyebrow muted">FRA VALG TIL KØREGLÆDE</span><h1>Ordrer</h1></div><button class="secondary refresh" data-refresh="orders">Opdatér ↻</button></div><p class="section-intro">Reservationen behandles automatisk. En reserveret bil er klar til en manuel betaling.</p><div id="order-list" class="table-wrap"></div></section>
-<section id="payments" class="page" hidden><div class="section-heading"><div><span class="eyebrow muted">STYR PÅ HANDLEN</span><h1>Betalinger</h1></div><button class="secondary refresh" data-refresh="payments">Opdatér ↻</button></div><p class="section-intro">Registrér resultatet af en manuel betaling. Her gennemføres ingen kortbetaling eller bankoverførsel.</p><div id="payment-list" class="table-wrap"></div></section>
-<footer><a class="brand footer-brand" href="/">aj<span>↗</span> <small>MOTORS</small></a><span>Din næste tur starter her.</span><span>BYGGET TIL KØREGLÆDE · AJ 2026</span></footer>
-</main>
-<dialog id="modal"><div class="modal-top"><span class="eyebrow muted" id="dialog-eyebrow">AJ MOTORS</span><button id="close-modal" class="icon-button" aria-label="Luk vindue">×</button></div><div id="modal-body"></div><div id="modal-error" class="form-error" role="alert" hidden></div></dialog>
-<div id="toast" role="status" hidden></div>
-</body></html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#172b29" />
+    <title>AJ Motors · Find din næste bil</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/app.js" defer></script>
+    <script type="module" src="/auth.js"></script>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/" aria-label="AJ Motors forside"
+        ><span class="brand-mark">aj<span>↗</span></span> MOTORS</a
+      >
+      <nav aria-label="Hovedmenu">
+        <button data-page="catalog" class="active">Biler</button
+        ><button data-page="customers">Kunder</button><button data-page="orders">Ordrer</button
+        ><button data-page="payments">Betalinger</button>
+      </nav>
+      <div class="identity-controls">
+        <span id="identity-label">Gæst</span
+        ><button id="login-button" class="auth-button" disabled>Log ind</button
+        ><button id="logout-button" class="auth-button" hidden>Log ud</button>
+      </div>
+      <button id="system-button" class="system-button">
+        <span class="dot pending"></span><span id="system-label">Forbinder…</span>
+      </button>
+    </header>
+    <main>
+      <div id="auth-notice" class="auth-notice" role="alert" hidden></div>
+      <div id="outage" class="outage" role="alert" hidden>
+        <span class="outage-icon">!</span>
+        <div>
+          <strong id="outage-title">Vi har mistet forbindelsen</strong>
+          <p id="outage-message">Nogle tjenester svarer ikke lige nu. Prøv igen om lidt.</p>
+        </div>
+        <button id="retry" class="secondary">Prøv igen ↻</button>
+      </div>
+      <section id="catalog" class="page">
+        <div class="hero">
+          <div class="hero-copy">
+            <span class="eyebrow"><span class="tiny-line"></span> GODT PÅ VEJ</span>
+            <h1>Et nyt kapitel.<br />En ny <em>køreglæde.</em></h1>
+            <p>
+              Find bilen, der passer til dit liv.<br />Udforsk udvalget, og reservér din favorit.
+            </p>
+            <a href="#inventory" class="primary link-button">Se vores biler <span>↗</span></a>
+            <div class="hero-foot">
+              <span>01 — HÅNDPLUKKEDE BILER</span><span>KLAR TIL NÆSTE TUR</span>
+            </div>
+          </div>
+          <div class="hero-art">
+            <span class="art-label">THE NEXT CHAPTER</span>
+            <div id="hero-car"></div>
+            <div class="art-bottom">
+              <span>Frihed starter<br />med et godt valg.</span><span class="circle-arrow">↗</span>
+            </div>
+          </div>
+        </div>
+        <section id="inventory">
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow muted">FIND DIT MATCH</span>
+              <h2>Vores biler <span id="car-count" class="count">—</span></h2>
+            </div>
+            <button id="add-product" class="secondary">＋ Opret bil</button>
+          </div>
+          <div class="toolbar">
+            <label class="search"
+              ><span>⌕</span
+              ><input
+                id="search"
+                type="search"
+                placeholder="Søg efter mærke eller model…"
+                aria-label="Søg efter bil" /></label
+            ><label class="select-wrap"
+              >Status
+              <select id="status-filter">
+                <option value="">Alle biler</option>
+                <option value="AVAILABLE">Ledige</option>
+                <option value="RESERVED">Reserverede</option>
+                <option value="SOLD">Solgte</option>
+                <option value="UNAVAILABLE">Ikke tilgængelige</option>
+              </select></label
+            ><button id="refresh-cars" class="icon-button" aria-label="Opdatér biler">↻</button>
+          </div>
+          <div class="toolbar" aria-label="Bilfiltre">
+            <label
+              >Pris fra<input
+                id="filter-minPrice"
+                type="number"
+                min="0"
+                aria-label="Pris fra" /></label
+            ><label
+              >Pris til<input
+                id="filter-maxPrice"
+                type="number"
+                min="0"
+                aria-label="Pris til" /></label
+            ><label
+              >Årgang fra<input
+                id="filter-minYear"
+                type="number"
+                min="0"
+                aria-label="Årgang fra" /></label
+            ><label
+              >Årgang til<input
+                id="filter-maxYear"
+                type="number"
+                min="0"
+                aria-label="Årgang til" /></label
+            ><label
+              >Maks. kilometer<input
+                id="filter-maxMileage"
+                type="number"
+                min="0"
+                aria-label="Maks. kilometer"
+            /></label>
+          </div>
+          <div id="cars" class="cards" aria-live="polite">
+            <div class="empty">
+              <span class="empty-symbol">↻</span>
+              <h3>Vi henter bilerne…</h3>
+              <p>Kataloget er klar om et øjeblik.</p>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button id="previous-cars" class="secondary">Forrige side</button
+            ><button id="next-cars" class="secondary">Næste side</button>
+          </div>
+        </section>
+      </section>
+      <section id="customers" class="page" hidden>
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow muted">MENNESKER BAG RATTET</span>
+            <h1>Kunder</h1>
+          </div>
+          <button id="add-customer" class="primary">＋ Opret kunde</button>
+        </div>
+        <div id="customer-list" class="table-wrap"></div>
+      </section>
+      <section id="orders" class="page" hidden>
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow muted">FRA VALG TIL KØREGLÆDE</span>
+            <h1>Ordrer</h1>
+          </div>
+          <button class="secondary refresh" data-refresh="orders">Opdatér ↻</button>
+        </div>
+        <p class="section-intro">
+          Reservationen behandles automatisk. En reserveret bil er klar til en manuel betaling.
+        </p>
+        <div id="order-list" class="table-wrap"></div>
+      </section>
+      <section id="payments" class="page" hidden>
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow muted">STYR PÅ HANDLEN</span>
+            <h1>Betalinger</h1>
+          </div>
+          <button class="secondary refresh" data-refresh="payments">Opdatér ↻</button>
+        </div>
+        <p class="section-intro">
+          Registrér resultatet af en manuel betaling. Her gennemføres ingen kortbetaling eller
+          bankoverførsel.
+        </p>
+        <div id="payment-list" class="table-wrap"></div>
+      </section>
+      <footer>
+        <a class="brand footer-brand" href="/">aj<span>↗</span> <small>MOTORS</small></a
+        ><span>Din næste tur starter her.</span><span>BYGGET TIL KØREGLÆDE · AJ 2026</span>
+      </footer>
+    </main>
+    <dialog id="modal">
+      <div class="modal-top">
+        <span class="eyebrow muted" id="dialog-eyebrow">AJ MOTORS</span
+        ><button id="close-modal" class="icon-button" aria-label="Luk vindue">×</button>
+      </div>
+      <div id="modal-body"></div>
+      <div id="modal-error" class="form-error" role="alert" hidden></div>
+    </dialog>
+    <div id="toast" role="status" hidden></div>
+  </body>
+</html>

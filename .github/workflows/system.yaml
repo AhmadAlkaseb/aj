@@ -3,9 +3,33 @@ on:
   workflow_call:
   workflow_dispatch:
   push:
-    paths: ['**/src/**', '**/pom.xml', 'pom.xml', 'identity/**', 'scripts/**', 'Dockerfile', '.dockerignore', '*compose*.yml', '.github/workflows/**', 'k8s/**']
+    paths:
+      [
+        '**/src/**',
+        '**/pom.xml',
+        'pom.xml',
+        'identity/**',
+        'scripts/**',
+        'Dockerfile',
+        '.dockerignore',
+        '*compose*.yml',
+        '.github/workflows/**',
+        'k8s/**',
+      ]
   pull_request:
-    paths: ['**/src/**', '**/pom.xml', 'pom.xml', 'identity/**', 'scripts/**', 'Dockerfile', '.dockerignore', '*compose*.yml', '.github/workflows/**', 'k8s/**']
+    paths:
+      [
+        '**/src/**',
+        '**/pom.xml',
+        'pom.xml',
+        'identity/**',
+        'scripts/**',
+        'Dockerfile',
+        '.dockerignore',
+        '*compose*.yml',
+        '.github/workflows/**',
+        'k8s/**',
+      ]
 permissions:
   contents: read
 defaults:
@@ -22,7 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
-        with: {python-version: '3.12'}
+        with: { python-version: '3.12' }
       - name: Start isolated runner stack
         run: docker compose --profile jobs build && docker compose up -d --wait --wait-timeout 300
       - run: python scripts/configure_identity.py
@@ -60,7 +84,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
-        with: {python-version: '3.12'}
+        with: { python-version: '3.12' }
       - run: docker compose up -d --build --wait --wait-timeout 300
       - run: python scripts/configure_identity.py
       - name: Install browser runtime
@@ -95,7 +119,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
-        with: {python-version: '3.12'}
+        with: { python-version: '3.12' }
       - name: Self-starting backends, owner stores and real broker
         run: python scripts/cooperation.py
       - uses: actions/upload-artifact@v7
@@ -111,6 +135,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - env: {RESULTS: '${{ toJSON(needs) }}'}
+      - env: { RESULTS: '${{ toJSON(needs) }}' }
         run: |
           python -c 'import json,os; results=json.loads(os.environ["RESULTS"]); assert all(j["result"]=="success" for j in results.values()), results'

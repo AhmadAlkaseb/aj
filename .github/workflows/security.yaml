@@ -1,0 +1,111 @@
+name: Supply chain and infrastructure security
+on:
+  workflow_call:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '23 5 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  repository-scan:
+    name: Scan ${{ matrix.scanner }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        scanner: [vuln, secret, misconfig]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Scan repository
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: ${{ matrix.scanner }}
+          format: json
+          output: security-${{ matrix.scanner }}.json
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          skip-dirs: .git,test-results,backups,node_modules,tools/contracts/node_modules
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: repository-security-${{ matrix.scanner }}
+          path: security-${{ matrix.scanner }}.json
+          retention-days: 14
+  python-sast:
+    name: Bandit Python security
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: { python-version: '3.12' }
+      - run: python -m pip install bandit==1.8.6
+      - name: Reject high-severity Python findings
+        run: bandit -r scripts k8s -lll -ii -f json -o bandit.json
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: bandit-security
+          path: bandit.json
+          retention-days: 14
+  python-dependencies:
+    name: Audit Python dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        requirements: [validation, report]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: { python-version: '3.12' }
+      - run: python -m pip install pip-audit==2.9.0
+      - name: Audit resolved dependency tree
+        run: pip-audit -r scripts/requirements-${{ matrix.requirements }}.txt -f json -o pip-audit.json
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: python-dependency-security-${{ matrix.requirements }}
+          path: pip-audit.json
+          retention-days: 14
+  npm-dependencies:
+    name: Audit npm ${{ matrix.directory }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: ['.', tools/contracts]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: '22' }
+      - run: npm ci --ignore-scripts
+        working-directory: ${{ matrix.directory }}
+      - name: Reject high and critical dependency vulnerabilities
+        working-directory: ${{ matrix.directory }}
+        run: npm audit --audit-level=high --json > "$GITHUB_WORKSPACE/npm-audit.json"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: npm-security-${{ strategy.job-index }}
+          path: npm-audit.json
+          retention-days: 14
+  gate:
+    name: Security gate
+    if: always()
+    needs: [repository-scan, python-sast, python-dependencies, npm-dependencies]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require every security check
+        env: { RESULTS: '${{ toJSON(needs) }}' }
+        run: |
+          python -c 'import json,os; results=json.loads(os.environ["RESULTS"]); assert all(j["result"]=="success" for j in results.values()), results'

@@ -31,9 +31,10 @@ flowchart TD
 | --- | --- |
 | `users.yaml`, `products.yaml`, `orders.yaml`, `payments.yaml`, `product-view.yaml`, `product-synchronizer.yaml`, `apigateway.yaml`, `frontend.yaml`, `confirmation-job.yaml` | Service-specific triggers; call the same reusable Java pipeline. |
 | `service-ci.yaml` | Validate → parallel unit/integration jobs → package/checksum → service gate. Every job gets a fresh checkout; reports and JARs are separate artifacts. |
-| `quality.yaml` | Parallel SpotBugs, OpenAPI/AsyncAPI checks and workflow/deployment tests → quality gate. |
+| `quality.yaml` | Parallel Prettier, ESLint, SpotBugs, OpenAPI/AsyncAPI checks and workflow/deployment tests → quality gate. |
 | `system.yaml` | Separate runner environments for API/broker/recovery, browser/roles/OIDC and self-starting backend cooperation → system gate. Outage tests within one environment run sequentially. |
 | `codeql.yaml` | Security queries; standalone checks and a reusable release gate. |
+| `security.yaml` | Mandatory release gate: Trivy dependency/secret/IaC matrix, Bandit, pip-audit and npm audit; also weekly scanning. |
 | `images.yaml` | Matrix of nine Buildx builds, at most three in parallel; GHCR candidate publication, SBOM/provenance, Trivy scan and revision-bound manifest assembly. |
 | `release.yaml` | Trusted-ref/input validation → all checks → optional publication → optional staging → optional production → final result summary. |
 | `deploy.yaml` | Environment validation → artifact provenance → plan → four owner migration Jobs → digest rollout/readiness → HTTPS/auth/catalogue smoke and optional business compensation → evidence/cleanup. |
@@ -99,3 +100,5 @@ Run `python -m unittest discover -s scripts/tests -v` and Actionlint. Deployment
 References: [GitHub reusable workflows](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows), [Docker SBOM/provenance](https://docs.docker.com/build/ci/github-actions/attestations/), [Kubernetes Jobs](https://kubernetes.io/docs/concepts/workloads/controllers/job/), [kubectl rollout status](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_rollout/kubectl_rollout_status/).
 
 The locally recorded pipeline checks and TLS-proxied smoke results are retained in [pipeline-verification.json](evidence/pipeline-verification.json), with the pipeline source fingerprint and unexecuted boundaries. Image scanning is configured but was not run locally against newly published candidates.
+
+See [CI/CD til eksamen](CI-CD-EXAM.md) for the expanded quality/security controls and local commands.

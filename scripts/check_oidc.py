@@ -58,7 +58,7 @@ def main():
             identity = session.json()
             assert identity['username'] == username and role in identity['roles']
             if role == 'customer':
-                expected_guid = str(uuid.UUID(bytes=hashlib.md5(b'aj-demo-v1:users:1').digest(), version=3))
+                expected_guid = str(uuid.UUID(bytes=hashlib.md5(b'aj-demo-v1:users:1', usedforsecurity=False).digest(), version=3))
                 assert identity['customerGuid'] == expected_guid
             # An edited payload cannot grant a role or identity without a provider signature.
             parts = headers['Authorization'].removeprefix('Bearer ').split('.')

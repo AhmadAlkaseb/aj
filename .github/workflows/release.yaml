@@ -40,7 +40,18 @@ jobs:
       fail-fast: false
       max-parallel: 3
       matrix:
-        service: [users, products, orders, payments, product-view, product-synchronizer, apigateway, frontend, confirmation-job]
+        service:
+          [
+            users,
+            products,
+            orders,
+            payments,
+            product-view,
+            product-synchronizer,
+            apigateway,
+            frontend,
+            confirmation-job,
+          ]
     uses: ./.github/workflows/service-ci.yaml
     with:
       service: ${{ matrix.service }}
@@ -58,11 +69,14 @@ jobs:
     uses: ./.github/workflows/codeql.yaml
   images:
     if: inputs.publish
-    needs: [services, quality, system, security]
+    needs: [services, quality, system, security, supply-chain]
     permissions:
       contents: read
       packages: write
     uses: ./.github/workflows/images.yaml
+  supply-chain:
+    needs: preflight
+    uses: ./.github/workflows/security.yaml
   staging:
     if: inputs.target != 'none'
     needs: images
@@ -82,12 +96,13 @@ jobs:
   summary:
     name: Release result
     if: always()
-    needs: [preflight, services, quality, system, security, images, staging, production]
+    needs:
+      [preflight, services, quality, system, security, supply-chain, images, staging, production]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
       - name: Write stage results and propagate failures
-        env: {RESULTS: '${{ toJSON(needs) }}'}
+        env: { RESULTS: '${{ toJSON(needs) }}' }
         run: |
           python - <<'PY'
           import json, os

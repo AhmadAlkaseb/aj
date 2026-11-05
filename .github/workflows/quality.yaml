@@ -7,6 +7,26 @@ on:
 permissions:
   contents: read
 jobs:
+  formatting:
+    name: Prettier formatting
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: '22', cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: npm run format:check
+  javascript:
+    name: ESLint JavaScript
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: '22', cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: npm run lint
   static-analysis:
     name: SpotBugs
     runs-on: ubuntu-latest
@@ -14,7 +34,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v6
-        with: {distribution: temurin, java-version: '17', cache: maven}
+        with: { distribution: temurin, java-version: '17', cache: maven }
       - run: mvn -B -ntp -Pquality verify -DskipTests
       - uses: actions/upload-artifact@v7
         if: always()
@@ -29,9 +49,14 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
-        with: {python-version: '3.12'}
+        with: { python-version: '3.12' }
       - uses: actions/setup-node@v7
-        with: {node-version: '22', cache: npm, cache-dependency-path: tools/contracts/package-lock.json}
+        with:
+          {
+            node-version: '22',
+            cache: npm,
+            cache-dependency-path: tools/contracts/package-lock.json,
+          }
       - run: python -m pip install -r scripts/requirements-validation.txt
       - run: python scripts/generate_contracts.py --check
       - run: python scripts/check_contracts.py
@@ -44,7 +69,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
-        with: {python-version: '3.12'}
+        with: { python-version: '3.12' }
       - uses: docker://rhysd/actionlint:1.7.7
       - run: docker compose config --quiet
       - name: Deployment boundary tests
@@ -60,10 +85,10 @@ jobs:
   gate:
     name: Quality gate
     if: always()
-    needs: [static-analysis, contracts, deployment-validation]
+    needs: [formatting, javascript, static-analysis, contracts, deployment-validation]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - env: {RESULTS: '${{ toJSON(needs) }}'}
+      - env: { RESULTS: '${{ toJSON(needs) }}' }
         run: |
           python -c 'import json,os; results=json.loads(os.environ["RESULTS"]); assert all(j["result"]=="success" for j in results.values()), results'

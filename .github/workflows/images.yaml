@@ -13,7 +13,18 @@ jobs:
       fail-fast: false
       max-parallel: 3
       matrix:
-        service: [users, products, orders, payments, product-view, product-synchronizer, apigateway, frontend, confirmation-job]
+        service:
+          [
+            users,
+            products,
+            orders,
+            payments,
+            product-view,
+            product-synchronizer,
+            apigateway,
+            frontend,
+            confirmation-job,
+          ]
     steps:
       - uses: actions/checkout@v7
       - uses: docker/setup-buildx-action@v4
@@ -24,7 +35,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Resolve repository
         id: repository
-        env: {SERVICE: '${{ matrix.service }}'}
+        env: { SERVICE: '${{ matrix.service }}' }
         run: echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/aj-$SERVICE" >> "$GITHUB_OUTPUT"
       - name: Publish candidate with SBOM and provenance
         id: build
