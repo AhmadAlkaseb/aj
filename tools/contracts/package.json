@@ -4,6 +4,6 @@
     "validate": "node validate.cjs"
   },
   "devDependencies": {
-    "@asyncapi/parser": "3.4.0"
+    "@asyncapi/parser": "3.6.6"
   }
 }
