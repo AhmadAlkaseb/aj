@@ -18,28 +18,32 @@ component "Orders\nlocalhost:7004" as orders
 component "Payments (manual)\nlocalhost:7005" as payments
 component "Product View (read)\nlocalhost:7006" as view
 component "Product Synchronizer\nlocalhost:7007" as sync
+component "Confirmation Job\nOne order.completed delivery then exit\nKEDA ScaledJob / Compose jobs profile" as job
+component "Ollama\nOptional local description drafts\nllama3.2:3b" as ai
+component "Prometheus / Loki / Grafana\nMetrics, correlation logs, alerts" as monitoring
 component "Keycloak\nLocal third-party OIDC provider\nlocalhost:8180" as keycloak
 database "Keycloak PostgreSQL\nPrivate identity store" as identityDb
-queue "RabbitMQ\naj.events (topic exchange)\naj.users / aj.products / aj.orders / aj.payments / aj.product-sync\naj.dead (dead letters)" as rabbit
+queue "RabbitMQ\naj.events (topic exchange)\naj.users / aj.products / aj.orders / aj.payments / aj.product-sync\naj.confirmations / aj.dead (dead letters)" as rabbit
 database "Users PostgreSQL\nlocalhost:5433" as usersDb
 database "Products PostgreSQL\nlocalhost:5434" as productsDb
 database "Orders PostgreSQL\nlocalhost:5435" as ordersDb
 database "Payments PostgreSQL\nlocalhost:5436" as paymentsDb
 database "Product View MongoDB\nPrivate product-view-data network\nproduct_view.products" as mongo
 
-customer --> frontend : Browser
+customer --> frontend : Browser (TLS ingress in Kubernetes)
 frontend --> gateway : HTTP /api/v1/*
 frontend --> keycloak : OIDC Code + PKCE / SSO / logout
 gateway --> keycloak : JWKS / discovery
 keycloak --> identityDb : Own identity data
 gateway --> users : HTTP users
 gateway --> products : HTTP POST / PUT / DELETE products
-gateway --> view : HTTP GET products
+gateway --> view : HTTP GET products / POST GraphQL
 gateway --> orders : HTTP orders + user orders
 gateway --> payments : HTTP payments + order payments
 gateway --> sync : HTTP /health (status only)
 users --> usersDb : JPA + outbox/inbox
-products --> productsDb : JPA + outbox/inbox
+products --> productsDb : Flyway + JPA + outbox/inbox
+products --> ai : Validated draft; human approval required
 orders --> ordersDb : JPA + outbox/inbox
 payments --> paymentsDb : JPA + outbox/inbox
 view --> mongo : Owned reads / versioned writes
@@ -53,22 +57,33 @@ products ..> rabbit : quantityreserved / quantityrejected\nproduct.created / upd
 rabbit ..> orders : customer.valid / invalid / quantityreserved / rejected\npayment.requested / paymentfail / payment.completed
 payments ..> rabbit : payment.requested / payment.completed / paymentfail
 rabbit ..> sync : product.*
+orders ..> rabbit : order.completed / payment.reconcile
+rabbit ..> payments : payment.reconcile
+rabbit ..> job : order.completed (own queue)
+job --> orders : Protected internal PDF writer
+monitoring ..> frontend : HTTP metrics / application logs
+monitoring ..> rabbit : Per-object queue metrics
 
 note bottom of frontend
 Frontend starts without backend dependencies.
 Status polling and retry messages support partial outages.
 Keycloak login is implemented; no Stripe.
-Business role/ownership enforcement remains SEC-01.
+JWT roles and resource ownership enforced in each domain API.
+Public catalogue; authenticated customer/admin commands.
 end note
 note bottom of mongo
 Only Product View accesses the MongoDB read model.
 Synchronizer relays events through the owner's API.
 Each SQL service owns its own isolated database.
+Flyway migrations precede Hibernate validate.
+Orders owns deadlines, status history and confirmation bytes.
 GUID references cross service boundaries; no cross-database FKs.
 end note
 legend bottom
 Solid arrow: synchronous request / database access
 Dashed arrow: asynchronous RabbitMQ delivery
 service-common is a build library, not a running service.
+Kubernetes: owner PVCs, private Services, Calico policies; frontend HPA 1..2.
+Stateful event workers: one replica, Recreate rollout; PDF jobs bounded to one delivery.
 endlegend
 @enduml

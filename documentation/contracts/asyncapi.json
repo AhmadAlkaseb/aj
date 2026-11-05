@@ -13,6 +13,10 @@
   },
   "channels": {
     "customer.check": {
+      "x-producer": "orders",
+      "x-consumers": [
+        "users"
+      ],
       "description": "Routing key on aj.events; persistent message; manual ack after commit",
       "bindings": {
         "amqp": {
@@ -121,6 +125,10 @@
       }
     },
     "customer.valid": {
+      "x-producer": "users",
+      "x-consumers": [
+        "orders"
+      ],
       "description": "Routing key on aj.events; persistent message; manual ack after commit",
       "bindings": {
         "amqp": {
@@ -229,6 +237,10 @@
       }
     },
     "customer.invalid": {
+      "x-producer": "users",
+      "x-consumers": [
+        "orders"
+      ],
       "description": "Routing key on aj.events; persistent message; manual ack after commit",
       "bindings": {
         "amqp": {
@@ -337,6 +349,10 @@
       }
     },
     "quantitycheck": {
+      "x-producer": "orders",
+      "x-consumers": [
+        "products"
+      ],
       "description": "Routing key on aj.events; persistent message; manual ack after commit",
       "bindings": {
         "amqp": {
@@ -445,6 +461,10 @@
       }
     },
     "quantityreserved": {
+      "x-producer": "products",
+      "x-consumers": [
+        "orders"
+      ],
       "description": "Routing key on aj.events; persistent message; manual ack after commit",
       "bindings": {
         "amqp": {
@@ -553,6 +573,10 @@
       }
     },
     "quantityrejected": {
+      "x-producer": "products",
+      "x-consumers": [
+        "orders"
+      ],
       "description": "Routing key on aj.events; persistent message; manual ack after commit",
       "bindings": {
         "amqp": {
@@ -661,6 +685,10 @@
       }
     },
     "order.cancelled": {
+      "x-producer": "orders",
+      "x-consumers": [
+        "products"
+      ],
       "description": "Routing key on aj.events; persistent message; manual ack after commit",
       "bindings": {
         "amqp": {
@@ -769,6 +797,10 @@
       }
     },
     "payment.requested": {
+      "x-producer": "payments",
+      "x-consumers": [
+        "orders"
+      ],
       "description": "Routing key on aj.events; persistent message; manual ack after commit",
       "bindings": {
         "amqp": {
@@ -847,6 +879,10 @@
       }
     },
     "payment.rejected": {
+      "x-producer": "orders",
+      "x-consumers": [
+        "payments"
+      ],
       "description": "Routing key on aj.events; persistent message; manual ack after commit",
       "bindings": {
         "amqp": {
@@ -925,6 +961,11 @@
       }
     },
     "payment.completed": {
+      "x-producer": "payments",
+      "x-consumers": [
+        "products",
+        "orders"
+      ],
       "description": "Routing key on aj.events; persistent message; manual ack after commit",
       "bindings": {
         "amqp": {
@@ -1008,6 +1049,11 @@
       }
     },
     "paymentfail": {
+      "x-producer": "payments",
+      "x-consumers": [
+        "products",
+        "orders"
+      ],
       "description": "Routing key on aj.events; persistent message; manual ack after commit",
       "bindings": {
         "amqp": {
@@ -1091,6 +1137,10 @@
       }
     },
     "payment.authorized": {
+      "x-producer": "orders",
+      "x-consumers": [
+        "payments"
+      ],
       "description": "Routing key on aj.events; persistent message; manual ack after commit",
       "bindings": {
         "amqp": {
@@ -1204,6 +1254,10 @@
       }
     },
     "payment.reconcile": {
+      "x-producer": "orders",
+      "x-consumers": [
+        "payments"
+      ],
       "description": "Routing key on aj.events; persistent message; manual ack after commit",
       "bindings": {
         "amqp": {
@@ -1317,6 +1371,10 @@
       }
     },
     "order.completed": {
+      "x-producer": "orders",
+      "x-consumers": [
+        "confirmation-job"
+      ],
       "description": "Routing key on aj.events; persistent message; manual ack after commit",
       "bindings": {
         "amqp": {
@@ -1430,6 +1488,10 @@
       }
     },
     "order.owner": {
+      "x-producer": "orders",
+      "x-consumers": [
+        "payments"
+      ],
       "description": "Routing key on aj.events; persistent message; manual ack after commit",
       "bindings": {
         "amqp": {
@@ -1508,6 +1570,10 @@
       }
     },
     "product.created": {
+      "x-producer": "products",
+      "x-consumers": [
+        "product-synchronizer"
+      ],
       "description": "Routing key on aj.events; persistent message; manual ack after commit",
       "bindings": {
         "amqp": {
@@ -1708,6 +1774,10 @@
       }
     },
     "product.updated": {
+      "x-producer": "products",
+      "x-consumers": [
+        "product-synchronizer"
+      ],
       "description": "Routing key on aj.events; persistent message; manual ack after commit",
       "bindings": {
         "amqp": {
@@ -1908,6 +1978,10 @@
       }
     },
     "product.reserved": {
+      "x-producer": "products",
+      "x-consumers": [
+        "product-synchronizer"
+      ],
       "description": "Routing key on aj.events; persistent message; manual ack after commit",
       "bindings": {
         "amqp": {
@@ -2108,6 +2182,10 @@
       }
     },
     "product.removed": {
+      "x-producer": "products",
+      "x-consumers": [
+        "product-synchronizer"
+      ],
       "description": "Routing key on aj.events; persistent message; manual ack after commit",
       "bindings": {
         "amqp": {
@@ -2305,6 +2383,72 @@
             "location": "$message.payload#/correlationId"
           }
         }
+      }
+    }
+  },
+  "x-topology": {
+    "exchange": "aj.events",
+    "type": "topic",
+    "durable": true,
+    "deadLetterExchange": "aj.dead",
+    "deadLetterQueue": "aj.dead",
+    "queues": {
+      "users": {
+        "queue": "aj.users",
+        "routingKeys": [
+          "customer.check"
+        ],
+        "manualAck": true
+      },
+      "products": {
+        "queue": "aj.products",
+        "routingKeys": [
+          "quantitycheck",
+          "order.cancelled",
+          "payment.completed",
+          "paymentfail"
+        ],
+        "manualAck": true
+      },
+      "orders": {
+        "queue": "aj.orders",
+        "routingKeys": [
+          "customer.valid",
+          "customer.invalid",
+          "quantityreserved",
+          "quantityrejected",
+          "payment.requested",
+          "payment.completed",
+          "paymentfail"
+        ],
+        "manualAck": true
+      },
+      "payments": {
+        "queue": "aj.payments",
+        "routingKeys": [
+          "payment.authorized",
+          "payment.rejected",
+          "order.owner",
+          "payment.reconcile"
+        ],
+        "manualAck": true
+      },
+      "product-synchronizer": {
+        "queue": "aj.product-sync",
+        "routingKeys": [
+          "product.created",
+          "product.updated",
+          "product.reserved",
+          "product.removed"
+        ],
+        "manualAck": true
+      },
+      "confirmation-job": {
+        "queue": "aj.confirmations",
+        "routingKeys": [
+          "order.completed"
+        ],
+        "manualAck": true
       }
     }
   }

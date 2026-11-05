@@ -1,0 +1,29 @@
+% AJ Motors report style, inspired by the supplied Database course report.
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\usepackage{fvextra}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{etoolbox}
+\tcbuselibrary{breakable}
+\AtBeginDocument{\fvset{breaklines=true,breakanywhere=true}}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\footnotesize 11 December 2026}
+\fancyhead[C]{\footnotesize Development of Large Systems}
+\fancyhead[R]{\footnotesize AJ Motors}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength{\headheight}{14pt}
+\setlength{\headsep}{6mm}
+\setlength{\emergencystretch}{3em}
+\setcounter{tocdepth}{2}
+\hypersetup{colorlinks=true,allcolors=blue,urlcolor=blue,linkcolor=blue,citecolor=blue}
+\renewenvironment{Shaded}{\begin{tcolorbox}[breakable,colback=white,colframe=black,boxrule=0.4pt,arc=1.5pt,left=4pt,right=4pt,top=4pt,bottom=4pt]}{\end{tcolorbox}}
+\AtBeginEnvironment{longtable}{\small}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.08}
+\floatplacement{figure}{H}

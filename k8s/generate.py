@@ -38,11 +38,14 @@ def main():
                 if key=='OIDC_ISSUER':value='https://localhost:8443/identity/realms/aj'
                 if key=='OIDC_JWKS_URL':value='http://keycloak:8180/identity/realms/aj/protocol/openid-connect/certs'
                 if key=='KEYCLOAK_URL':value='http://keycloak:8180/identity'
+                if key=='RABBITMQ_NODENAME':value='rabbit@rabbitmq'
                 if key=='KC_HOSTNAME':value='https://localhost:8443/identity'
                 entry={'value':str(value)}
             env.append({'name':key,**entry})
         if name=='frontend':env.append({'name':'OIDC_PUBLIC_URL','value':'https://localhost:8443/identity'})
-        if name=='keycloak':env.append({'name':'KC_HTTP_RELATIVE_PATH','value':'/identity'})
+        if name=='keycloak':
+            env.append({'name':'KC_HTTP_RELATIVE_PATH','value':'/identity'})
+            env.append({'name':'KC_PROXY_HEADERS','value':'xforwarded'})
         port=8180 if name=='keycloak' else 5432 if name.endswith('-db') else 27017 if name=='product-view-mongo' else 5672 if name=='rabbitmq' else 7000
         container={'name':name,'image':source['image'],'imagePullPolicy':'Never' if name in apps else 'IfNotPresent',
             'env':env,'ports':[{'name':'http' if port in [7000,8180] else 'data','containerPort':port}],
@@ -71,12 +74,14 @@ def main():
             volumes.append({'name':'data','persistentVolumeClaim':{'claimName':claim}})
             container.setdefault('volumeMounts',[]).append({'name':'data','mountPath':value['target']})
         pod={'containers':[container]}
+        if name=='rabbitmq':pod['hostname']='rabbitmq'
         if volumes:pod['volumes']=volumes
         if name in ['users','products','orders','payments']:
             init=copy.deepcopy(container);init['name']='migrate';init['command']=['java','-cp','/app/app.jar','com.aj.common.Migrate',name]
             for key in ['ports','readinessProbe','livenessProbe','startupProbe']:init.pop(key,None)
             pod['initContainers']=[init]
-        resource('Deployment',name,{'replicas':1,'selector':{'matchLabels':{'app':name}},'strategy':{'type':'Recreate'} if name in infra else {'type':'RollingUpdate'},'template':{'metadata':{'labels':labels},'spec':pod}},'apps/v1')
+        workers=['users','products','orders','payments','product-synchronizer']
+        resource('Deployment',name,{'replicas':1,'selector':{'matchLabels':{'app':name}},'strategy':{'type':'Recreate'} if name in infra+workers else {'type':'RollingUpdate'},'template':{'metadata':{'labels':labels},'spec':pod}},'apps/v1')
         ports=[{'name':'http' if port in [7000,8180] else 'data','port':port,'targetPort':port}]
         if name=='rabbitmq':ports += [{'name':'management','port':15672,'targetPort':15672},{'name':'metrics','port':15692,'targetPort':15692}]
         resource('Service',name,{'selector':{'app':name},'ports':ports})

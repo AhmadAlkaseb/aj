@@ -33,3 +33,7 @@ This is the agreed process going forward, not evidence that past meetings occurr
 Frontend, tests, contracts and report follow each workstream and receive shared
 acceptance review. This allocation is a plan, not attribution of existing code.
 Individual reflections and historical examples remain for the authors to confirm.
+
+## Accepted scope update
+
+The user accepts a proposed September–30 November working schedule with balanced ownership and lightweight daily standups/sprints; see [TEAM-PLAN.md](TEAM-PLAN.md). The schedule is an example plan, not an assertion of historical attendance or authorship. CI-02 is assumed to work by user decision and further remote execution is deferred. [CI-STATUS.md](CI-STATUS.md) keeps unobserved outcomes separate from local evidence.

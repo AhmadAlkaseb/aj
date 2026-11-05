@@ -1,0 +1,51 @@
+{
+  "verifiedAtUTC": "2026-11-05T06:45:33.834313+00:00",
+  "result": "PASS",
+  "deploymentBoundaryTests": 12,
+  "actionlint": "PASS",
+  "composeConfiguration": "PASS",
+  "pipelineSourceFingerprint": "c33fa8d0b82f5ea0cc6b597bbf94083776477105562f6c6e943d03cbdc0daffb",
+  "smoke": {
+    "boundary": "Temporary local TLS proxy to existing Compose APIs; no Kubernetes rollout or GitHub execution",
+    "readOnly": {
+      "result": "PASS",
+      "https": true,
+      "frontend": true,
+      "graphql": true,
+      "authentication": true,
+      "businessSmoke": false
+    },
+    "business": {
+      "result": "PASS",
+      "https": true,
+      "frontend": true,
+      "graphql": true,
+      "authentication": true,
+      "businessSmoke": true
+    }
+  },
+  "notExecuted": [
+    "GitHub-hosted workflows",
+    "GHCR publication and Trivy candidate scan",
+    "New digest-based Kubernetes migration/rollout/rollback"
+  ],
+  "workflowFiles": [
+    "apigateway.yaml",
+    "codeql.yaml",
+    "confirmation-job.yaml",
+    "deploy.yaml",
+    "frontend.yaml",
+    "images.yaml",
+    "orders.yaml",
+    "payments.yaml",
+    "product-synchronizer.yaml",
+    "product-view.yaml",
+    "products.yaml",
+    "quality.yaml",
+    "release.yaml",
+    "rollback.yaml",
+    "service-ci.yaml",
+    "system.yaml",
+    "users.yaml"
+  ]
+}

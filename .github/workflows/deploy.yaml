@@ -1,0 +1,124 @@
+name: Reusable Kubernetes deployment
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      artifact-run-id:
+        type: string
+        required: true
+      rollback:
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+jobs:
+  deploy:
+    name: Deploy ${{ inputs.environment }}
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+    runs-on: ${{ fromJSON(vars.DEPLOY_RUNNERS || '["self-hosted", "linux", "aj-deploy"]') }}
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ vars.PUBLIC_BASE_URL }}
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    env:
+      KUBE_CONTEXT: ${{ vars.KUBE_CONTEXT }}
+      KUBE_NAMESPACE: ${{ vars.KUBE_NAMESPACE || 'aj' }}
+      PUBLIC_BASE_URL: ${{ vars.PUBLIC_BASE_URL }}
+      IDENTITY_BASE_URL: ${{ vars.IDENTITY_BASE_URL }}
+      SMOKE_CLIENT_ID: ${{ vars.SMOKE_CLIENT_ID || 'aj-tests' }}
+      SMOKE_CLIENT_SECRET: ${{ secrets.SMOKE_CLIENT_SECRET }}
+      KUBE_CONFIG_B64: ${{ secrets.KUBE_CONFIG_B64 }}
+      TLS_CA_B64: ${{ secrets.TLS_CA_B64 }}
+      SOURCE_RUN: ${{ inputs.artifact-run-id }}
+      GH_TOKEN: ${{ github.token }}
+      ROLLBACK: ${{ inputs.rollback }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: {python-version: '3.12'}
+      - name: Validate environment and prepare temporary credentials
+        run: |
+          python scripts/ci_environment.py setup
+      - name: Check target connectivity
+        run: |
+          kubectl --context "$KUBE_CONTEXT" -n "$KUBE_NAMESPACE" get deployment/frontend -o name
+          kubectl --context "$KUBE_CONTEXT" -n "$KUBE_NAMESPACE" auth can-i create jobs.batch | grep -qx yes
+          kubectl --context "$KUBE_CONTEXT" -n "$KUBE_NAMESPACE" auth can-i patch deployments.apps | grep -qx yes
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-manifest
+          path: test-results/release
+          run-id: ${{ inputs.artifact-run-id }}
+          github-token: ${{ github.token }}
+      - name: Verify release provenance and rollback intent
+        run: |
+          args=()
+          if [ "$ROLLBACK" = true ]; then args+=(--rollback); fi
+          python scripts/ci_environment.py verify-artifact --manifest test-results/release/release.json --run-id "$SOURCE_RUN" "${args[@]}"
+      - name: Validate immutable application plan
+        run: |
+          args=()
+          if [ "$ROLLBACK" = true ]; then args+=(--rollback-compatible); fi
+          python scripts/release.py test-results/release/release.json --output-dir test-results/deploy "${args[@]}"
+      - name: Run owner migrations before application changes
+        id: migrate
+        run: |
+          args=()
+          if [ "$ROLLBACK" = true ]; then args+=(--rollback-compatible); fi
+          python scripts/release.py test-results/release/release.json --context "$KUBE_CONTEXT" --namespace "$KUBE_NAMESPACE" --migrate-only --output-dir test-results/deploy "${args[@]}"
+      - name: Roll out exact image digests and await readiness
+        id: rollout
+        run: |
+          args=()
+          if [ "$ROLLBACK" = true ]; then args+=(--rollback-compatible); fi
+          python scripts/release.py test-results/release/release.json --context "$KUBE_CONTEXT" --namespace "$KUBE_NAMESPACE" --apply --migration-proof test-results/deploy/migration-results.json --output-dir test-results/deploy "${args[@]}"
+      - name: Verify HTTPS, identity, catalogue and selected business flow
+        id: smoke
+        env:
+          BUSINESS_SMOKE: ${{ vars.BUSINESS_SMOKE || (inputs.environment == 'staging' && 'true' || 'false') }}
+        run: |
+          args=()
+          if [ "$BUSINESS_SMOKE" = true ]; then args+=(--business); fi
+          python scripts/deployment_smoke.py --base-url "$PUBLIC_BASE_URL" --identity-url "$IDENTITY_BASE_URL" --ca "$DEPLOY_CA_FILE" "${args[@]}"
+      - name: Restore previous application digests when schema compatibility is configured
+        if: ${{ failure() && steps.rollout.outcome != 'skipped' && steps.rollout.outcome != '' && !inputs.rollback && vars.ROLLBACK_SCHEMA_COMPATIBLE == 'true' }}
+        run: |
+          test -s test-results/deploy/previous-release.json
+          python scripts/release.py test-results/deploy/previous-release.json --context "$KUBE_CONTEXT" --namespace "$KUBE_NAMESPACE" --apply --rollback-compatible --output-dir test-results/rollback
+          python scripts/deployment_smoke.py --base-url "$PUBLIC_BASE_URL" --identity-url "$IDENTITY_BASE_URL" --ca "$DEPLOY_CA_FILE" --output test-results/rollback/smoke.json
+      - name: Collect scoped diagnostics
+        if: ${{ failure() && steps.migrate.outcome != '' }}
+        run: |
+          mkdir -p test-results/diagnostics
+          kubectl --context "$KUBE_CONTEXT" -n "$KUBE_NAMESPACE" get pods,jobs,deployments -o wide > test-results/diagnostics/workloads.txt || true
+          kubectl --context "$KUBE_CONTEXT" -n "$KUBE_NAMESPACE" get events --sort-by=.lastTimestamp > test-results/diagnostics/events.txt || true
+          kubectl --context "$KUBE_CONTEXT" -n "$KUBE_NAMESPACE" logs -l aj/migration --all-containers --tail=100 --prefix > test-results/diagnostics/migrations.log 2>&1 || true
+          kubectl --context "$KUBE_CONTEXT" -n "$KUBE_NAMESPACE" logs -l tier=application --all-containers --tail=100 --prefix > test-results/diagnostics/applications.log 2>&1 || true
+      - name: Retain release evidence without kubeconfig or TLS keys
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: deployment-${{ inputs.environment }}-${{ github.run_attempt }}
+          path: |
+            test-results/release/release.json
+            test-results/deploy/migration-results.json
+            test-results/deploy/previous-release.json
+            test-results/deploy/rollout-state.json
+            test-results/deploy/smoke.json
+            test-results/rollback/migration-results.json
+            test-results/rollback/rollout-state.json
+            test-results/rollback/smoke.json
+            test-results/diagnostics/
+          retention-days: 30
+      - name: Remove temporary cluster credentials
+        if: always()
+        run: python scripts/ci_environment.py cleanup

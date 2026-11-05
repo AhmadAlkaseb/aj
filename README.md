@@ -9,7 +9,7 @@ Krav: Docker Desktop med Linux-containere og Docker Compose. Java/Maven er kun n
 for builds uden Docker. Kør fra repository-roden:
 
 ```powershell
-docker compose up -d --build
+./scripts/start.ps1
 ```
 
 Åbn **http://localhost:3000**. Første build henter Maven-afhængigheder og Docker-images.
@@ -18,7 +18,7 @@ Der er 10 ledige biler til nye reservationer. Genstart bevarer ændringer uden d
 se [eksamensdata](documentation/DEMO_DATA.md) for forløb, kontrol og deaktivering.
 Vent på grøn systemstatus. Tryk **Log ind** og brug `kunde01 / Demo123!` eller
 `eksamen-admin / Admin123!`. Se [loginvejledningen](documentation/AUTH.md).
-Rolle- og ejerskabsbeskyttelse af forretnings-API’erne fortsætter i SEC-01. Opret en kunde og en bil, reservér bilen, og gå til Ordrer
+Backends beskytter roller og ejerskab. Kunder ser egne oplysninger og ordrer; administratoren vedligeholder biler og registrerer betalinger. Opret en kunde og en bil, reservér bilen, og gå til Ordrer
 for at oprette en manuel betaling. Under Betalinger kan resultatet registreres som
 modtaget eller mislykket. Kataloget opdateres asynkront.
 
@@ -50,6 +50,7 @@ ved efterfølgende start. Projektet ændrer ikke mapperne under `system-integrat
 | product-view | 7006 | Egen privat MongoDB product_view; debug-port 27018 er valgfri |
 | product-synchronizer | 7007 | RabbitMQ → internt API i Product View; ingen databaseadgang |
 | Keycloak | 8180 | Egen identitetsdatabase; importerer demo-login automatisk |
+| confirmation-job | — | Afgrænset PDF-job; egen RabbitMQ-kø, skriver gennem Orders API |
 | service-common | — | Fælles buildbibliotek; ingen kørende service |
 
 De otte Java-applikationer bruger intern app-port 7000. Lokale porte er bundet til 127.0.0.1.
@@ -66,7 +67,8 @@ Se [projektionskontrakten](documentation/PROJECTION.md).
 Hver mappe har sin egen Compose-fil og Dockerfile. Start først fælles infrastruktur:
 
 ```powershell
-docker compose -f compose.infrastructure.yml up -d
+docker compose -f compose.infrastructure.yml up -d --wait --wait-timeout 240
+python scripts/configure_identity.py
 docker compose -f users/docker-compose.yml up -d --build
 ```
 
@@ -77,6 +79,121 @@ start den før Product Synchronizer. Gateway og frontend kan startes uden de øv
 Alternativt: `./scripts/start.ps1 -Service users` eller `./scripts/start.ps1` for alt.
 Brug enten root-opsætningen eller mappeopsætningerne i samme kørsel, da de bruger de
 samme porte og DNS-navne. De to former har separate databasevolumes.
+
+## Opdatér containere efter kodeændringer
+
+Kodeændringer kommer først ind i en kørende container, når dens image er bygget igen,
+og containeren er erstattet. En almindelig `docker compose restart` genstarter den
+eksisterende version og bygger ikke den ændrede kode.
+
+### Hele systemet med root-opsætningen
+
+Gem ændringerne, eller hent den nyeste kode fra Git, og kør fra repository-roden:
+
+```powershell
+.\scripts\start.ps1
+```
+
+Scriptet bygger images, erstatter containere med ændrede images og venter på sundhedstjek.
+Det konfigurerer også lokal identitet idempotent. Databaser og RabbitMQ beholder deres
+navngivne volumes. Flyway anvender nye SQL-migrationer ved applikationsstart, før Hibernate
+validerer skemaet. Tilføj en ny migrationsfil ved skemaændringer; redigér ikke allerede
+anvendte migrationer. Se [MIGRATIONS.md](documentation/MIGRATIONS.md).
+
+### Kun én service i den kørende root-opsætning
+
+Hvis resten af systemet allerede kører, kan eksempelvis Users opdateres alene:
+
+```powershell
+docker compose up -d --build --no-deps --wait --wait-timeout 240 users
+docker compose ps
+docker compose logs --tail 100 users
+```
+
+Erstat `users` med det relevante servicenavn. Ved ændringer i `service-common` opdateres
+hele systemet, fordi flere applikationer bruger biblioteket. Frontendens HTML/CSS/JavaScript
+er også bygget ind i dens image og kræver et nyt frontend-build.
+
+### Hvis I bruger de separate mappeopsætninger
+
+Opdatér med samme Compose-fil som ved opstart; kør eksempelvis fra repository-roden:
+
+```powershell
+docker compose -f users/docker-compose.yml up -d --build --wait --wait-timeout 240
+```
+
+Brug fortsat mappeopsætningens volumes. Root- og mappeopsætningerne har forskellige volumes
+og må ikke blandes. Normal opdatering kræver ikke `down`; `down -v` sletter volumes og
+skal ikke bruges til at opdatere kode. Ved fejl kan en service være kortvarigt utilgængelig;
+kontrollér sundhedstjek og logs før næste ændring.
+
+### Deployment gennem GitHub Actions
+
+1. Commit/push ændringerne, og få dem ind på `main`.
+2. Åbn **Actions → Verified release and deployment → Run workflow** på `main`.
+3. Vælg `publish=true` og `target=staging` eller `target=production`.
+
+Pipelinen tester koden, bygger/scanner images og publicerer dem til GHCR. Deployment
+kører migrationer og opdaterer Kubernetes-applikationerne til de præcise image-digests.
+Produktion bruger samme digests som den først verificerede staging-version. Et almindeligt
+push starter CI-checks; selve release/deployment startes manuelt og opdaterer ikke automatisk
+jeres lokale Compose-containere.
+
+Runner, Kubernetes-adgang og environment-secrets skal være konfigureret som beskrevet i
+[CI-CD.md](documentation/CI-CD.md). Under **Actions** kan I følge de enkelte trin og hente
+test-/deploymentrapporter.
+
+## Generér rapporten som PDF
+
+Rapportens kilde er [documentation/Report.md](documentation/Report.md). Layoutet er
+inspireret af den tidligere Database-rapport: sidehoveder, blå links, figurtekster,
+indholdsfortegnelse med sidetal og kodeeksempler med syntaksfarver i indrammede bokse.
+Forsiden har intet sidetal; siden efter forsiden starter på **1**.
+
+Første gang på Windows, kør fra repository-roden:
+
+```powershell
+.\scripts\setup_report.ps1
+```
+
+Det kræver Python 3.12 og internet ved første opsætning. Scriptet bruger eksisterende
+Pandoc/Tectonic-installationer eller henter fastlåste portable Windows-versioner i den
+ignorerede `test-results/tools/report/`-mappe. Python-afhængigheder installeres lokalt
+under `test-results/tools/python-deps/`, og Chromium installeres til diagramkonvertering.
+Tectonic er LaTeX-motoren og henter de nødvendige TeX-pakker ved første PDF-build;
+en fuld MiKTeX-/TeX Live-installation er ikke nødvendig.
+
+Når I har ændret rapporten, genereres PDF'en med:
+
+```powershell
+python scripts/export_report.py
+```
+
+Resultatet er [documentation/Report.pdf](documentation/Report.pdf). Eksporten laver
+vektorfigurer, opdaterer indholdsfortegnelse og figurliste, kontrollerer sidetal og
+afviser en rapport over 30 fysiske sider, inklusive den unummererede forside.
+Mellemfiler og LaTeX-log gemmes i `test-results/report-latex/`; eksportmetadata findes i
+[documentation/evidence/report-export.json](documentation/evidence/report-export.json).
+Luk PDF'en i en fremviser, der låser filen, hvis Windows afviser at overskrive den.
+
+Ændr tekst og kodeblokke i `Report.md`; skriv eksempelvis `java`, `sql`, `json` eller
+`graphql` efter kodeblokkens tre backticks for syntaksfarver. Papirstørrelse, margener og
+grundskrift står i rapportens YAML-forside. Sidehoveder, sidefod og kodebokse tilpasses i
+[report-style.tex](documentation/report-style.tex). Markdown-visningen har ingen faste
+papirsider; de endelige sidetal dannes automatisk ved PDF-eksport.
+
+De kompakte A4-figurers kilder findes i
+[report-figures/README.md](documentation/report-figures/README.md). Efter ændringer i dem:
+
+```powershell
+python scripts/render_report_figures.py
+python scripts/export_report.py
+```
+
+De fulde UML-modeller ligger fortsat i `documentation/application/`. De kan valgfrit
+renderes igen med `python scripts/render_uml.py`, hvilket kræver Java 17 og Graphviz.
+På Linux/macOS installeres Pandoc og Tectonic med en passende pakkehåndtering samt
+Python-pakkerne fra `scripts/requirements-report.txt`; selve eksportkommandoen er den samme.
 
 ## Maven og lokal JVM
 
@@ -99,9 +216,9 @@ Default-JDBC-porte matcher tabellen. Ved JVM-kørsel af gateway skal de
 relevante HTTP-URL'er sættes til localhost-porte, f.eks. `USERS_URL=http://localhost:7002`.
 Compose konfigurerer automatisk containeradresserne. Frontend bruger samme origin til API.
 
-Tabeller og ekstra felter oprettes af Hibernate. Eksisterende data fra ældre versioner
-kan kræve en datamigrering, især de nye GUID-referencer. Denne opsætning bruger nye
-Compose-volumes og sletter ikke gamle data.
+Flyway opretter og opdaterer SQL-skemaerne med versionsstyrede migrationer; Hibernate
+validerer derefter skemaet. Eksisterende volumes bevares. Se
+[migrationsvejledningen](documentation/MIGRATIONS.md) for baseline af ældre databaser.
 
 ## Verifikation
 
@@ -156,3 +273,17 @@ Github @Driconaari
 Ordrevalidering, reservation og betalingsstart bruger RabbitMQ uden direkte HTTP-kald
 mellem SQL-domænerne. Oprettelse returnerer en ventestatus; se [ASYNC.md](documentation/ASYNC.md).
 Backend-/brokertest: `python scripts/check_async.py --failures`.
+
+## Implementering og dokumentation
+
+Kataloget bruger GraphQL med filtre og pagination. Administratorer kan få et lokalt AI-udkast til bilbeskrivelser og godkende det før lagring. Færdige ordrer kan få en PDF-bekræftelse fra et isoleret job. SQL-ejerne bruger Flyway, audit og idempotente kommandoer.
+
+- [Rapport](documentation/Report.md), [PDF](documentation/Report.pdf) og [resterende arbejde](documentation/TODO.md).
+- [Lokalt Kubernetes med TLS, HPA og KEDA](documentation/KUBERNETES.md).
+- [Monitoring og logging](documentation/OBSERVABILITY.md), [backup og drift](documentation/OPERATIONS.md).
+- [AI](documentation/AI.md), [migrationer](documentation/MIGRATIONS.md), [reliability](documentation/RELIABILITY.md).
+- [Kontrakter](documentation/API.md), [testvejledning](documentation/TESTING.md) og [lokal evidens](documentation/EVIDENCE.md).
+
+Swagger UI kører på http://localhost:3000/swagger/index.html. Monitoring startes separat; Grafana bruger http://localhost:13001. Kubernetes, AI og monitoring kan demonstreres separat på en maskine med 16 GB RAM.
+
+CI/CD er opdelt i servicechecks, quality/system/security-gates, image-build/scanning, staging, produktion og rollback. Se [CI/CD-vejledningen](documentation/CI-CD.md) for runner, cluster, environments og secrets. Start en release fra Actions på main; GitHub-deployment kræver den beskrevne målkonfiguration.

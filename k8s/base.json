@@ -861,6 +861,14 @@
                   {
                     "name": "RABBITMQ_DEFAULT_USER",
                     "value": "aj"
+                  },
+                  {
+                    "name": "RABBITMQ_NODENAME",
+                    "value": "rabbit@rabbitmq"
+                  },
+                  {
+                    "name": "RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS",
+                    "value": "-rabbitmq_prometheus return_per_object_metrics true"
                   }
                 ],
                 "ports": [
@@ -911,6 +919,7 @@
                 ]
               }
             ],
+            "hostname": "rabbitmq",
             "volumes": [
               {
                 "name": "data",
@@ -1033,6 +1042,10 @@
                   {
                     "name": "KC_HTTP_RELATIVE_PATH",
                     "value": "/identity"
+                  },
+                  {
+                    "name": "KC_PROXY_HEADERS",
+                    "value": "xforwarded"
                   }
                 ],
                 "ports": [
@@ -1119,7 +1132,7 @@
           }
         },
         "strategy": {
-          "type": "RollingUpdate"
+          "type": "Recreate"
         },
         "template": {
           "metadata": {
@@ -1357,7 +1370,7 @@
           }
         },
         "strategy": {
-          "type": "RollingUpdate"
+          "type": "Recreate"
         },
         "template": {
           "metadata": {
@@ -1611,7 +1624,7 @@
           }
         },
         "strategy": {
-          "type": "RollingUpdate"
+          "type": "Recreate"
         },
         "template": {
           "metadata": {
@@ -1867,7 +1880,7 @@
           }
         },
         "strategy": {
-          "type": "RollingUpdate"
+          "type": "Recreate"
         },
         "template": {
           "metadata": {
@@ -2235,7 +2248,7 @@
           }
         },
         "strategy": {
-          "type": "RollingUpdate"
+          "type": "Recreate"
         },
         "template": {
           "metadata": {
@@ -2388,7 +2401,7 @@
                 "env": [
                   {
                     "name": "KEYCLOAK_URL",
-                    "value": "http://keycloak:8180"
+                    "value": "http://keycloak:8180/identity"
                   },
                   {
                     "name": "OIDC_ISSUER",

@@ -2,7 +2,7 @@
 
 Basis: `http://localhost:3000/api/v1` (frontend-proxy) eller `http://localhost:8080/api/v1` (gateway).
 JSON bruger camelCase. Offentlige referencer er UUID'er; interne SQL-ID'er forlader ikke en service.
-Forretningskald er fortsat offentlige indtil SEC-01. Login/logout bruger lokal Keycloak/OIDC.
+Kataloglæsning er offentlig. Øvrige forretningskald kræver Bearer-token; kunder kan kun tilgå egne profiler, ordrer og betalinger. Produktændringer, profiloprettelse/sletning og betalingsregistrering kræver admin. Hver backend kontrollerer selv token og ejerskab. Login/logout bruger lokal Keycloak/OIDC.
 `GET /api/v1/auth/session` kræver et gyldigt access-token som Bearer og returnerer
 `subject`, `username`, `name`, `customerGuid` og `roles`; manglende/ugyldigt token giver 401.
 `GET /auth/config` i frontend returnerer offentlig OIDC-klientkonfiguration. Se [AUTH.md](AUTH.md).
@@ -181,3 +181,17 @@ Kun Product View tilgår MongoDB. Ejerens 204-svar gives efter lagring eller ved
 en allerede overhalet version; herefter kvitteres RabbitMQ-beskeden.
 Fejl medfører genforsøg, mens ugyldige 400-events dead-letteres.
 Se [PROJECTION.md](PROJECTION.md) for envelope, health, adgang og netværk.
+
+## Standardkontrakter og nye flows
+
+Swagger UI: `/swagger/index.html`. [OpenAPI pr. HTTP-service](contracts/openapi/), [AsyncAPI med alle beskedtyper](contracts/asyncapi.json) og [AsyncAPI pr. consumer](contracts/asyncapi/) er genereret fra `scripts/generate_contracts.py`; ændringer valideres i quality-workflowen.
+
+`POST /users/me` knytter en selvregistreret identitet til en profil ud fra valideret issuer/subject. Kun administratoren kan tildele en importeret kundereference.
+
+`POST /graphql` (Product View, videresendt af gateway/frontend) anvender [schemaet](../product-view/src/main/resources/catalogue.graphqls). `products(filter, limit, offset)` returnerer `items`, `total`, `hasMore`; maksimum 100 elementer, querydybde 6 og kompleksitet 200. Frontend bruger denne læsevej og REST til reservationer.
+
+`POST /products/description-draft` er adminbeskyttet; input `brand`, `model`, `year`, output `description` og `requiresApproval: true`. Se [AI](AI.md).
+
+Users-, Products- og Orders-oprettelser accepterer `Idempotency-Key`, bundet til identitet, endpoint og kanonisk request; ændret indhold under samme nøgle giver 409. Betalinger har i stedet én deterministisk identitet pr. ordre; samtidige gentagelser returnerer den eksisterende betaling. Se [reliability](RELIABILITY.md).
+
+`GET /orders/{guid}/history` og `GET /orders/{guid}/confirmation` kræver ejer/admin. Sidstnævnte returnerer `application/pdf`, når det isolerede job har gemt dokumentet. Interne projektions-/PDF-writers bruger separate servicecredentials og eksponeres ikke gennem gatewayen.

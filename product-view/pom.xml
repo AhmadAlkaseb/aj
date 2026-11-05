@@ -2,6 +2,7 @@
 <parent><groupId>com.aj</groupId><artifactId>aj-platform</artifactId><version>1.0.0</version></parent>
 <artifactId>product-view</artifactId><properties><app.main>com.aj.productview.ProductViewApplication</app.main></properties>
 <dependencies>
+<dependency><groupId>org.mockito</groupId><artifactId>mockito-core</artifactId><version>5.15.2</version><scope>test</scope></dependency>
 <dependency><groupId>com.graphql-java</groupId><artifactId>graphql-java</artifactId><version>22.3</version></dependency>
 <dependency><groupId>org.mongodb</groupId><artifactId>mongodb-driver-sync</artifactId><version>5.1.2</version></dependency>
 <dependency><groupId>com.aj</groupId><artifactId>service-common</artifactId><version>1.0.0</version></dependency>

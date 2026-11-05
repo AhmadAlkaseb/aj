@@ -26,6 +26,7 @@ class ApiTest {
 
     @Test
     void requiresNonBlankTextAndRestrictsManualStatusChoices() {
+        assertThrows(BadRequestResponse.class, () -> Api.required(Json.read(Json.write(java.util.Map.of("name","x".repeat(256)))),"name"));
         assertEquals("Anne", Api.required(Json.read("{\"name\":\" Anne \"}"), "name"));
         assertThrows(BadRequestResponse.class, () -> Api.required(Json.read("{\"name\":\" \"}"), "name"));
         assertThrows(BadRequestResponse.class, () -> Api.choice(Json.read("{\"status\":\"SOLD\"}"), "status", "AVAILABLE", "AVAILABLE", "UNAVAILABLE"));

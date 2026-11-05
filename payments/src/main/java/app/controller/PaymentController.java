@@ -39,12 +39,16 @@ public class PaymentController {
         String method=Api.choice(n,"paymentMethod","MANUAL","MANUAL","BANK_TRANSFER","CASH");
         // Stable identity makes retry after a lost response safe, including a lost claim response.
         UUID guid=UUID.nameUUIDFromBytes(("aj-payment:"+order).getBytes(StandardCharsets.UTF_8));
-        var existing=db.tx(em -> em.createQuery("select p from Payment p where p.guid=:g",Payment.class).setParameter("g",guid).getResultStream().findFirst().map(this::view).orElse(null));
-        if(existing!=null) { ctx.status(200).json(existing); return; }
-        var result=Commands.run(db,ctx,n,em -> { Payment p=new Payment(); p.setGuid(guid); PaymentDetails d=new PaymentDetails(); d.setPayment(p); p.setDetails(d);
-            d.setOrderGuid(order); Audit.status(em,guid,null,"REQUESTED");
-            d.setPaymentMethod(method); d.setStatus("REQUESTED"); d.setTransactionReference("MANUAL-"+guid); d.setCreatedAt(LocalDateTime.now(ZoneOffset.UTC)); em.persist(p); Outbox.add(em,"payment.requested",Map.of("orderGuid",order,"paymentGuid",guid)); return view(p); });
-        Telemetry.correlation(ctx,order); ctx.status(201).header("Location","/api/v1/payments/"+guid).json(result);
+        var result=db.tx(em -> {
+            em.createNativeQuery("select 1 from pg_advisory_xact_lock(hashtextextended(:key,0))").setParameter("key","payment:"+order).getSingleResult();
+            var existing=em.createQuery("from Payment where guid=:g",Payment.class).setParameter("g",guid).getResultStream().findFirst();
+            if(existing.isPresent()) {ctx.status(200);return view(existing.get());}
+            Payment p=new Payment();p.setGuid(guid);PaymentDetails d=new PaymentDetails();d.setPayment(p);p.setDetails(d);
+            d.setOrderGuid(order);Audit.status(em,guid,null,"REQUESTED");
+            d.setPaymentMethod(method);d.setStatus("REQUESTED");d.setTransactionReference("MANUAL-"+guid);d.setCreatedAt(LocalDateTime.now(ZoneOffset.UTC));em.persist(p);
+            Outbox.add(em,"payment.requested",Map.of("orderGuid",order,"paymentGuid",guid));ctx.status(201);return view(p);
+        });
+        Telemetry.correlation(ctx,order); ctx.header("Location","/api/v1/payments/"+guid).json(result);
     }
     public void getAll(Context ctx) { ctx.json(db.tx(em -> em.createQuery("from Payment order by id desc",Payment.class).getResultList().stream().filter(p -> Access.admin(ctx) || Access.principal(ctx).customer().equals(p.getDetails().getCustomerGuid())).map(this::view).toList())); }
     public void getById(Context ctx) { UUID g=Api.guid(ctx.pathParam("paymentGuid")); ctx.json(db.tx(em -> viewFor(ctx,find(em,g,false)))); }

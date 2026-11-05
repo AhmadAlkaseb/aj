@@ -1,0 +1,89 @@
+name: Reusable release images
+on:
+  workflow_call:
+permissions:
+  contents: read
+  packages: write
+jobs:
+  image:
+    name: Build and scan ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        service: [users, products, orders, payments, product-view, product-synchronizer, apigateway, frontend, confirmation-job]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Resolve repository
+        id: repository
+        env: {SERVICE: '${{ matrix.service }}'}
+        run: echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/aj-$SERVICE" >> "$GITHUB_OUTPUT"
+      - name: Publish candidate with SBOM and provenance
+        id: build
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: Dockerfile
+          build-args: SERVICE=${{ matrix.service }}
+          push: true
+          tags: ${{ steps.repository.outputs.image }}:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-from: type=gha,scope=aj-${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=aj-${{ matrix.service }}
+          sbom: true
+          provenance: mode=max
+      - name: Scan exact candidate digest
+        uses: aquasecurity/trivy-action@v0.36.0
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          image-ref: ${{ steps.repository.outputs.image }}@${{ steps.build.outputs.digest }}
+          format: json
+          output: image-scan.json
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+      - name: Record scanned digest
+        env:
+          SERVICE: ${{ matrix.service }}
+          IMAGE: ${{ steps.repository.outputs.image }}@${{ steps.build.outputs.digest }}
+        run: |
+          python -c 'import json,os; from pathlib import Path; Path("image.json").write_text(json.dumps({"revision":os.environ["GITHUB_SHA"],"service":os.environ["SERVICE"],"image":os.environ["IMAGE"]}))'
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: release-image-${{ matrix.service }}
+          path: |
+            image.json
+            image-scan.json
+          retention-days: 30
+  manifest:
+    name: Assemble verified release
+    needs: image
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: release-image-*
+          path: test-results/images
+      - name: Validate all nine scanned images belong to this revision
+        run: python scripts/ci_manifest.py test-results/images test-results/release.json --revision "$GITHUB_SHA"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-manifest
+          path: test-results/release.json
+          if-no-files-found: error
+          retention-days: 90

@@ -1,3 +1,18 @@
+---
+lang: en-GB
+documentclass: article
+fontsize: 10pt
+papersize: a4
+geometry:
+  - top=20mm
+  - bottom=17mm
+  - left=16mm
+  - right=16mm
+colorlinks: true
+linkcolor: blue
+urlcolor: blue
+---
+
 # AJ Motors
 
 ## Development of Large Systems — Project Report
@@ -12,12 +27,18 @@
 **Institution:** Business Academy Copenhagen (EK)  
 **Course:** Development of Large Systems  
 **Delivery date:** 11 December 2026  
-**Status of this document:** Working report, reviewed against the application on 4 November 2026  
+**Status of this document:** Working report, updated against the application on 5 November 2026
+
 **Repository:** [AhmadAlkaseb/aj](https://github.com/AhmadAlkaseb/aj)
 
 This report covers the technical and project-management topics in Mandatory Assignments 1 and 2 and follows the report structure in the final project description. It distinguishes implemented behaviour from proposed work. It does not claim that the application already satisfies every final-project requirement. The remaining work is recorded in [TODO.md](TODO.md). Administrative upload instructions and presentation material are outside this report's scope. [1], [2], [3]
 
 The supplied *DLS Report Version One.docx* was used as an example and an initial description of the business idea. Statements in that document about React, Stripe, OAuth, deployed cloud infrastructure and planned capabilities have been checked against the current application rather than copied as implementation facts. [4]
+
+<!-- PDF layout: the cover has no page number; the next page starts at 1. -->
+\thispagestyle{empty}
+\clearpage
+\pagenumbering{arabic}
 
 ## List of figures
 
@@ -27,8 +48,8 @@ The supplied *DLS Report Version One.docx* was used as an example and an initial
 | 2 | Implemented databases and ownership references | Section 2.2; [SVG](application/Databases.svg) |
 | 3 | Implemented API endpoints and request contracts | Section 2.3; [SVG](<application/API Contracts.svg>) |
 | 4 | Implemented API response contracts | Section 2.3; [SVG](<application/API Contract Responses.svg>) |
-| 5 | Proposed local Kubernetes environment | Section 3.2 |
-| 6 | Current CI and planned release pipeline | Section 3.2.2 |
+| 5 | Local Kubernetes deployment | Section 3.2 |
+| 6 | Verification and gated release pipeline | Section 3.2.2 |
 | 7 | Proposed Azure deployment | Section 3.3 |
 
 ## List of appendices
@@ -52,7 +73,7 @@ The supplied *DLS Report Version One.docx* was used as an example and an initial
 9. [References](#9-references)
 10. [Appendix](#10-appendix)
 
-The Markdown version uses navigable headings rather than page numbers. The final exported report must have a paginated contents page and be checked against the applicable page limit. The referenced course catalogue lists a maximum of 30 pages for a four-person group; this document has not yet been typeset or verified against that limit. [5]
+The Markdown version uses navigable headings and stores the PDF layout settings. Figures 1–4 use compact A4 overviews; complete UML and field-level contracts remain available in the linked application diagrams. Pandoc/Tectonic applies an unnumbered cover, numbered following pages, running headers, framed syntax-highlighted code and vector figures. The PDF export supplies a paginated contents index and checks the actual page count against the course catalogue’s thirty-page limit for four students. Export metadata is retained separately from the editable report. [5]
 
 # 1. Introduction
 
@@ -66,7 +87,7 @@ The implemented development system contains customer management, car management,
 
 For examination demonstrations, startup automatically inserts 20 fictional customers, cars, orders and payments with stable references. Six examples are completed, four have pending payments and ten cars remain available after failed historical payments. Each service seeds only its own SQL data; catalogue snapshots use the existing outbox and projection workflow. Existing edits and soft-deleted identities are preserved. See [demonstration data](DEMO_DATA.md) for configuration and verification.
 
-Stripe remains outside scope. The earlier OAuth exclusion has been replaced by a local Keycloak/OpenID Connect integration, selected so that no external Google or Microsoft account needs to be registered. Keycloak is a self-hosted third-party identity product with preconfigured demo users. Browser login/logout and a JWT-validated gateway identity endpoint are implemented; business-resource role and ownership enforcement remain outstanding under SEC-01. This is not federation to an external account provider. See [the identity decision](decisions/001-local-oidc.md) and [AUTH.md](AUTH.md). [3], [20], [31]
+Stripe remains outside scope. Identity uses a self-hosted third-party Keycloak/OpenID Connect provider with imported exam accounts and self-registration. Signed access tokens are verified independently in each backend; customers access only their own profile/orders/payments and administrator actions are protected server-side. This is local OIDC integration, not federation to an external Google or Microsoft account. See [AUTH.md](AUTH.md) and [the identity decision](decisions/001-local-oidc.md). [3], [20], [31]
 
 ## 1.2. Functional and non-functional requirements
 
@@ -78,17 +99,17 @@ The requirements below separate the business capabilities in the prototype from 
 | --- | --- | --- | --- |
 | FR-01 | Maintain customer information | A valid customer can be created, retrieved, edited and soft-deleted; duplicate email addresses are rejected | Implemented; customer records are not login accounts |
 | FR-02 | Browse the catalogue | The frontend lists cars from the product read model and opens a detailed view | Implemented |
-| FR-03 | Search and filter cars | Search by brand/model and filter by availability; extend with price/year/mileage ranges | Brand/model/status implemented; range filters missing |
+| FR-03 | Search and filter cars | Search by brand/model and filter by availability; extend with price/year/mileage ranges | Implemented: server-side filters and bounded GraphQL pages |
 | FR-04 | Maintain car listings | Create and edit specifications and price; remove an eligible listing | Implemented; reserved/sold cars cannot be edited or deleted |
 | FR-05 | Reserve a car | An order references one customer and one car; authoritative price and availability are checked | Implemented through asynchronous reservation |
 | FR-06 | Prevent conflicting reservations | Concurrent requests for the same car leave only one successful reservation | Implemented and covered by a system test |
 | FR-07 | Register payment | An eligible order receives one manual payment record; success sells the car and failure releases it | Implemented; no external payment execution |
-| FR-08 | View and manage orders | Retrieve orders, including a customer's orders, and cancel eligible reservations | Implemented; personal ownership restrictions are absent |
+| FR-08 | View and manage orders | Retrieve orders, including a customer's orders, and cancel eligible reservations | Implemented; own-resource access enforced in backends |
 | FR-09 | Report partial outages | Show a useful message and retry action while the frontend itself remains reachable | Implemented; this does not provide backend failover |
-| FR-10 | Authenticate and authorise users | Validated tokens, roles and ownership protect customer and administrative operations | OIDC login/session implemented; business authorisation missing |
-| FR-11 | Consume REST and GraphQL in a real frontend workflow | The frontend uses GraphQL for an agreed query and REST for a related command | REST implemented; GraphQL missing |
-| FR-12 | Use an AI service in backend business logic | A backend invokes a defined AI API in an actual workflow with validation and failure handling | Not implemented |
-| FR-13 | Execute an isolated serverless task | A separately triggered function/job performs a bounded task and terminates | Not implemented |
+| FR-10 | Authenticate and authorise users | Validated tokens, roles and ownership protect customer and administrative operations | Implemented and ownership-tested against real tokens |
+| FR-11 | Consume REST and GraphQL in a real frontend workflow | The frontend uses GraphQL for an agreed query and REST for a related command | Implemented: GraphQL catalogue and REST commands |
+| FR-12 | Use an AI service in backend business logic | A backend invokes a defined AI API in an actual workflow with validation and failure handling | Implemented and exercised locally |
+| FR-13 | Execute an isolated serverless task | A separately triggered function/job performs a bounded task and terminates | Implemented and exercised locally |
 
 The final-project requirements for API interoperability, AI, authentication and serverless work are compulsory. They are not treated as optional product ideas. [3]
 
@@ -96,16 +117,16 @@ The final-project requirements for API interoperability, AI, authentication and 
 
 | ID | Requirement or target | Verification approach | Current evidence |
 | --- | --- | --- | --- |
-| NFR-01 | Normal interactive requests should complete within two seconds under an agreed load | Measure latency percentiles with a reproducible dataset and concurrency level | Target only; no load-test evidence |
+| NFR-01 | Normal interactive requests should complete within two seconds under an agreed load | Measure latency percentiles with a reproducible dataset and concurrency level | First p95 3.782s; quieter repeat 1.139s at 10,000 cars / 20 clients; see 4.8 |
 | NFR-02 | Target at least 99% service availability, excluding agreed maintenance | Define an observation period and monitor requests and failures | Target from initial scope, not a measured result |
 | NFR-03 | A committed domain change must not be lost merely because RabbitMQ is unavailable | Interrupt the broker and verify outbox delivery after recovery | A selected outage case passes; no universal durability claim |
 | NFR-04 | One car must not be allocated to two active buyers | Exercise concurrent reservation attempts | Covered by one automated cooperation scenario |
 | NFR-05 | Components should be reproducible and separately deployable | Build application images and start per-service Compose configurations | Implemented locally; shared build tooling remains a dependency |
 | NFR-06 | Services should retain clear data boundaries | Review database connections and access rights | Each store has one owner; Synchronizer uses Product View's internal API |
-| NFR-07 | Services should scale according to workload | Demonstrate HPA/KEDA and safe concurrent processing | Not implemented; workers currently assume one instance |
-| NFR-08 | Sensitive actions and data must be protected | Verify TLS, identity, authorisation and secret handling | Local development configuration only; security requirements remain open |
-| NFR-09 | Operational failures should be diagnosable across services | Correlated logs, metrics, dashboards and alerts | Console logs and health checks exist; distributed observability is missing |
-| NFR-10 | Data and contracts must evolve predictably | Apply versioned migrations and compatibility tests | REST has `/api/v1`; migrations and message schema versioning are missing |
+| NFR-07 | Services should scale according to workload | Demonstrate HPA/KEDA and safe concurrent processing | Verified frontend CPU HPA 1→2 and event-triggered KEDA job |
+| NFR-08 | Sensitive actions and data must be protected | Verify TLS, identity, authorisation and secret handling | Local backend access checks and HTTPS/network isolation verified; production trust remains a separate deployment concern |
+| NFR-09 | Operational failures should be diagnosable across services | Correlated logs, metrics, dashboards and alerts | Central logs, metrics/dashboard and controlled alert verified |
+| NFR-10 | Data and contracts must evolve predictably | Apply versioned migrations and compatibility tests | Flyway history, v1 APIs and versioned message envelopes implemented |
 | NFR-11 | The interface should work on desktop and mobile | Browser checks at representative viewport sizes | Selected flows checked locally; no accessibility audit |
 
 These targets give the project measurable acceptance criteria. Containerisation alone does not establish scalability, and a successful restart test does not establish a production availability percentage.
@@ -125,7 +146,7 @@ These targets give the project measurable acceptance criteria. Containerisation 
 | CI | GitHub Actions, Maven Surefire and Failsafe | Service-specific workflows run shared checks and available service tests; a separate workflow starts the distributed system. [27], [28] |
 | Diagrams | PlantUML source and SVG | Diagrams are editable, versionable and viewable without a live application |
 
-GraphQL, AI integration, Kubernetes, serverless execution and an observability stack are proposed additions, not installed parts of this stack. Their concrete completion criteria are in the backlog.
+The implementation also includes a real GraphQL catalogue, a Products-to-Ollama draft workflow, Kubernetes manifests, a terminating confirmation job, versioned migrations and a separate monitoring stack. Runtime evidence is identified in [EVIDENCE.md](EVIDENCE.md); an implemented definition is distinguished from a successfully exercised deployment.
 
 # 2. System architecture
 
@@ -133,7 +154,7 @@ GraphQL, AI integration, Kubernetes, serverless execution and an observability s
 
 The application separates customer information, authoritative product state, product queries, orders and payments. A gateway routes public API requests, while RabbitMQ coordinates reservation outcomes, payment outcomes and read-model changes.
 
-![Figure 1 — Implemented application architecture](application/Architecture.svg)
+![Figure 1 — Application architecture overview](report-figures/architecture.svg)
 
 *Figure 1. The implemented architecture. Solid arrows represent synchronous communication or database access; dashed arrows represent asynchronous delivery. Editable source: [Architecture.puml](application/Architecture.puml).*
 
@@ -149,9 +170,9 @@ The development environment has sixteen containers: eight applications, four bus
 
 Users owns customer profile information: name, email, telephone and address. Keeping this responsibility separate avoids making orders the owner of customer maintenance. Its REST API supports profile management; it does not currently issue credentials, authenticate users or validate roles.
 
-Its PostgreSQL database contains a stable identifier table, profile details and a deletion marker. Unique email addresses are checked by the database. Soft-deleted users disappear from ordinary reads while their identifying records remain available for existing logical references. Users does not produce or consume domain events in the current application.
+Users owns stable customer UUIDs, profile details and deletion markers in PostgreSQL. Unique email addresses are enforced locally. Imported identities carry administrator-controlled customer references; self-registered identities receive a stable profile derived from the trusted issuer/subject. Profile and login identity remain separate. Users consumes customer.check and emits customer.valid/invalid in its own transaction, without reading another database.
 
-Orders makes a synchronous customer lookup before accepting a new order. If Users is unavailable, that operation fails explicitly rather than bypassing validation. Independent read scaling is a possible future deployment improvement, but the current single database remains a dependency. Security and profile-deletion policy must be completed before the service handles real customer data.
+Users can temporarily be unavailable while an accepted order waits in the durable workflow. Backend role checks and local ownership filters prevent direct-port access to another customer’s resources. Deleted profiles are hidden, while logical references and historical orders are retained according to the examination policy. A single SQL owner is still an availability boundary.
 
 ### Products
 
@@ -169,7 +190,7 @@ Product View exposes a read-only REST catalogue backed by MongoDB. Its document 
 
 Product View is the sole owner of the MongoDB projection. It does not consume RabbitMQ directly: its internal authenticated HTTP interface accepts full snapshots relayed by Product Synchronizer. The public query interface excludes deletion tombstones. A committed product update may temporarily be absent or outdated because delivery is asynchronous.
 
-Read replicas of the application are a possible scaling direction, subject to database capacity and indexes. The present implementation loads matching results without pagination and performs the frontend's brand/model search in the browser. Large-catalogue efficiency has not been established.
+The GraphQL query executes bounded brand/model/status/price/year/mileage filters and pagination in the MongoDB owner. Query depth/complexity and page size are limited. The measured 10,000-car/20-client workload is reported separately from architectural expectations: a read projection does not by itself prove a latency target.
 
 ### Product Synchronizer
 
@@ -187,7 +208,7 @@ Creating an order stores PENDING and `customer.check` atomically. Users validate
 
 A `payment.requested` message claims a RESERVED order under its lock and changes it to PAYMENT_PENDING. Orders commits the claim and `payment.authorized` invoice together; an ineligible order yields `payment.rejected`. This serialises payment start against cancellation without a distributed transaction or direct domain-service HTTP call.
 
-An order may remain PENDING, RESERVING, RESERVED or PAYMENT_PENDING if an operation is abandoned. Automatic expiry and reconciliation are not implemented. These are important remaining business rules, particularly before introducing autoscaling or a real payment provider.
+New customer/car validation expires after five minutes; an unpaid reservation after thirty minutes. Compensation releases eligible inventory. A PAYMENT_PENDING timeout becomes REVIEW_REQUIRED and keeps the car reserved while reconciliation asks Payments for its stored outcome. A late verified outcome remains valid. Historical demonstration fixtures are intentionally timeless. [RELIABILITY.md](RELIABILITY.md) documents these rules and their limits.
 
 ### Payments
 
@@ -195,13 +216,13 @@ Payments owns payment registration and its terminal outcome, isolating that resp
 
 The amount is taken from an eligible order rather than accepted from the client. A deterministic payment identity and a unique order reference make repeated creation return the same record. A terminal result cannot be changed to the opposite result. Successful and failed outcomes are published as `payment.completed` and `paymentfail`.
 
-Its PostgreSQL database is private to Payments. Creation stores a REQUESTED payment and `payment.requested` before claiming the order. Authorisation supplies product/amount/currency and changes the payment to PENDING; rejection is terminal REJECTED. Durable replies and retry recover temporary consumer failures without a client retry. Automatic business expiry and reconciliation for permanently abandoned payments remain missing.
+Payments privately stores a REQUESTED record before publishing payment.requested. Orders claims eligible inventory and replies with authoritative invoice fields; Payments becomes PENDING or REJECTED. A per-order lock and deterministic payment identity serialise concurrent requests. Retries return the existing payment and current state. A terminal result cannot be changed, and ambiguous outcomes require investigation rather than an automatic financial-failure assumption.
 
 ### Frontend, gateway and supporting infrastructure
 
 The frontend also provides Keycloak login/logout, silent SSO and a validated identity display. Its public client uses Authorization Code + PKCE S256; tokens remain in memory and gateway verification checks signature, issuer, audience and lifetime. Identity data belongs to Keycloak, with customer UUID attributes linking the imported demonstration identities to customer profiles. [20], [31]
 
-The frontend provides catalogue, customer, order and payment views. It consumes backend APIs through its same-origin proxy and the gateway. It supports REST only at present. It is an administrative development interface as well as a customer-flow demonstration; its administrative buttons are not protected by roles.
+The frontend provides a public catalogue and role-aware customer, order and payment views. Product search/details use GraphQL; reservations and administrative operations use REST through the same-origin proxy and gateway. Customer lists are restricted to their own records by the backend, independently of hidden frontend controls. An administrator can request an AI description draft and review it before saving.
 
 The gateway routes product reads to Product View, writes to Products and the remaining resource operations to their owning services. It aggregates backend health for the status view. This centralises public routing but also makes the gateway a failure boundary. If it is stopped, the frontend still serves its assets and displays an API connectivity error; no alternate gateway is automatically selected.
 
@@ -209,7 +230,7 @@ RabbitMQ and the databases are infrastructure, not additional business microserv
 
 ### Data model and ownership
 
-![Figure 2 — Implemented database model](application/Databases.svg)
+![Figure 2 — Database ownership overview](report-figures/databases.svg)
 
 *Figure 2. Current database model. Source: [Databases.puml](application/Databases.puml). SQL field types and constraints were checked against the running development databases.*
 
@@ -225,21 +246,54 @@ The MongoDB read model contains a complete product snapshot, a version, an event
 
 Public REST resources use `/api/v1` and JSON field names in camelCase. UUIDs identify resources. The common success responses are 200, 201 and 204; validation, absence, conflicts and unavailability use structured 400, 404, 409 and 503 responses respectively. Product list responses currently contain full snapshots, not a separate reduced listing DTO.
 
-![Figure 3 — API contracts](<application/API Contracts.svg>)
+![Figure 3 — API request overview](<report-figures/api-contracts.svg>)
 
 *Figure 3. Implemented operations and requests. Source: [API Contracts.puml](<application/API Contracts.puml>); detailed contracts: [API.md](API.md).*
 
-![Figure 4 — API contract responses](<application/API Contract Responses.svg>)
+![Figure 4 — API response overview](<report-figures/api-responses.svg>)
 
 *Figure 4. Implemented response representations. Source: [API Contract Responses.puml](<application/API Contract Responses.puml>).*
 
-The diagrams and prose are useful documentation, but they are not an OpenAPI specification. Machine-readable REST contracts and Swagger/OpenAPI presentation remain required. OpenAPI defines a standard description of HTTP interfaces that can be used by tooling and consumers. [21]
+The diagrams reference generated, validated [OpenAPI contracts](contracts/openapi/frontend.json), a vendored Swagger UI at /swagger/index.html, the [GraphQL schema](../product-view/src/main/resources/catalogue.graphqls) and [AsyncAPI contracts](contracts/asyncapi.json). Per-service READMEs explain responsibility, startup, configuration and tests. The standard contracts complement the diagrams rather than replacing behavioural explanation. [21], [22]
 
-For GraphQL, the proposed first workflow is catalogue discovery: Product View would expose typed car queries, and the frontend would use those queries before creating a reservation through REST. This gives a concrete interoperability example without assigning price authority to GraphQL or duplicating order commands. GraphQL's schema and field selection support this query interface. No GraphQL endpoint or frontend consumer has yet been implemented in AJ Motors. A separate GraphQL exercise under `system-integration/` does not satisfy the application requirement. [3], [19]
+Product View exposes typed GraphQL catalogue queries used by the actual frontend. Selecting a car leads to a REST order request; Products still determines price and availability during the asynchronous reservation. The query API cannot mutate inventory or choose invoice amounts. This is application interoperability, separate from the older exercises in system-integration/. [3], [19]
+
+The following bounded query illustrates the implemented schema. The frontend sends it as JSON to `POST /api/v1/graphql`; the subsequent reservation uses REST.
+
+```graphql
+query {
+  products(limit: 24, filter: {status: "AVAILABLE", maxPrice: 500000}) {
+    total
+    hasMore
+    items { guid brand model year price currency }
+  }
+}
+```
+
 
 ### Asynchronous messages
 
-The `aj.events` topic exchange distributes JSON messages to five durable consumer queues. A shared envelope contains `eventId`, `eventType`, `occurredAt`, `correlationId`, `schemaVersion: 1` and `payload`. AMQP `messageId` matches eventId. The order UUID follows the entire purchase as correlationId, including derived product snapshots. Product payload.version remains a separate state version.
+The `aj.events` topic exchange distributes JSON messages to six durable consumer queues. A shared envelope contains `eventId`, `eventType`, `occurredAt`, `correlationId`, `schemaVersion: 1` and `payload`. AMQP `messageId` matches eventId. The order UUID follows the entire purchase as correlationId, including derived product snapshots. Product payload.version remains a separate state version.
+
+This illustrative envelope uses synthetic UUIDs; the correlation identifies the order while the event has its own identity. It is a contract example, not a recorded production message.
+
+```json
+{
+  "eventId": "11111111-1111-4111-8111-111111111111",
+  "eventType": "customer.check",
+  "occurredAt": "2026-11-05T08:00:00Z",
+  "correlationId": "22222222-2222-4222-8222-222222222222",
+  "schemaVersion": 1,
+  "payload": {
+    "orderGuid": "22222222-2222-4222-8222-222222222222",
+    "userGuid": "33333333-3333-4333-8333-333333333333",
+    "productGuid": "44444444-4444-4444-8444-444444444444",
+    "totalAmount": null,
+    "currency": null
+  }
+}
+```
+
 
 | Routing key | Producer | Consumers | Business purpose |
 | --- | --- | --- | --- |
@@ -254,10 +308,12 @@ The `aj.events` topic exchange distributes JSON messages to five durable consume
 | `payment.completed` | Payments | Orders, Products | Complete the order and mark the car sold |
 | `paymentfail` | Payments | Orders, Products | Fail the order and release the car |
 | `product.created`, `product.updated`, `product.reserved`, `product.removed` | Products | Product Synchronizer | Update the catalogue snapshot or tombstone |
+| `order.completed` | Orders | Confirmation job | Generate and persist one PDF artifact |
+| `payment.reconcile` | Orders | Payments | Republish the stored terminal outcome for recovery |
 
-The queues are `aj.users`, `aj.products`, `aj.orders`, `aj.payments` and `aj.product-sync`. Invalid messages can be moved through the dead-letter exchange to `aj.dead`; transient dependency failures are retried. There is no bounded retry policy, operator replay interface or dead-letter alerting yet.
+The queues are `aj.users`, `aj.products`, `aj.orders`, `aj.payments`, `aj.product-sync` and the isolated `aj.confirmations` queue. Invalid messages can be moved through the dead-letter exchange to `aj.dead`; transient dependency failures are retried. Transient retries use backoff without an automatic retry-count cap; poison messages dead-letter. An operator replay tool and central queue/dead-letter alerts are configured; operator decisions remain necessary for persistent faults.
 
-Reservation requests include order/product/customer references and initially null price fields; confirmation adds the authoritative amount/currency. Payment requests include order/payment identifiers; authorisation adds invoice fields, and outcomes include the product reference. Product messages contain the complete public snapshot. Consumers validate common metadata and accept old raw payloads to drain existing queues; the local stack must be upgraded together. Timeout, retry and compatibility rules are in [ASYNC.md](ASYNC.md). Formal AsyncAPI documentation remains required. [4], [22]
+Reservation requests include order/product/customer references and initially null price fields; confirmation adds the authoritative amount/currency. Payment requests include order/payment identifiers; authorisation adds invoice fields, and outcomes include the product reference. Product messages contain the complete public snapshot. Consumers validate common metadata and accept old raw payloads to drain existing queues; the local stack must be upgraded together. Timeout, retry and compatibility rules are in [ASYNC.md](ASYNC.md). Aggregate and per-service AsyncAPI contracts document payloads, producers, consumers and queue bindings. [4], [22]
 
 ### Why both communication styles are used
 
@@ -273,25 +329,25 @@ Products is the command-side authority, while Product View serves a separate Mon
 
 Deletion markers in PostgreSQL and tombstones in MongoDB retain evidence that a record was removed. Product messages carry full-state snapshots, allowing the projection to replace a product's display state without retrieving each individual field from Products.
 
-These mechanisms are limited forms of immutable information. Customer, product, order and payment details are still updated in place, and old outbox rows are deleted after confirmed publication. There is no complete event-sourcing log, historical snapshot archive or general time-travel query. Retaining deleted personal data also requires a retention and erasure policy before production use.
+The immutable information is deliberately scoped: removal markers, versioned snapshots and append-only order/payment status audit. Profile and product detail fields remain mutable, and confirmed outbox entries are removed. There is no full event-sourcing archive or general time-travel query. Exam retention keeps identity/deletion fences, inbox keys, history and tombstones; a production erasure schedule requires a separate policy.
 
 ### 2.4.3. Idempotence
 
 SQL consumers record processed event identities in an inbox as part of the transaction that changes business state. A redelivered event with the same identity is ignored. Payment creation uses one stable identity per order, and repeating the same terminal payment result does not emit another outcome.
 
-This is not a general idempotency guarantee for public POST requests. Repeating a customer, car or order creation can still create a conflict or another entity. A client retry key, request fingerprint and stored original response are required for broader command idempotence.
+Users, Products and Orders support identity-scoped Idempotency-Key headers. A request fingerprint, original result and outbox commit in the owning SQL transaction. Identical concurrent retries return one resource; reusing a key with another body returns 409. Payments deliberately uses one stable payment per order and returns its current result on retry. Requests without command keys do not gain a general creation guarantee.
 
 ### 2.4.4. Commutative message handlers
 
 Within a versioned projection, an older product version is ignored after a newer snapshot or tombstone has been applied. For distinct versions, that gives the projection the same final state whether an older snapshot arrives before or after the newer one.
 
-The complete business workflow is not proven commutative. If a release or payment outcome is received before the corresponding reservation, the current handler can ignore it; processing the reservation later can then leave a different final state. The projection now uses a version-conditional atomic replacement and a unique GUID index, preventing stale HTTP retries and concurrent snapshots from overwriting newer data. Business message handlers and parallel outbox workers still require their own concurrency design. Tests for shuffled message sequences and state-transition rules are therefore necessary before marking this final-project requirement complete. Idempotence under duplicate delivery and commutativity under reordered delivery are different properties. [3]
+Products retains reservation signals so cancellation/failure received before quantitycheck blocks a late reservation. Paid inventory cannot be freed by a stale cancellation. Orders retains early matching payment outcomes until a valid claim exists. Projection CAS and tombstones converge to the newest version under reordering. Selected permutations and duplicate deliveries are tested; contradictory producer outcomes are not declared equivalent histories. Workers remain single-replica with Recreate rollouts, while the stateless frontend scales independently. [3]
 
 ### 2.4.5. Saga pattern
 
 The implemented reservation/payment flow uses local database transactions and compensating release events. Successful reservation followed by `paymentfail` returns an eligible car to AVAILABLE and marks the order FAILED. Cancellation similarly releases a reservation. This is a partial choreography-based saga: services react to outcomes rather than participating in one distributed transaction. [8]
 
-Important limitations remain. A customer can abandon a payment claim; there is no automatic expiry, timeout compensation, reconciliation process or comprehensive reordered-message test. The report therefore describes the existing compensation behaviour, not an assertion that every interrupted saga will terminate correctly.
+Saga recovery includes stored deadlines, compensation, periodic reconciliation and an explicit manual-review state. It still depends on eventual infrastructure recovery or informed operator action; a permanently ambiguous payment is kept visible rather than silently released. The tests cover selected crash boundaries, not every possible distributed history.
 
 ### 2.4.6. Caching
 
@@ -300,6 +356,20 @@ No Redis cache or explicit application response cache is implemented. The MongoD
 ### 2.4.7. Transactional outbox and reliable delivery
 
 A domain update and its outgoing outbox record commit in one local SQL transaction. A worker publishes the stored message and removes the outbox record only after broker confirmation. If publication succeeds but the database acknowledgement is interrupted, the same event may be published again. Inbox deduplication and projection versions handle selected duplicate cases. This implements the central outbox idea without a database/broker distributed transaction. [9]
+
+The SQL-consumer branch in `service-common/Bus.java` performs the business handler and inbox insertion together. The acknowledgement follows the completed transaction; an exception takes the retry/dead-letter path.
+
+```java
+db.tx(em -> {
+    if (em.find(Inbox.class, id) == null) {
+        handler.accept(em, topic, event.payload());
+        em.persist(new Inbox(id));
+    }
+    return null;
+});
+channel.basicAck(msg.getEnvelope().getDeliveryTag(), false);
+```
+
 
 Persistent messages, durable queues, publisher confirms and consumer acknowledgements serve different points in delivery. A consumer acknowledgement is issued after processing; a publisher confirm alone does not prove that business processing completed. These mechanisms support recovery but do not establish exactly-once execution. [7]
 
@@ -328,69 +398,73 @@ Images include the Java runtime and run the application under a non-root user. H
 
 ## 3.2. Local Kubernetes deployment simulating production
 
-**Status: proposed; no Kubernetes manifests or successful cluster run are currently included.** The final project explicitly requires a local Kubernetes environment, even though full cloud deployment is not required. Compose does not replace that requirement. [3]
+The local kind environment has separate application Deployments, internal Services, owner PVCs, Calico network policies and a TLS ingress. SQL init containers migrate before application schema validation. The manifests and reproducible lifecycle are in [KUBERNETES.md](KUBERNETES.md); exact runtime checks are listed in [EVIDENCE.md](EVIDENCE.md). A single-node simulation is not host-failure HA. [3], [10]
 
 ```mermaid
 flowchart TD
-    Browser[Browser] --> Ingress[Local ingress / TLS]
-    subgraph Cluster[Proposed local Kubernetes cluster]
-        Ingress --> Frontend[Frontend Deployment + Service]
-        Frontend --> Gateway[Gateway Deployment + Service]
-        Gateway --> APIs[Users / Products / Orders / Payments / Product View]
-        APIs --> Data[Private data services + PVCs]
+    Browser[Browser over local TLS] --> Ingress[Traefik ingress]
+    subgraph Cluster[Local kind cluster]
+        Ingress --> Frontend[Frontend and CPU HPA]
+        Frontend --> Gateway[Gateway]
+        Gateway --> APIs[Independent domain APIs]
+        APIs --> Owners[Private owner databases and PVCs]
         APIs <--> Rabbit[Persistent RabbitMQ]
-        Rabbit --> Projection[Projection worker - one replica initially]
-        Projection --> Data
-        ProductsAI[Products AI adapter] --> LLM[Containerised local LLM]
-        Rabbit --> Jobs[KEDA ScaledJob: confirmation task]
-        AppsMetrics[Application metrics and logs] --> Observability[Prometheus / Grafana / Loki]
+        Rabbit --> Synchronizer[Single projection relay]
+        Synchronizer --> View[Product View owner API]
+        View --> Mongo[Private MongoDB]
+        Rabbit --> Job[KEDA confirmation job]
+        Job --> Artifact[Orders-owned PDF writer]
     end
+    Products[Products draft adapter] --> Ollama[Optional local Ollama API]
 ```
 
-*Figure 5. Planned topology, not a deployment that has been executed. `APIs` groups independent applications for readability. The projection ownership boundary is resolved by the internal owner API and must be preserved in the manifests.*
+*Figure 5. Implemented local deployment definition. Applications remain separate despite being grouped for readability. Runtime results, including scaling and job execution, are identified explicitly in the evidence record.*
 
 ### 3.2.1. Technologies and isolated tasks
 
-The proposed environment uses a local Kubernetes cluster with application Deployments and internal Services. Persistent data needs explicit volumes and operational policies; application rollouts do not make database changes reversible. Kubernetes Deployments support controlled updates of application replicas. [10]
+kind supplies the local cluster; Calico enforces owner network boundaries. Random runtime secrets and local TLS keys are kept outside committed manifests. The confirmation console application consumes its own durable order.completed queue, generates a PDF, writes through the Orders owner API and exits. It acknowledges only after storage; repeating the task preserves the first document. KEDA ScaledJob supplies event-driven scheduling rather than a permanently running service renamed as serverless. [10], [12]
 
-An isolated order-confirmation task is proposed for the serverless requirement. A containerised job would consume a confirmation event, record an idempotent result in its own store or sink, and terminate. A KEDA ScaledJob can create jobs in response to queued work. It must have its own queue so that consuming a notification does not steal an event from an order or inventory consumer. The existing long-running synchronizer is not counted as a serverless function. [12]
-
-The proposed AI workflow asks Products to generate a draft listing description from verified car attributes through a local Ollama API. The draft requires human approval and must not alter availability, price or payment decisions. A real backend call, input/output contract, model configuration, timeout and tests are needed; a stub alone does not establish AI integration. Ollama provides a generation API suitable for such an adapter. This feature is not implemented. [26]
+Products calls an actual local Ollama model to draft descriptions from validated brand/model/year. It forwards no customer/payment information, applies schema/output/time limits, and inserts text for human approval. It cannot change invoice values or availability. Adapter failure tests and an actual browser-to-model run are documented in [AI.md](AI.md). The model and Kubernetes can be demonstrated separately within the workstation memory budget. [26]
 
 ### 3.2.2. CI/CD pipeline
 
-Eight service workflows currently call one reusable Java verification workflow. The first stage runs unit tests; the second runs integration tests and packages the selected service and its shared dependency. A separate system workflow builds the full container environment, executes the cooperation scenarios, saves diagnostics and cleans up its isolated runner. This avoids starting the full system eight times for one shared-code change. [28]
+Each service pipeline separates module validation, parallel unit/integration checks, JAR packaging/checksums and a final gate. Quality runs separate SpotBugs, contract and workflow/deployment-test jobs. System acceptance uses independent runners for API/broker recovery, browser/identity and fresh-database cooperation. CodeQL is a separate release requirement. Failed, cancelled or skipped required checks block the relevant gate. [27], [28], [29]
 
 ```mermaid
-flowchart LR
-    Change[Push / pull request] --> Unit[Current: unit tests]
-    Unit --> Integration[Current: HTTP and database integration tests]
-    Change --> System[Current separate job: Docker system scenarios]
-    Integration --> Reports[Current: reports and packaged service]
-    System --> Reports
-    Reports -. required checks proposed .-> Static[Planned: static and security gates]
-    Static -.-> Registry[Planned: immutable image tag / registry]
-    Registry -.-> Migrate[Planned: migration gate]
-    Migrate -.-> Deploy[Planned: Kubernetes rollout and smoke check]
+flowchart TD
+    Release[Manual main-branch release] --> Checks[Nine service pipelines and quality]
+    Release --> System[API, browser and cooperation]
+    Release --> Security[CodeQL security]
+    Checks --> Build[Build nine candidate images]
+    System --> Build
+    Security --> Build
+    Build --> Scan[SBOM, provenance and digest scan]
+    Scan --> Manifest[One revision and nine digests]
+    Manifest --> Stage[Staging migration and rollout]
+    Stage --> Smoke[HTTPS, identity and business smoke]
+    Smoke --> Production[Production: same digests]
+    Production --> Evidence[Readiness, smoke and retained evidence]
 ```
 
-*Figure 6. Existing CI and proposed release extension. The service and system workflows run independently; a shared release job waiting for all required checks is not implemented.*
+*Figure 6. Implemented multi-stage workflow definitions. GitHub environment configuration controls production approval; actual remote execution remains a separate observation.*
 
-Test failures return a non-zero result and fail their job. Reports are uploaded even on failure. The repository contains the workflow definitions, and their commands have passed locally; a successful remote GitHub run and branch-protection policy have not been established by the local test results. Registry publication, automated environment deployment and rollback are not present. The current pipeline is CI with a planned CD extension, not a completed cloud delivery pipeline.
+Image builds use a bounded matrix, registry cache, SBOM and provenance. Fixable HIGH/CRITICAL image findings block promotion. The assembled artifact binds all nine digests to one verified source revision. Staging runs first; production promotes the same images without rebuilding. Environment-specific runner access, HTTPS endpoints, credentials and registry pull access must be configured as described in [CI-CD.md](CI-CD.md).
+
+Deployment reads live target configuration and changes application images/revision annotations. Server-side validation and four bounded owner Flyway Jobs precede application changes; proof files bind migrations to the release and unchanged target images. Readiness is followed by real HTTPS, catalogue and identity checks, plus synthetic reservation/payment-compensation smoke in staging. Production defaults to read-only smoke. Event workers retain single-replica Recreate deployments; zero downtime is not promised.
+
+A separate workflow restores an earlier successful release's digests only with explicit compatibility with the current schema. Automatic restoration is optional under the same reviewed compatibility policy and requires a complete previous snapshot. Failed deployments remain failed even if restoration succeeds. Migration, rollout and smoke evidence is retained without credential files. Twelve local deployment-boundary tests and an actual TLS-proxied Compose smoke passed; remote GitHub execution and a digest-based Kubernetes rollout are not inferred from those checks.
 
 ### 3.2.3. Monitoring and logging
 
-Implemented operational support consists of application/exception output, container logs, per-service health endpoints, gateway status aggregation and RabbitMQ's management interface. These help development diagnosis but are not a complete distributed logging and monitoring solution.
+Prometheus scrapes application histograms/counters, outbox age/count, projection lag and RabbitMQ queue metrics. Grafana provisions an operations dashboard; Alloy forwards application-only structured logs to Loki. HTTP and broker records share the business correlation ID without logging payloads, tokens or passwords. Database logs are excluded from central collection to avoid row-value leakage. [24], [25]
 
-The proposed production-like setup collects structured logs in Loki and views them in Grafana; Loki provides central log aggregation. [24] Prometheus would scrape metrics and support alerts for service failures, latency, errors and accumulating queues. [25] Planned application fields include service name, request/correlation ID, event ID, order reference and outcome. Sensitive customer data and credentials should not be logged.
-
-Useful measures are request latency percentiles, error rate, queue depth, oldest pending outbox age, dead-letter count, projection lag, database connection use and worker failures. A dashboard must distinguish an unavailable API from an API whose process is alive but cannot access its dependencies. Health polling alone does not measure historical availability or business correctness.
+The local verification checked nine live targets, a trace through Users/Orders/Products and a firing dependency alert during a controlled broker interruption. Monitoring runs separately from the Kubernetes demonstration to conserve workstation resources. Health, latency and queue metrics describe different failures; none alone proves business correctness or historical availability. See [OBSERVABILITY.md](OBSERVABILITY.md).
 
 ### 3.2.4. Autoscaling configuration
 
-HPA is proposed for stateless HTTP services after resource requests, limits and metrics are defined. HPA adjusts replica counts from observed metrics; it does not remove a database bottleneck. [11] Event-driven scaling is appropriate for the isolated confirmation jobs, subject to idempotence and downstream capacity. [12]
+Frontend HPA uses real CPU metrics with a one-to-two replica range. A temporary workload verifies scaling and is removed afterwards. Confirmation jobs scale from their own queue and terminate after one task. SQL/broker workers remain at one replica with Recreate rollout, avoiding an unverified overlap of old/new workers. Projection CAS still protects concurrent HTTP snapshot writes. [11], [12]
 
-Products, Orders, Payments and Product Synchronizer must not be scaled merely by increasing replicas. Current outbox polling and business state transitions require concurrency validation. Projection snapshots already use a conditional MongoDB replacement, but this does not establish the safety of every worker or workflow. Worker ownership, database contention and consistent message ordering must be addressed first. The local cluster will demonstrate application scaling separately from database replication and broker high availability.
+Application scaling is separate from database replication and broker HA. More replicas cannot remove a single state-store failure or guarantee faster queries. The local cluster demonstrates the configured mechanisms; its actual scaling/job result is recorded in EVIDENCE.md rather than assumed from YAML.
 
 ## 3.3. Cloud deployment plan
 
@@ -449,7 +523,7 @@ Actual cloud deployment is not required by the final project. The local Kubernet
 
 The strategy separates isolated logic checks, component-boundary integration and cooperation of deployed services. Fast Java tests should reject simple defects before the more expensive container scenarios run. A passed test establishes the behaviour exercised by that scenario; it does not establish full coverage, production security or performance at scale.
 
-The current suite contains thirteen unit tests, nine integration tests and six Python system scenarios when the failure option is enabled. An additional browser script checks selected desktop/mobile interactions and outage messages. The [test guide](TESTING.md) records the commands and limitations.
+The latest isolated Java run contains 28 unit tests and 14 integration tests; the Python system suite runs six scenarios when the failure option is enabled. An additional browser script checks selected desktop/mobile interactions and outage messages. The [test guide](TESTING.md) records the commands and limitations.
 
 ## 4.2. Unit testing
 
@@ -457,13 +531,13 @@ Three unit tests in the shared API library exercise canonical UUID validation, a
 
 Three additional fixture tests check stable and non-colliding identities, consistency with the normal payment retry identity, and coherent product/order/payment example states. A separate demonstration-data verification script checks the actual API data and can restart the four applications to verify that edits survive without duplicate insertion.
 
-The shared tests run when a service is built with its Maven dependencies. That is useful coverage of common behaviour, but it is not a substitute for the final requirement that each backend have unit tests of its core logic. Users, Products, Orders, Payments, Product View and Product Synchronizer do not yet have their own adequate business-logic unit-test suites. Reservation transitions, payment state changes, projection versions, tombstone precedence and message-order cases are priority additions. [3]
+The shared checks accompany every service build, while domain suites cover customer validation, exclusive inventory rules, order claim/expiry decisions, terminal payment transitions, projection versions/query bounds and relay response handling. GraphQL resolver/schema tests and PDF content checks exercise their own boundaries. These are deliberately small business-focused suites, not a coverage-percentage claim. [3]
 
 ## 4.3. Integration testing
 
 Two shared integration tests start actual Javalin HTTP servers on temporary ports. They verify structured validation errors through the proxy and a 503 response when the upstream is stopped. A product integration test exercises Hibernate persistence against H2 in PostgreSQL mode. Six further HTTP integration tests validate the owner's authentication/input/storage responses and the relay's event envelope/retry handling.
 
-These establish HTTP-boundary and selected mapping behaviour. H2 is not the actual PostgreSQL engine, so its success does not prove all production database semantics. The full container scenarios do exercise PostgreSQL, MongoDB and RabbitMQ, and `check_async.py` separately inspects real broker envelopes and the dead-letter path without a UI. Isolated duplicate/ack assertions and upgrade fixtures remain part of TEST-02.
+The suites combine real local HTTP boundaries, representative Hibernate/H2 mapping and real PostgreSQL/MongoDB/RabbitMQ scenarios. H2 alone is not treated as proof of PostgreSQL semantics. The isolated cooperation fixture creates all four empty owner databases, checks migration history and processed inbox records, then tests reservation and failed-payment compensation without frontend or gateway.
 
 ## 4.4. System-level cooperation testing
 
@@ -478,59 +552,62 @@ The current Python scenarios check:
 
 The system workflow starts the dependent containers before executing these scenarios. It preserves failure diagnostics and fails on a failing test. This is useful distributed behaviour evidence.
 
-However, these scenarios are driven through the frontend proxy and public API as a complete business journey. The final description explicitly asks for a cooperation test focused on backend interaction rather than an end-to-end user workflow. The separate `check_async.py` now triggers direct backend reservation/payment interactions, inspects broker envelopes, and asserts authoritative state and recovery without frontend/gateway. It runs in CI against the Compose dependencies. A smaller isolated service fixture and wider fault/permutation coverage remain useful; these five checks do not establish arbitrary saga convergence. [3]
+The end-to-end API suite is supplemented by scripts/cooperation.py --exclusive. It starts four owning backends, their private databases, broker and identity provider under a unique Compose project, asserts authoritative state and processed broker messages, saves diagnostics and removes only its own volumes. This specifically addresses backend cooperation rather than relying on a UI purchase journey. [3]
 
 ## 4.5. Security testing
 
-Five gateway unit tests now verify valid access tokens and rejection of missing, malformed, expired, wrongly issued/audienced, identity and forged tokens. Real Keycloak browser tests exercise Code + PKCE login, role claims, SSO reload and logout for customer and administrator identities. Authorisation/ownership tests for business resources remain missing: those routes are still public pending SEC-01. A role claim in a valid token is not proof that a backend enforces the role. [20], [31]
+Signed-token unit tests check issuer/audience, expiry, token type and forged signatures. Real provider/browser tests check customer/admin login, reload and logout. Security checks also exercise direct service ports, customer access to own versus other records, denied administrator actions, protected customer mapping and automatic self-registration linkage. A role claim is tested together with backend enforcement. [20], [31]
 
-Input validation tests are valuable, but they are not authentication or authorisation tests. Likewise, keeping an internal route out of gateway routing is not strong access control while direct development service ports remain accessible.
+Public catalogue reads remain available without login. Protected operations fail closed with 401/403, including direct backend ports. Internal projection/PDF writers require separate service credentials and are not forwarded by the gateway. Kubernetes adds private Services, TLS and enforced owner network policies; the local certificate and published demo users are not a production trust configuration.
 
 ## 4.6. Static analysis and static testing
 
-Actionlint was used locally to validate workflow syntax, and the UML sources were syntax-checked and rendered. These checks do not constitute an automated Java code-quality/security gate in the project's CI pipeline.
-
-A static-analysis tool still needs to run automatically. Candidate checks include Java analysis for likely defects, dependency vulnerabilities and code scanning. GitHub documents code scanning as a way to analyse code for security issues, but tool selection must account for repository visibility and available licensing. The selected checks must produce reports and make the pipeline fail under an agreed severity policy. [29]
+SpotBugs runs in the quality Maven profile with a High-severity failure threshold. Actual findings were corrected: ignored shutdown exceptions, confusing JWT-verifier inheritance and broad proxy exception handling. No blanket suppression is used. The quality workflow also validates OpenAPI, AsyncAPI and workflow syntax; CodeQL is configured as a separate security scan. Local results and actual GitHub runs are distinguished. [29]
 
 ## 4.7. Test execution in CI/CD
 
-Surefire executes unit tests during Maven's `test` phase; Failsafe executes `*IT` tests and verifies their results during `verify`. [27] The service workflows run both categories in separate steps. The system workflow executes `scripts/smoke.py --failures` after a health-checked Compose startup. Its exit code is preserved when output is copied to the test log.
+Surefire runs unit tests and Failsafe runs integration tests. Reusable per-service workflows keep these stages identifiable; system, security, broker, projection, PDF and isolated-cooperation scripts run in the system workflow. Non-zero results fail their jobs, and diagnostic reports are retained. A release waits for quality and system checks for the same revision. [27], [28]
 
-| Local evidence reviewed on 4 November 2026 | Result | Interpretation |
-| --- | --- | --- |
-| Shared API unit tests | 3 passed | Selected input rules |
-| Event metadata unit tests | 3 passed | Correlation propagation, schema validation and legacy reads |
-| Gateway routing unit tests | 2 passed | Selected routing decisions |
-| Demonstration fixture unit tests | 3 passed | Stable references and consistent example states |
-| JWT verifier unit tests | 5 passed | Signatures, issuer/audience, expiry and token type |
-| Real Keycloak browser checks | Customer and admin login/reload/logout passed | Local OIDC integration; business authorisation not yet covered |
-| Shared HTTP integration tests | 2 passed | Error propagation and upstream failure |
-| Product repository integration test | 1 passed | Selected Hibernate/H2 persistence |
-| Internal projection HTTP integration tests | 6 passed | Owner credentials, payloads, storage errors and relay retries |
-| Container-based Python system suite | 6 passed | Selected commerce and recovery scenarios |
-| Direct backend/broker cooperation checks | 5 passed | Actual envelopes/dead-letter, asynchronous rejection and consumer recovery |
-| Additional browser verification | Passed; no JavaScript errors recorded in that run | Selected interactions and viewport checks, not exhaustive UI coverage |
-| Workflow syntax / UML validation | Passed locally | Definitions/rendering validated, not proof of remote CI or Kubernetes deployment |
+The maintained [evidence record](EVIDENCE.md) contains counts, artifact dates and observed outcomes rather than an assumed coverage percentage. It records successful real-token ownership/self-registration checks, an actual browser-to-model draft, concurrent command/payment retries, late-reservation protection, manual payment review, PDF deduplication, four fresh migrated database owners, real restore checks and a central-log/controlled-alert demonstration. The local Kubernetes run verified HTTPS commerce, a terminating KEDA PDF job, enforced database isolation and real CPU-driven HPA scaling from one to two frontend replicas. Remote-release results remain separate.
 
-The Java and system run summaries were reviewed from local reports produced during development. They are historical evidence, not a fresh performance benchmark performed to write this report. GitHub workflow execution and release evidence must be captured separately after the relevant changes are committed and pushed.
+The first measured 10,000-car workload used twenty concurrent clients and two hundred GraphQL requests. Its p95 was approximately 3.78 seconds, above the two-second target. Other local verification was running at the same time; this is an observed shared-workload result, not a production SLA or a controlled comparison proving that one architecture is faster. [PERFORMANCE.md](PERFORMANCE.md) defines the repeatable workload.
 
-## 4.8. Limitations, risks and trade-offs
+## 4.8. Evidence and limits
 
-The suite is deliberately small. It does not cover every service in isolation, arbitrary message permutations, multiple worker replicas, prolonged outages, load, automated migrations, restore-from-backup, AI output validation or access control. System tests currently retain labelled test records, so their runner environment must be isolated from production data. A local test passing once is not proof of indefinite recovery or high availability.
+The maintained [evidence record](EVIDENCE.md) contains artifact dates, source fingerprint and observed outcomes. The latest isolated Java/SpotBugs run passed 28 unit and 14 integration checks. Local system checks verified real-token ownership/self-registration, a browser-to-model draft, concurrent retries, delayed-reservation protection, manual payment review, PDF deduplication, four fresh migrated database owners, actual restore checks and central logs with a firing alert. Kubernetes verified HTTPS commerce, KEDA PDF execution, database isolation and CPU HPA scaling from one to two frontend replicas. A broker recreation preserved its node identity and a durable probe message.
 
-The tests should be expanded around business failure boundaries before adding autoscaling. Adding many assertions about trivial getters would increase test counts without addressing the missing distributed guarantees.
+The performance fixture creates a separate 10,000-car Mongo database, executes 200 bounded GraphQL queries with 20 concurrent clients and removes only that fixture. The first shared-load run measured p95 **3.782 seconds**, missing the two-second target. A quieter repeat with the normal Compose stack running, and the separate Kubernetes/monitoring demos stopped, measured median **0.616 seconds**, p95 **1.139 seconds** and maximum **1.263 seconds**. Both observations are retained in [PERFORMANCE.md](PERFORMANCE.md). The repeat met this direct-backend target; neither run establishes internet latency, an end-to-end SLA or long-term availability.
+
+The tests cover selected boundaries and message interleavings. They do not prove arbitrary contradictory outcomes, unrestricted parallel workers, historical availability or production security. Workers remain bounded while stateless HTTP and isolated jobs demonstrate scaling. Demonstration histories remain intact; cooperation/performance databases are isolated. Remote delivery and authors' historical reflections require their own evidence.
 
 # 5. Project management and team collaboration
 
 ## 5.1. Strategy and collaboration
 
-The agreed working approach is lightweight and Scrum-inspired rather than a complete implementation of Scrum. The team plans short sprints, holds brief daily standups to discuss progress and blockers, and uses a shared To Do / In Progress / Review / Done board. Each sprint ends with a demonstration and a short retrospective. These are the working agreements adopted for the remaining project; no attendance record or completed sprint history is asserted here.
+The agreed working approach is lightweight and Scrum-inspired rather than a complete implementation of Scrum. The team plans short sprints, holds brief daily standups to discuss progress and blockers, and uses a shared To Do / In Progress / Review / Done board. Each sprint ends with a demonstration and a short retrospective. These are the adopted working agreements. The dated schedule below is a proposed project narrative, not an attendance record or evidence of completed historical sprints.
 
 A task is Done when its behaviour meets its acceptance criteria, relevant checks pass, and contracts/documentation are updated. A local demonstration and a remotely verified release are recorded separately.
 
+### Proposed September–November schedule
+
+The group uses the following suggested allocation for 1 September–30 November 2026. Dates organise the report's planning example; actual verification dates remain in EVIDENCE.md. Standups are planned for approximately ten minutes at 09:00 on agreed working days, with planning at each sprint's start and a short review/retrospective at its end.
+
+| Period | Sprint goal | Shared work and review focus |
+| --- | --- | --- |
+| 1–11 September | Requirements and architecture | All four define their domain, acceptance criteria and ownership boundaries. |
+| 14–25 September | Services, REST and databases | Ahmad: Users; Jeppe: Products; Asger: Orders/Payments; Laith: Compose and application connections. |
+| 28 September–9 October | Asynchronous commerce | Asger/Jeppe: reservation, compensation and projection; Ahmad: customer validation; Laith: broker/system configuration. |
+| 12–23 October | Security, GraphQL and AI | Ahmad: identity/ownership; Jeppe: catalogue/AI; Asger: business contracts; Laith: automated contract checks. |
+| 26 October–6 November | Migrations, retries and recovery | Domain owners add focused tests; Asger covers saga/PDF work and Laith coordinates CI, onboarding and restore. |
+| 9–20 November | Runtime verification and measurements | Laith: Kubernetes/monitoring; Asger: jobs/recovery; Jeppe: catalogue performance/frontend; Ahmad: security/logging checks. |
+| 23–30 November | Report and demonstration review | Everyone updates their contracts, figures, evidence and installation notes, then reviews another workstream. |
+
+The last two periods are future plans relative to this report's 5 November review date. The full Danish working plan and individual reflection prompts are in [TEAM-PLAN.md](TEAM-PLAN.md).
+
+
 ## 5.2. Methods, responsibilities and evidence
 
-The following balanced allocation organises future work and review. It does not assign authorship of previously created code or substitute for each student's actual Git contributions.
+The following balanced allocation organises the proposed work and review. It does not assign authorship of previously created code or substitute for each student's actual Git contributions.
 
 | Named owner | Main responsibility | Reviewer |
 | --- | --- | --- |
@@ -545,17 +622,30 @@ Frontend, tests, contracts and report updates accompany each workstream. Shared 
 
 ### Source code
 
-Source code is managed with Git in a monorepo. The intended policy uses short-lived feature branches, reviewed pull requests and protected release branches. Releases should have immutable tags and images tied to a commit identifier. The Maven modules currently share a `1.0.0` version; that alone is not evidence of independent release management. A meaningful group history and a reproducible release baseline remain to be established for the current work.
+Source code is managed with Git in a monorepo. The intended policy uses short-lived feature branches, reviewed pull requests and protected release branches. Releases should have immutable tags and images tied to a commit identifier. The Maven modules currently share a `1.0.0` version; that alone is not evidence of independent release management. Actual individual contribution history and remote release evidence remain separate from the proposed allocation. The user has accepted CI-02 as a working assumption and deferred its remaining remote execution; [CI-STATUS.md](CI-STATUS.md) records which outcomes have not been observed.
 
 ### Databases
 
-Database schema evolution currently relies on Hibernate automatic updates. Payments also applies a narrow idempotent startup change to allow null product references while REQUESTED; existing data is preserved, but this is not a versioned migration framework. Existing SQL scripts do not form a migration-tool-based version history. This does not satisfy the final specification's migration requirement.
+Each SQL owner uses Flyway before Hibernate schema validation. Existing reviewed local schemas explicitly baseline at version 1; subsequent additive migrations preserve data. Empty installations execute the full version sequence. Migration history, backups and test fixtures belong to each owner; no shared global SQL schema is introduced.
 
-The proposed policy is a versioned migration sequence for each SQL-owning service, with a reviewed baseline and explicit tests against an empty database and an upgrade fixture. Flyway describes migrations as version-controlled changes applied consistently across environments. Application startup should validate the resulting schema instead of silently treating automatic DDL as a release policy. MongoDB projection changes also need a document-version/rebuild strategy. [23]
+The implemented policy uses immutable applied migration files, safe local baseline opt-in, empty-database and upgrade verification, and a migration gate before Kubernetes readiness. MongoDB restore preserves snapshot versions and deletion tombstones; a full rebuild must include deletion fences from the authoritative owner, not only public active cars. Application rollback does not automatically reverse data migrations. [23]
+
+For example, the Orders V3 migration adds an append-only status table alongside the mutable order details:
+
+```sql
+CREATE TABLE state_audit (
+  id bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  aggregate_guid uuid NOT NULL,
+  old_status varchar(40), new_status varchar(40) NOT NULL,
+  correlation_id varchar(100),
+  recorded_at timestamptz NOT NULL DEFAULT now()
+);
+```
+
 
 ### APIs and messages
 
-REST uses `/api/v1`. Compatible additions should preserve existing clients; breaking changes need an explicit migration or new REST version. The future GraphQL schema should evolve through compatible fields and deprecation, with schema-change checks rather than assuming every schema edit is safe. [19]
+REST uses `/api/v1`. Compatible additions should preserve existing clients; breaking changes need an explicit migration or new REST version. The GraphQL schema should evolve through compatible fields and deprecation, with schema-change checks rather than assuming every schema edit is safe. [19]
 
 The implemented message envelope uses schemaVersion 1, separate from the product business-state version. Event identity/type/time/correlation are validated consistently. Unknown envelope versions dead-letter, and legacy raw payloads remain readable. This is persisted-message compatibility, not mixed-binary rolling-upgrade compatibility; [ASYNC.md](ASYNC.md) documents the deployment boundary.
 
@@ -563,9 +653,9 @@ The implemented message envelope uses schemaVersion 1, separate from the product
 
 Documentation belongs next to the source it describes. The monorepo README explains onboarding, `API.md` describes current REST/messages, `TESTING.md` records verification commands, and `application/` contains editable UML and viewable SVGs. This report explains system-level decisions and should reference those contracts rather than embed all API details again.
 
-Each service still needs its own README. REST contracts need OpenAPI documents, GraphQL needs an actual schema and endpoint description, and message interfaces need AsyncAPI or an equivalent formal description. [21], [22] A documentation review should accompany changes to event names, service ownership, deployment topology and failure behaviour.
+Every HTTP application and the isolated confirmation job has a README. OpenAPI, GraphQL SDL and AsyncAPI schemas are checked automatically and linked to the API guide and UML. Contract changes and source diagrams are reviewed together; API v1 and persisted-message compatibility remain explicit deployment boundaries. [21], [22]
 
-Architecture decisions should record context, alternatives and consequences. The identity-provider scope decision is now recorded in ADR-001. Projection ownership is resolved in ADR-002 and asynchronous commerce in ADR-003; worker concurrency remains an urgent decision. Proposed features must remain labelled as proposed until their implementation and evidence are reviewed.
+Architecture decisions should record context, alternatives and consequences. The identity-provider scope decision is now recorded in ADR-001. Projection ownership is resolved in ADR-002 and asynchronous commerce in ADR-003; worker concurrency is explicitly bounded to one replica with Recreate deployments. Proposed features must remain labelled as proposed until their implementation and evidence are reviewed.
 
 # 6. Discussion
 
@@ -579,7 +669,7 @@ The current application therefore demonstrates an educational distributed archit
 
 ## 6.2. Pattern benefits and costs
 
-CQRS makes the catalogue representation independent of the write model, but introduces lag and projection recovery work. Tombstones prevent selected forms of accidental resurrection, but do not replace full audit history or a retention policy. The outbox bridges local commits to eventual publication, but duplicate delivery remains possible. Compensation makes selected payment failures recoverable, but missing expiry and reconciliation leave unfinished workflows.
+CQRS separates catalogue reads from authoritative writes while adding projection lag and recovery work. Tombstones and state audit preserve specific facts rather than a complete immutable database. Outbox/inbox support at-least-once recovery; stored saga signals and deadlines address selected ordering/abandonment cases. These mechanisms reduce particular failures while increasing operational complexity.
 
 The key lesson is that applying a named pattern is not equivalent to satisfying all its desired outcomes. The current versioned projection is a useful technique; it is not proof that every handler is commutative or safe under concurrent replicas.
 
@@ -591,9 +681,9 @@ The immediate scaling priorities are pagination, bounded database access, useful
 
 ## 6.4. Possible improvements
 
-The highest-priority improvements are requirements alignment, identity/access control, GraphQL consumption, real backend AI use, local Kubernetes, isolated serverless execution and repeatable migrations. Distributed observability, complete contract standards and service-specific tests are equally necessary to demonstrate the final specification.
+The implemented extension covers backend access control, GraphQL consumption, real local AI, Kubernetes, isolated job execution, migrations, distributed observability and service-specific tests. Remaining delivery evidence is tracked separately from local acceptance; the authors must provide authentic collaboration examples and individual reflections.
 
-After those foundations, improvements can focus on abandoned reservations, recoverable payment claims, general command idempotency, reordered events, pagination, image handling, accessibility and a reproducible performance workload. [TODO.md](TODO.md) gives dependencies and acceptance criteria rather than treating these as completed features.
+Further improvements include measured query/index tuning, longer-running availability observation, stricter broker permissions per producer, broader fault/permutation testing and managed data-store HA. The measured latency target and remaining human/remote evidence are reported honestly; feature completion is not a claim of production readiness.
 
 # 7. Reflection
 
@@ -601,21 +691,32 @@ This section records technical observations supported by the current artefacts. 
 
 **Designing the distributed workflow.** The most important design change was making a car reference and a reservation owner explicit instead of treating order creation as a sufficient inventory update. The resulting workflow exposes states such as PENDING, RESERVED and PAYMENT_PENDING. It also reveals unfinished cases: an abandoned claim is a business concern even if every process is healthy.
 
-**Distinguishing planned and implemented work.** The example report proposed React, OAuth, Stripe and additional message metadata. The running prototype has a simpler frontend, manual payment and local Keycloak login; business authorisation is still incomplete. Keeping these differences visible is more useful than describing the earlier design as though it had already been delivered.
+**Distinguishing planned and implemented work.** The supplied draft described several proposed integrations. The implemented platform now uses a lightweight frontend, manual payment, local Keycloak, actual GraphQL, a local AI adapter and explicit message contracts. Recording observed results and remaining evidence is more useful than copying earlier design statements as implementation facts.
 
 **Database experience.** Stable UUIDs across services differ from SQL foreign keys. Local integrity constraints cannot enforce every cross-service rule, and a read-model update is not simultaneous with a write-side commit. Soft delete retains a marker, not an immutable history of all details. These distinctions should influence both schema and test design.
 
 **What to do differently next.** Review the final requirements before extending infrastructure, establish one owner for each data boundary, define message schemas and saga failure cases early, and add migration/security checks before storing real data. Develop a small vertical slice involving the intended REST/GraphQL/identity workflow before expanding administrative screens.
 
-**Project-management reflection still to complete.** The team must add actual examples of planning, disagreements, reviews, mistakes, workload distribution and how they were resolved. Those claims require participant confirmation and evidence, not a template narrative.
+### Individual reflection drafts for author review
+
+The following technical reflection drafts follow the agreed allocation. They do not assert personal experiences or attribute existing commits; each participant should confirm the wording and add a real review or problem-solving example.
+
+| Participant | Suggested reflection focus |
+| --- | --- |
+| Ahmad Abdel Razak Hussein Alkaseb | Authentication alone does not establish authorisation. Independent backend checks and own-versus-other resource tests make the access boundary explicit. A personal example should identify an actual security review or test. |
+| Jeppe Rønning Koch | Catalogue queries can use a separate read model while reservation still relies on authoritative inventory. AI drafts need bounded input/output and human approval. A personal example should describe a real filter or draft-validation decision. |
+| Asger Valdemar Bergøe | Local transaction success does not finish a distributed order. Retained signals, idempotence and manual review address retries and ambiguous outcomes. A personal example should explain a real recovery or compensation case. |
+| Laith Abdel Razak Hussein Alkaseb | Deployment requires more than containers: migration gates, network boundaries, useful metrics and actual restore verification. A personal example should name the evidence used to diagnose a real operational problem. |
+
+The lightweight process deliberately omits a full Scrum role/ceremony structure. The proposed retrospective asks what blocked integration, whether work/reviews were balanced, and which boundary should be tested earlier. Actual meeting attendance, disagreements and personal learning still require participant confirmation.
 
 # 8. Conclusion
 
-AJ Motors has a functional local distributed prototype with five domain/API backends, an additional projection worker, a frontend, a gateway, isolated SQL databases and RabbitMQ. Selected workflows demonstrate exclusive reservation, manual payment outcomes, catalogue projection and recovery after dependency outages. The inspected Java test evidence contains thirteen passing unit tests and nine passing integration tests; the previously reviewed system run contains six passing scenarios. Automatic fictional data supports a demonstration without entering every example manually.
+AJ Motors has a functional local distributed prototype with five domain/API backends, an additional projection worker, a frontend, a gateway, isolated SQL databases and RabbitMQ. Selected workflows demonstrate exclusive reservation, manual payment outcomes, catalogue projection and recovery after dependency outages. The inspected Java test evidence contains 28 passing unit tests and 14 passing integration tests; the previously reviewed system run contains six passing scenarios. Automatic fictional data supports a demonstration without entering every example manually.
 
-The application is not yet complete against the final project description. Major gaps include GraphQL use, AI integration, business authorisation, local Kubernetes, serverless work, database migrations, distributed observability, formal contracts, unit tests per backend and narrowly focused service-cooperation/security/static checks. Projection ownership is resolved; business message-order behaviour still requires explicit design work.
+The implementation now covers the local commerce, identity, GraphQL, AI, migration, reliability, contract and operational work described here. The evidence table distinguishes successfully verified behaviour from definitions awaiting an actual run. CI-02 is accepted as an assumption for this version, with remote results explicitly unverified. The dated collaboration plan and individual reflection drafts require author confirmation before they are described as historical experience.
 
-The report provides a coherent account of the implemented system and a justified plan for the remaining work. Completion requires implementing and verifying that backlog, completing API access rules, collecting remote CI evidence and finalising the authors' own project-management reflection. A production deployment or full final-project compliance is not claimed.
+The project demonstrates separate ownership, asynchronous business coordination, mixed API styles, local identity/AI integration and operational verification. The practical lesson is that independent deployment requires explicit contracts, retained state and recovery rules. Local evidence, remote delivery and the authors’ reflection remain separate claims; no production availability or unverified collaboration history is asserted.
 
 # 9. References
 
@@ -632,7 +733,7 @@ The references use numbered citations. Official documentation and original patte
 9. C. Richardson, *Pattern: Transactional outbox*, Microservices.io. [Online][9].
 10. Kubernetes, *Deployments*. [Online][10].
 11. Kubernetes, *Horizontal Pod Autoscaling*. [Online][11].
-12. KEDA, *Scaling Jobs*, version 2.18 documentation. [Online][12].
+12. KEDA, *Scaling Jobs*, version 2.21 documentation. [Online][12].
 13. AWS, *What is Amazon Elastic Container Service?* [Online][13].
 14. Google Cloud, *What is Cloud Run?* [Online][14].
 15. Microsoft, *Azure Container Apps overview*. [Online][15].
@@ -642,7 +743,7 @@ The references use numbered citations. Official documentation and original patte
 19. GraphQL Foundation, *Learn GraphQL*. [Online][19].
 20. OpenID Foundation, *OpenID Connect Core 1.0 incorporating errata set 2*, 2023. [Specification][20].
 21. OpenAPI Initiative, *OpenAPI Specification v3.1.1*, 2024. [Specification][21].
-22. AsyncAPI Initiative, *AsyncAPI Specification 3.0.0*. [Specification][22].
+22. AsyncAPI Initiative, *AsyncAPI Specification 2.6.0*. [Specification][22].
 23. Redgate, *Flyway: Migrations*. [Online][23].
 24. Grafana Labs, *Loki overview*. [Online][24].
 25. Prometheus, *Overview*. [Online][25].
@@ -664,7 +765,7 @@ The references use numbered citations. Official documentation and original patte
 [9]: https://microservices.io/patterns/data/transactional-outbox.html
 [10]: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
 [11]: https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/
-[12]: https://keda.sh/docs/2.18/concepts/scaling-jobs/
+[12]: https://keda.sh/docs/2.21/concepts/scaling-jobs/
 [13]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html
 [14]: https://docs.cloud.google.com/run/docs/overview/what-is-cloud-run
 [15]: https://learn.microsoft.com/en-us/azure/container-apps/overview
@@ -674,7 +775,7 @@ The references use numbered citations. Official documentation and original patte
 [19]: https://graphql.org/learn/
 [20]: https://openid.net/specs/openid-connect-core-1_0.html
 [21]: https://spec.openapis.org/oas/v3.1.1.html
-[22]: https://www.asyncapi.com/docs/reference/specification/v3.0.0
+[22]: https://www.asyncapi.com/docs/reference/specification/v2.6.0
 [23]: https://documentation.red-gate.com/flyway/flyway-concepts/migrations
 [24]: https://grafana.com/docs/loki/latest/get-started/overview/
 [25]: https://prometheus.io/docs/introduction/overview/
@@ -695,21 +796,21 @@ The matrix maps the substantive requirements of Assignment 1 to this report. A s
 | --- | --- | --- |
 | Group and project idea | Cover; 1.1; 5.1 | Full names confirmed; group-process evidence still needed |
 | Functional requirements | 1.2, FR-01–FR-13 | Implemented and missing capabilities are separated |
-| Non-functional requirements | 1.2, NFR-01–NFR-11 | Performance/availability figures are targets, not measurements |
-| Project-management strategy | 5.1–5.2 | Scrum-inspired plan; actual ceremonies and assignments require confirmation |
+| Non-functional requirements | 1.2, NFR-01–NFR-11 | Two measured performance runs; availability remains a target |
+| Project-management strategy | 5.1–5.2 | Agreed lightweight process; actual historical examples require author confirmation |
 | Technology stack and choices | 1.3 | Corrected to the actual frontend and manual payment scope |
-| Public GitHub monorepo | Cover; 5.2–5.3 | Origin known; public visibility and complete per-student contribution evidence to verify |
+| Public GitHub monorepo | Cover; 5.2–5.3 | Public visibility verified; actual per-student contribution evidence still required |
 | Architecture diagram | 2.1, Figure 1 | Current implementation diagram |
-| Frontend with REST and GraphQL | 2.3 | REST actual; concrete GraphQL workflow proposed, not implemented |
+| Frontend with REST and GraphQL | 2.3 | Implemented GraphQL catalogue and REST commands |
 | Communication channels | 2.3 | HTTP, AMQP, producers and consumers described |
 | Architectural patterns | 2.4 | Implemented mechanisms and missing guarantees distinguished |
-| Team responsibility division | 5.2 | Proposed workstreams; named ownership must be agreed |
+| Team responsibility division | 5.2 | Balanced named future owners/reviewers agreed; historical work still requires evidence |
 | Cloud provider investigation/selection | 3.3 | AWS/Google/Azure compared; Azure proposed, not provisioned |
-| CI/CD pipeline | 3.2.2 | CI implemented; release/CD extension proposed |
+| CI/CD pipeline | 3.2.2 | Gated quality/system/release workflows defined; remote run and publication evidence separate |
 | Unit/integration/cooperation strategy | 4.1–4.8 | Test evidence and coverage gaps documented |
-| Production logging/monitoring options | 3.2.3 | Existing health/logs and planned central tools distinguished |
+| Production logging/monitoring options | 3.2.3 | Prometheus, Loki, Grafana and a real controlled-alert demonstration |
 | Documentation strategy | 5.4 | Current files and required standards identified |
-| Code/database/API versioning | 5.3 | Git and REST prefix exist; migration/version-policy work remains |
+| Code/database/API versioning | 5.3 | Flyway migrations, persisted-message v1 compatibility and bounded rollout policy |
 | Begin final-report structure | Sections 1–10 | This working report follows the required structure |
 
 ## Appendix B. Mandatory Assignment 2 coverage
@@ -722,100 +823,69 @@ The matrix maps the substantive requirements of Assignment 1 to this report. A s
 | Basic automated unit or integration tests executable in CI | Surefire/Failsafe tests and service workflows | 4.2–4.3; 4.7 |
 | At least one asynchronous microservice interaction | Reservation results, payment outcomes and product projection | 2.3–2.4 |
 | Existing-system documentation | Monorepo README, API/testing guides, UML/SVGs | 5.4 |
-| Clear deployment plan; deployment not yet mandatory at this stage | Proposed local Kubernetes and cloud environments | 3.2–3.3 |
+| Clear deployment plan; deployment not yet mandatory at this stage | Verified local Kubernetes; separately proposed Azure environment | 3.2–3.3 |
 | Continue report with implementation work | Current system behaviour and verification evidence | 2; 3.1; 4 |
 
 ## Appendix C. Final-project requirement assessment
 
-**Implemented** means an identifiable mechanism exists; **Partial** means the requirement is broader than the current evidence; **Missing** means the required application feature or artefact has not been found. The task IDs refer to [TODO.md](TODO.md).
-
-| Requirement from final description | Status | Evidence or gap | Backlog |
-| --- | --- | --- | --- |
-| At least five backend microservices, excluding gateway/frontend/infrastructure | Implemented | Users, Products, Product View, Orders, Payments; extra synchronizer worker | — |
-| Frontend consuming multiple backends | Implemented for REST | Catalogue, customers, orders and payments through gateway | — |
-| Functional and non-functional specifications | Documented | Section 1.2 | DOC-01 for final review |
-| Git, management strategy and visible contributions from every student | Partial | Repository/history and planned method; not all contribution/process evidence confirmed | DOC-01, CI-02 |
-| Development through Docker Compose | Implemented | Root/per-service configurations | — |
-| Local Kubernetes production simulation | Missing | No manifests or successful deployment evidence | OPS-01 |
-| Cloud plan including availability, cost, security and data management | Proposed/documented | Section 3.3; no deployed cloud environment claimed | DOC-02 |
-| Primarily asynchronous backend communication | Implemented for commerce interactions | Validation, reservation, payment initiation/outcomes use RabbitMQ; remaining HTTP boundaries justified in ASYNC.md | Ongoing contract/reliability work |
-| Backend REST and GraphQL | Partial | REST exists; application GraphQL missing | API-01 |
-| Frontend REST/GraphQL interoperability in real workflows | Missing for GraphQL | Proposed catalogue query plus REST reservation | API-01 |
-| Token-based authentication and authorisation | Partial | Keycloak login and validated session; business access rules missing | SEC-01 |
-| Third-party OAuth/OpenID Connect | Implemented locally | Self-hosted Keycloak; Code + PKCE, validated identity and logout; no external-account federation | ADR-001 / AUTH.md |
-| AI API integrated into a backend workflow | Missing | Proposed description-draft workflow only | AI-01 |
-| Independent service deployment | Implemented locally; release hardening pending | Separate processes/configurations; shared Maven build | OPS-01, CI-02 |
-| Own data, no direct access to another service's database | Implemented | SQL ownership separated; Product View alone accesses MongoDB; relay uses owner API | ADR-002 / PROJECTION.md |
-| Justified CQRS | Implemented | Product command/query split with projection | — |
-| Immutable handling through tombstones and/or snapshots | Implemented in a limited scope | Removal markers and product snapshots; no full immutable history | DATA-02 |
-| Idempotent requests without duplicate side effects | Partial | Event inbox and payment retry; general creation retries not protected | REL-01 |
-| Commutative message handlers | Partial | Single-worker projection rejects old versions; business handlers not proven order-independent | REL-02 |
-| Saga and compensating actions | Partial | Selected release compensation; abandoned workflows and reconciliation missing | REL-03 |
-| Distributed logging/monitoring solution | Missing beyond basic logs/health | No central collection, correlation, metrics or alerts | OPS-02 |
-| Containerised/cloud-native deployment architecture | Partial | Containers and plan; Kubernetes/scaling not demonstrated | OPS-01 |
-| Automated unit/integration/system tests in CI | Implemented definitions and local execution | Remote run evidence and required gates need confirmation | CI-02 |
-| Isolated serverless function/task | Missing | Proposed confirmation job only | OPS-03 |
-| Source versioning | Partial operational evidence | Git exists; release baseline/current changes and all students need evidence | CI-02, DOC-01 |
-| Database versioning using migration tools | Missing | Hibernate update and SQL files are not a migration history | DATA-01 |
-| REST API versioning | Implemented prefix | `/api/v1`; compatibility policy still to enforce | CONTRACT-01 |
-| Basic authentication/authorisation security testing | Partial | JWT and real login tests exist; resource roles/ownership tests missing | TEST-03 |
-| Static analysis/testing executed in CI | Missing | Local Actionlint is not a Java/security CI gate | CI-01 |
-| Core-business unit tests in each backend | Missing as complete coverage requirement | Shared tests and gateway routing only; no domain suite per backend | TEST-01 |
-| API integration testing | Implemented for selected REST boundaries | Shared real-HTTP tests | TEST-02 for expansion |
-| Message-queue integration testing | Missing as distinct focused suite | Broker behaviour covered only within broader system scenarios | TEST-02 |
-| Database integration testing | Implemented in selected scope | Hibernate/H2 test and actual databases in system scenarios | TEST-02 for PostgreSQL-specific cases |
-| Focused system cooperation test starting dependencies and checking backend interaction | Partial | Containers are started, but current scenarios follow public API business journeys | TEST-04 |
-| All tests automated; failures fail pipeline | Implemented for current CI suites | Java and system workflows propagate failure | CI-02 for remote evidence/branch policy |
-| Monorepo and per-service READMEs | Partial | Root README exists; application service READMEs missing | CONTRACT-01 |
-| Swagger/OpenAPI for all REST APIs | Missing | Current Markdown/UML are not OpenAPI | CONTRACT-01 |
-| GraphQL schema/endpoint docs | Missing | No application GraphQL implementation | API-01, CONTRACT-01 |
-| AsyncAPI/equivalent standard for all message interfaces | Missing | Prose table exists; standard schemas/contracts absent | CONTRACT-01 |
-| Overall architecture, communication and decision documentation | Implemented for current prototype | Report, API guide and four UML sources/SVGs | DOC-02 for final additions |
-| Development and Kubernetes onboarding procedure | Partial | Development instructions exist; Kubernetes procedure cannot yet be verified | OPS-01, DOC-02 |
-| Complete final report with references and reflection | Working draft | Team reflection, decisions, evidence and final pagination remain | DOC-01, DOC-02 |
+| Requirement | Implemented evidence / boundary |
+| --- | --- |
+| At least five backend applications | Users, Products, Orders, Payments and Product View; separate synchronizer and isolated job |
+| Frontend uses multiple services and both API styles | GraphQL catalogue/details followed by REST reservation/administration |
+| Functional/non-functional requirements | Section 1.2; measured targets remain distinct from demonstrated guarantees |
+| Primarily asynchronous backend interaction | Customer check, inventory reservation, payment initiation/outcomes and projection events |
+| Token identity and authorisation | Real Keycloak/OIDC, independent backend verification, owner filtering and administrator operations |
+| Actual AI API integration | Products-to-local-Ollama adapter, bounded output and human-approved description workflow |
+| Independent deployment and own data | Separate images/processes, private owner stores, authenticated projection/PDF writer APIs |
+| CQRS and immutable information | Separate catalogue projection, versioned snapshots, deletion tombstones and status audit |
+| Idempotence | Identity-scoped command keys; deterministic payment identity; inbox/atomic projection/first PDF |
+| Selected commutative handling | Retained release/payment signals and version precedence; contradictory producer histories excluded |
+| Saga compensation/recovery | Deadlines, eligible inventory release, reconciliation and explicit manual review |
+| Development environment | Root and per-service Compose, automatic demonstration fixtures |
+| Production-like local deployment | kind manifests, owner policies, PVCs, TLS, migration gates, CPU HPA and KEDA ScaledJob; runtime result in EVIDENCE.md |
+| Distributed monitoring | Prometheus/Grafana/Alloy/Loki; correlated trace and firing dependency alert verified |
+| Versioning | Git, owner Flyway history, API v1, separate event schema and product-state versions |
+| Unit/integration/security tests | Per-backend rules, real API/broker/database boundaries and signed-token/ownership checks |
+| Self-starting backend cooperation | Four backends plus private dependencies, no frontend/gateway, migration/inbox/state assertions |
+| Static checks and CI failure gates | SpotBugs, contract validation, Actionlint and configured CodeQL; actual remote evidence tracked separately |
+| README and standard interfaces | Monorepo/service guides, OpenAPI/Swagger, GraphQL SDL and aggregate/per-service AsyncAPI |
+| Backup/restore and onboarding | Isolated restore verification, local startup and Kubernetes lifecycle procedures |
+| Source/release evidence | Existing Git history and configured gated release; successful run IDs/digests require actual publication |
+| Collaboration/reflection | Agreed lightweight Scrum-inspired process and balanced allocation; historical individual evidence remains for authors |
+| Final document | Report.md plus checked PDF export, figures, references and coverage appendices |
 
 ## Appendix D. Installation and verification procedure
 
-For a new developer, obtain the monorepo and use Docker Desktop or a compatible Linux-container engine with Docker Compose. Java 17 and Maven are needed only when building outside the supplied Maven-based container build. Python 3.12 is used for the system verification script.
-
-From the repository root:
+Use Docker Desktop with Linux containers, Java 17/Maven for local builds, and Python with the documented browser/validation dependencies. The demonstrated workstation has 16 GB RAM; Compose, extended monitoring/AI and the local cluster can run in separate demonstrations.
 
 ```powershell
-docker compose up -d --build --wait --wait-timeout 180
-docker compose ps
+./scripts/start.ps1
+# Alternative explicit setup:
+docker compose up -d --build --wait --wait-timeout 300
+python scripts/configure_identity.py
 ```
 
-Open `http://localhost:3000`, create a customer and car, reserve the car, then record a manual payment from the order/payment views. PostgreSQL schemas are currently initialised through Hibernate and projection/broker data is created through normal application operation. There is not yet a reviewed migration-based initialisation procedure.
+Open http://localhost:3000. Imported customers kunde01..kunde20 use Demo123!; eksamen-admin uses Admin123!. These are fictional local examination accounts. Self-registration creates a separately owned customer profile. SQL owners automatically apply migrations and insert missing stable fixtures without overwriting edits.
 
 ```powershell
-mvn clean verify
-python scripts/smoke.py --failures
-docker compose logs -f orders
-docker compose down
+python scripts/verify_java.py --quality
+python scripts/check_demo.py
+python scripts/check_security.py
+python scripts/check_reliability.py
+python scripts/cooperation.py --exclusive
+python scripts/backup_restore.py --verify
+python scripts/check_observability.py --failures
+python scripts/kubernetes.py start
+python scripts/kubernetes.py verify
+python scripts/kubernetes.py stop
 ```
 
-Ordinary `down` retains named volumes. The failure test temporarily stops this project's dependencies and restores them; run it only in an isolated development/test environment. Do not run two failure-test suites against the same stack simultaneously. For individual-service instructions, environment variables and local credentials, consult the [root README](../README.md).
+Install Playwright/Chromium and validation dependencies as described in TESTING.md. Report export has a separate setup command, `./scripts/setup_report.ps1`, followed by `python scripts/export_report.py`; the root README explains the LaTeX toolchain. Run outage checks sequentially. The isolated Java copy avoids editor background compilation changing Maven output. Cooperation uses its own project/volumes; Kubernetes uses its own named cluster/PVCs and restores Compose afterwards. Never use volume deletion as an upgrade procedure. Source/procedure links: [KUBERNETES.md](KUBERNETES.md), [MIGRATIONS.md](MIGRATIONS.md), [OPERATIONS.md](OPERATIONS.md), [TESTING.md](TESTING.md).
 
-A Kubernetes onboarding command is intentionally not invented: it must be added and tested once OPS-01 is completed. The final installation guide must then explain cluster creation, persistent storage, image loading, secrets, migration startup and health verification.
+## Appendix E. Evidence, documentation and outstanding author input
 
-## Appendix E. Evidence and outstanding decisions
+The [verification summary](EVIDENCE.md) links compact machine-readable local observations. Full logs, browser captures, temporary keys and backups remain outside version control. [TODO.md](TODO.md) contains only unfulfilled acceptance work; definitions are not presented as successful deployments.
 
-| Artefact | What it establishes |
-| --- | --- |
-| [Root README](../README.md) and [Compose file](../docker-compose.yml) | Current local topology, ports and startup |
-| [API guide](API.md) | Current public fields, messages and transition rules |
-| [Test guide](TESTING.md) | Test categories and repeatable commands |
-| [Projection ownership](PROJECTION.md) | Sole database owner, internal API, version checks and recovery |
-| [Demonstration data](DEMO_DATA.md) | Automatic fixtures, references, configuration and restart verification |
-| [Application diagram index](application/README.md) | Editable UML sources and rendered figures |
-| [Shared unit tests](../service-common/src/test/java/com/aj/common/ApiTest.java) | Selected validation checks |
-| [Gateway unit tests](../apigateway/src/test/java/com/aj/gateway/RoutingTest.java) | Routing checks |
-| [HTTP integration tests](../service-common/src/test/java/com/aj/common/HttpBoundaryIT.java) | Real HTTP/proxy error checks |
-| [Repository integration test](../products/src/test/java/com/aj/products/ProductRepositoryIT.java) | Selected persistence mapping |
-| [System scenarios](../scripts/smoke.py) | Selected API-driven commerce/recovery checks |
-| [Service CI](../.github/workflows/service-ci.yaml) and [system workflow](../.github/workflows/system.yaml) | Automated definitions, not proof of a remote completed run |
-| [Remaining work](TODO.md) | Requirement-linked tasks and acceptance criteria |
+The supplied example is not evidence of attendance, a completed sprint or a student's personal experience. The adopted process uses brief daily standups, short sprints, shared review and a lightweight retrospective. The responsibility allocation organises future work fairly; actual individual contributions must remain visible in genuine Git history. Authors must supply or confirm their historical examples and first-person reflections.
 
-The reviewed baseline is the working tree on 4 November 2026. It contains changes not yet represented by the inspected HEAD commit `9860515`; that commit alone cannot reproduce this application version. Local Maven XML/text reports and development log files were reviewed for the result summary, but those ignored runtime files are not durable release evidence. A final tagged commit, CI run identifiers and archived reports should replace this provisional baseline.
-
-The confirmed author names and delivery date are on the cover. Named responsibility allocation, actual sprint/review history and final cloud choice/budget remain for the group to confirm. The local identity-provider decision is recorded in ADR-001. None of those facts is silently supplied by the example report.
+By user decision, further CI-02 execution is deferred and the configured flow is assumed to work. [CI-STATUS.md](CI-STATUS.md) preserves its unverified remote status; no run IDs or published digests are asserted. Remote CI execution, branch protection and registry publication are documented only after actual GitHub operations. Local passing checks do not imply remote successful runs. The local single-node environment and the cloud deployment plan remain distinct.

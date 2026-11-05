@@ -9,7 +9,7 @@ men der er ikke konfigureret federation til en ekstern Google-/Microsoft-konto.
 ## Start og demologin
 
 ```powershell
-docker compose up -d --build --wait --wait-timeout 240
+./scripts/start.ps1
 ```
 
 Åbn **http://localhost:3000** og tryk **Log ind**. Første Keycloak-opstart importerer
@@ -63,17 +63,9 @@ Den officielle adapter er versionsfastlåst og vendoreret i frontendens `public/
 den hentes ikke fra en CDN ved eksamen. Version, downloadkilde og npm-integritet er
 registreret i `keycloak-version.json`, og licensen følger med.
 
-## Grænse for denne todo-opgave
+## Beskyttede forretningsgrænser
 
-P0-afklaringen leverer en valgt og kørende identitetsudbyder, login/logout, valideret
-identitet, demokonti og en dokumenteret rollemodel. **Rolle- og ejerskabsregler for
-forretnings-API'erne er fortsat opgaven `SEC-01`.** Kunder, biler, ordrer og betalinger
-kan stadig tilgås uden et token, indtil det trin er implementeret. En `admin`-claim
-giver dermed endnu ikke håndhævet eneret til administrative handlinger.
-
-Tokens videresendes gennem proxyen som forberedelse til de næste sikkerhedsopgaver.
-Direkte serviceporte og interne endpoints skal også beskyttes i `SEC-01`.
-Stripe forbliver ude af scope.
+Backends verificerer selv tokens og håndhæver roller/ejerskab, også ved direkte lokale serviceporte. Kataloglæsning er offentlig. Kunder kan reservere, annullere og se egne ressourcer; administratorer vedligeholder kunder/biler og registrerer betalinger. Intern projection/PDF-skrivning kræver særskilte servicetokens. Stripe er uden for scope.
 
 ## Konfiguration og drift
 
@@ -113,3 +105,11 @@ Se [Keycloak Docker](https://www.keycloak.org/getting-started/getting-started-do
 [realm-import](https://www.keycloak.org/server/importExport),
 [JavaScript-adapter](https://www.keycloak.org/securing-apps/javascript-adapter) og
 [Nimbus JWT-validering](https://connect2id.com/products/nimbus-jose-jwt/examples/validating-jwt-access-tokens).
+
+## Autorisation og selvregistrering
+
+Users, Products, Orders og Payments validerer selv RS256-signatur, issuer, audience og udløb. Kunde- og adminroller håndhæves i backend, også ved direkte lokale serviceporte. Kunder ser kun egen profil/ordrer/betalinger; kataloget er offentligt. `POST /users/me` opretter egen profil ud fra issuer/subject. Email giver ikke adgang til en eksisterende kundes profil. Kun Keycloak-admin kan ændre den importerede kundereference.
+
+`python scripts/configure_identity.py` opdaterer eksisterende realm idempotent, aktiverer selvregistrering og konfigurerer den fortrolige backend-testklient. Den køres af startscriptet; ved rå Compose-start køres den efter Keycloak er klar. Testhemmeligheden bruges aldrig i frontend. `python scripts/check_security.py` tester reelle tokens, ejerskab, selvregistrering og afviste adminhandlinger.
+
+Kubernetes bruger lokale TLS-certifikater og private Services/netværkspolitikker. Offentlige demokonti og udviklingsadgangskoder er kun til lokal demonstration.

@@ -61,7 +61,7 @@ public class OrderController {
                 .setParameter("now",now()).setMaxResults(50).setLockMode(LockModeType.PESSIMISTIC_WRITE).getResultList();
             for(Order o:pending) {
                 OrderDetails d=o.getDetails();
-                if(app.OrderRules.editable(d.getStatus())) {cancel(em,o);d.setExpiresAt(null);}
+                if(app.OrderRules.expired(d.getStatus()).equals("CANCELLED")) {cancel(em,o);d.setExpiresAt(null);}
                 else {
                     Audit.status(em,o.getGuid(),d.getStatus(),"REVIEW_REQUIRED"); d.setStatus("REVIEW_REQUIRED"); d.setExpiresAt(now().plusMinutes(5));
                     var request=message(o);request.put("paymentGuid",d.getPaymentGuid());Outbox.add(em,"payment.reconcile",request);

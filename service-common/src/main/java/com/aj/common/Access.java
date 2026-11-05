@@ -15,6 +15,8 @@ public final class Access {
             Map<String,Object> access=claims.getJSONObjectClaim("realm_access");
             Object roles=access==null ? List.of() : access.getOrDefault("roles",List.of());
             boolean admin=roles instanceof List<?> list && list.contains("admin");
+            boolean customerRole=roles instanceof List<?> list && list.contains("customer");
+            if(!admin && !customerRole) throw new ForbiddenResponse("Din konto har ingen applikationsrolle");
             String linked=claims.getStringClaim("customerGuid");
             // New self-registered identities cannot choose their customer UUID.
             UUID customer=linked==null ? UUID.nameUUIDFromBytes((claims.getIssuer()+":"+claims.getSubject()).getBytes(StandardCharsets.UTF_8)) : Api.guid(linked);
@@ -37,7 +39,7 @@ public final class Access {
     public static void install(Javalin app,String service) {
         if(!Set.of("users","products","orders","payments","product-view").contains(service)) return;
         String issuer=Api.env("OIDC_ISSUER","http://localhost:8180/realms/aj");
-        var verifier=new TokenVerifier(issuer,Api.env("OIDC_JWKS_URL",issuer+"/protocol/openid-connect/certs"),"aj-api");
+        var verifier=new AccessTokenVerifier(issuer,Api.env("OIDC_JWKS_URL",issuer+"/protocol/openid-connect/certs"),"aj-api");
         app.before(ctx -> {
             String path=ctx.path();
             if(!path.startsWith("/api/v1/") || service.equals("apigateway") || service.equals("frontend")) return;

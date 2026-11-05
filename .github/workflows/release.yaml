@@ -1,0 +1,101 @@
+name: Verified release and deployment
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Build and publish scanned release images
+        type: boolean
+        default: false
+      target:
+        description: Deployment target (production promotes the same staging digests)
+        type: choice
+        options: [none, staging, production]
+        default: none
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  preflight:
+    name: Validate release request
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Require trusted branch and published images for deployment
+        env:
+          PUBLISH: ${{ inputs.publish }}
+          TARGET: ${{ inputs.target }}
+        run: |
+          test "$GITHUB_REF" = "refs/heads/main"
+          if [ "$TARGET" != none ] && [ "$PUBLISH" != true ]; then
+            echo 'Deployment requires publish=true.' >&2
+            exit 1
+          fi
+  services:
+    name: Verify ${{ matrix.service }}
+    needs: preflight
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        service: [users, products, orders, payments, product-view, product-synchronizer, apigateway, frontend, confirmation-job]
+    uses: ./.github/workflows/service-ci.yaml
+    with:
+      service: ${{ matrix.service }}
+  quality:
+    needs: preflight
+    uses: ./.github/workflows/quality.yaml
+  system:
+    needs: preflight
+    uses: ./.github/workflows/system.yaml
+  security:
+    needs: preflight
+    permissions:
+      contents: read
+      security-events: write
+    uses: ./.github/workflows/codeql.yaml
+  images:
+    if: inputs.publish
+    needs: [services, quality, system, security]
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/images.yaml
+  staging:
+    if: inputs.target != 'none'
+    needs: images
+    uses: ./.github/workflows/deploy.yaml
+    with:
+      environment: staging
+      artifact-run-id: ${{ format('{0}', github.run_id) }}
+    secrets: inherit
+  production:
+    if: inputs.target == 'production'
+    needs: staging
+    uses: ./.github/workflows/deploy.yaml
+    with:
+      environment: production
+      artifact-run-id: ${{ format('{0}', github.run_id) }}
+    secrets: inherit
+  summary:
+    name: Release result
+    if: always()
+    needs: [preflight, services, quality, system, security, images, staging, production]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Write stage results and propagate failures
+        env: {RESULTS: '${{ toJSON(needs) }}'}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          results = json.loads(os.environ['RESULTS'])
+          lines = ['## Release stages', '', '| Stage | Result |', '| --- | --- |']
+          lines += [f'| {name} | {job["result"]} |' for name, job in results.items()]
+          with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a') as out:
+              out.write('\n'.join(lines) + '\n')
+          assert not any(job['result'] in ('failure', 'cancelled') for job in results.values()), results
+          PY

@@ -41,6 +41,12 @@ with sync_playwright() as p:
     page.get_by_label('Pris', exact=True).fill('299000')
     page.get_by_label('Drivmiddel').fill('El')
     page.get_by_label('Gearkasse').fill('Automatisk')
+    if '--ai' in sys.argv:
+        with page.expect_response(lambda r:r.url.endswith('/api/v1/products/description-draft'),timeout=60000) as drafted:
+            page.locator('#draft-description').click()
+        assert drafted.value.status==200, drafted.value.status
+        assert drafted.value.json()['requiresApproval'] is True
+        expect(page.locator('[name="description"]')).not_to_have_value('',timeout=10000)
     page.get_by_role('button', name='Gem bil', exact=False).click()
     expect(page.locator('#modal')).not_to_be_visible(timeout=12000)
     page.locator('#search').fill(model)

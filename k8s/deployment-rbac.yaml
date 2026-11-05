@@ -1,0 +1,47 @@
+# Bootstrap once with a cluster administrator, outside the application release pipeline.
+# For another namespace, change metadata.namespace and the binding subject namespace.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: aj-deployer
+  namespace: aj
+automountServiceAccountToken: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: aj-deployer
+  namespace: aj
+rules:
+  - apiGroups: [apps]
+    resources: [deployments]
+    verbs: [get, list, watch, patch, update]
+  - apiGroups: [apps]
+    resources: [replicasets]
+    verbs: [get, list, watch]
+  - apiGroups: [keda.sh]
+    resources: [scaledjobs]
+    verbs: [get, list, watch, patch, update]
+  - apiGroups: [batch]
+    resources: [jobs]
+    verbs: [get, list, watch, create, patch]
+  - apiGroups: ['']
+    resources: [pods, events]
+    verbs: [get, list, watch]
+  - apiGroups: ['']
+    resources: [pods/log]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: aj-deployer
+  namespace: aj
+subjects:
+  - kind: ServiceAccount
+    name: aj-deployer
+    namespace: aj
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: aj-deployer

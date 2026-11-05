@@ -1,0 +1,199 @@
+{
+  "asyncapi": "2.6.0",
+  "info": {
+    "title": "AJ Motors confirmation-job messages",
+    "version": "1.0.0"
+  },
+  "servers": {
+    "local": {
+      "url": "localhost:5672",
+      "protocol": "amqp",
+      "description": "Local development; credentials through environment"
+    }
+  },
+  "channels": {
+    "order.completed": {
+      "x-producer": "orders",
+      "x-consumers": [
+        "confirmation-job"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "subscribe": {
+        "message": {
+          "name": "order_completed",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "order.completed"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "orderGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "userGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "productGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "totalAmount": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 9999999999.99,
+                        "multipleOf": 0.01
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "currency": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "paymentGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "orderGuid",
+                  "userGuid",
+                  "productGuid",
+                  "totalAmount",
+                  "currency",
+                  "paymentGuid"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    }
+  },
+  "x-topology": {
+    "exchange": "aj.events",
+    "type": "topic",
+    "durable": true,
+    "deadLetterExchange": "aj.dead",
+    "deadLetterQueue": "aj.dead",
+    "queues": {
+      "users": {
+        "queue": "aj.users",
+        "routingKeys": [
+          "customer.check"
+        ],
+        "manualAck": true
+      },
+      "products": {
+        "queue": "aj.products",
+        "routingKeys": [
+          "quantitycheck",
+          "order.cancelled",
+          "payment.completed",
+          "paymentfail"
+        ],
+        "manualAck": true
+      },
+      "orders": {
+        "queue": "aj.orders",
+        "routingKeys": [
+          "customer.valid",
+          "customer.invalid",
+          "quantityreserved",
+          "quantityrejected",
+          "payment.requested",
+          "payment.completed",
+          "paymentfail"
+        ],
+        "manualAck": true
+      },
+      "payments": {
+        "queue": "aj.payments",
+        "routingKeys": [
+          "payment.authorized",
+          "payment.rejected",
+          "order.owner",
+          "payment.reconcile"
+        ],
+        "manualAck": true
+      },
+      "product-synchronizer": {
+        "queue": "aj.product-sync",
+        "routingKeys": [
+          "product.created",
+          "product.updated",
+          "product.reserved",
+          "product.removed"
+        ],
+        "manualAck": true
+      },
+      "confirmation-job": {
+        "queue": "aj.confirmations",
+        "routingKeys": [
+          "order.completed"
+        ],
+        "manualAck": true
+      }
+    }
+  }
+}

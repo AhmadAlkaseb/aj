@@ -36,5 +36,6 @@ java -jar $plantuml -charset UTF-8 -checkonly documentation/application
 java -jar $plantuml -charset UTF-8 -tsvg documentation/application
 ```
 
-Diagrammerne bruger PlantUMLs indbyggede Smetana-layout og kræver ikke en separat
-Graphviz-installation. Hvis Maven bruger et andet lokalt repository, tilpasses JAR-stien.
+De tre API-/arkitekturdiagrammer bruger Smetana. Det udvidede databaseskema bruger Graphviz (`dot` skal være på PATH), da Smetana fejler på denne graf. Alternativt kan hele eksporten køres med `python scripts/render_uml.py`. UML-filer og SVG-filer skal opdateres sammen. Hvis Maven bruger et andet lokalt repository, tilpasses JAR-stien.
+
+Modellerne omfatter nu backend-roller/ejerskab, GraphQL, lokale AI-udkast, Flyway, command keys, statushistorik, saga-signaler/deadlines og den Orders-ejede PDF med KEDA-job. Komplette formelle schemaer findes i [contracts](../contracts/). Store diagrammer læses bedst som separate SVG-filer med zoom.

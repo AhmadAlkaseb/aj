@@ -13,7 +13,7 @@ const isAdmin = () => window.ajAuth?.session?.roles?.includes('admin') || false;
 const available = name => state.services.find(s => s.service === name)?.status === 'UP';
 
 async function request(path, options = {}) {
-  const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), path.endsWith("description-draft") ? 50000 : 10000);
+  const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), path.endsWith("description-draft") ? 60000 : 10000);
   try {
     const authHeaders = await window.ajAuth?.headers() || {};
     const reference=path.match(/[0-9a-f]{8}-[0-9a-f-]{27,}/i)?.[0]; if(reference) authHeaders['X-Correlation-ID']=reference;

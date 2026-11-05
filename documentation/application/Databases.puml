@@ -1,5 +1,4 @@
 @startuml
-!pragma layout smetana
 title AJ Motors - Databases (implemented schema)
 hide circle
 skinparam shadowing false
@@ -119,6 +118,7 @@ entity "orders_deleted" as orders_orders_deleted {
   order_id : BIGINT <<FK, UQ>> NOT NULL
 }
 entity "orders_details" as orders_orders_details {
+  expires_at : TIMESTAMP (nullable)
   order_id : BIGINT <<PK, FK>> NOT NULL
   created_at : TIMESTAMP NOT NULL
   currency : VARCHAR
@@ -157,6 +157,7 @@ entity "payments_deleted" as payments_payments_deleted {
   payment_id : BIGINT <<FK, UQ>> NOT NULL
 }
 entity "payments_details" as payments_payments_details {
+  customer_guid : UUID (nullable, logical reference)
   payment_id : BIGINT <<PK, FK>> NOT NULL
   amount : NUMERIC(38,2)
   created_at : TIMESTAMP NOT NULL
@@ -212,6 +213,100 @@ package "product_view / MongoDB" {
   mongo_product *-- performance
   mongo_product *-- dimensions
 }
+package "users / PostgreSQL" {
+ entity "command_keys" as users_command_keys {
+  id : VARCHAR(255) <<PK>>
+  fingerprint : VARCHAR(64)
+  response : TEXT
+  resource_guid : UUID
+  created_at : TIMESTAMPTZ
+ }
+ entity "state_audit" as users_audit {
+  id : BIGINT <<PK>>
+  aggregate_guid : UUID
+  old_status : VARCHAR(40)
+  new_status : VARCHAR(40)
+  correlation_id : VARCHAR(100)
+  recorded_at : TIMESTAMPTZ
+ }
+ entity "flyway_schema_history" as users_migrations <<Flyway managed>>
+}
+package "products / PostgreSQL" {
+ entity "command_keys" as products_command_keys {
+  id : VARCHAR(255) <<PK>>
+  fingerprint : VARCHAR(64)
+  response : TEXT
+  resource_guid : UUID
+  created_at : TIMESTAMPTZ
+ }
+ entity "state_audit" as products_audit {
+  id : BIGINT <<PK>>
+  aggregate_guid : UUID
+  old_status : VARCHAR(40)
+  new_status : VARCHAR(40)
+  correlation_id : VARCHAR(100)
+  recorded_at : TIMESTAMPTZ
+ }
+ entity "flyway_schema_history" as products_migrations <<Flyway managed>>
+}
+package "orders / PostgreSQL" {
+ entity "command_keys" as orders_command_keys {
+  id : VARCHAR(255) <<PK>>
+  fingerprint : VARCHAR(64)
+  response : TEXT
+  resource_guid : UUID
+  created_at : TIMESTAMPTZ
+ }
+ entity "state_audit" as orders_audit {
+  id : BIGINT <<PK>>
+  aggregate_guid : UUID
+  old_status : VARCHAR(40)
+  new_status : VARCHAR(40)
+  correlation_id : VARCHAR(100)
+  recorded_at : TIMESTAMPTZ
+ }
+ entity "flyway_schema_history" as orders_migrations <<Flyway managed>>
+}
+package "payments / PostgreSQL" {
+ entity "command_keys" as payments_command_keys {
+  id : VARCHAR(255) <<PK>>
+  fingerprint : VARCHAR(64)
+  response : TEXT
+  resource_guid : UUID
+  created_at : TIMESTAMPTZ
+ }
+ entity "state_audit" as payments_audit {
+  id : BIGINT <<PK>>
+  aggregate_guid : UUID
+  old_status : VARCHAR(40)
+  new_status : VARCHAR(40)
+  correlation_id : VARCHAR(100)
+  recorded_at : TIMESTAMPTZ
+ }
+ entity "flyway_schema_history" as payments_migrations <<Flyway managed>>
+}
+package "products / PostgreSQL" {
+ entity "reservation_signals" as reservation_signals {
+  order_guid : UUID <<PK>>
+  product_guid : UUID
+  state : VARCHAR(20)
+  updated_at : TIMESTAMPTZ
+ }
+}
+package "orders / PostgreSQL" {
+ entity "payment_signals" as payment_signals {
+  order_guid : UUID <<PK>>
+  payment_guid : UUID
+  topic : VARCHAR(40)
+  received_at : TIMESTAMPTZ
+ }
+ entity "order_confirmations" as confirmations {
+  order_guid : UUID <<PK, FK orders.guid>>
+  document : BYTEA
+  created_at : TIMESTAMPTZ
+ }
+}
+orders_orders "1" -- "0..1" confirmations : order_guid
 orders_orders_details ..> users_users : user_guid = guid (logical reference)
 orders_orders_details ..> products_products : product_guid = guid (logical reference)
 payments_payments_details ..> orders_orders : order_guid = guid (logical reference)
@@ -237,7 +332,8 @@ package "Keycloak / PostgreSQL (identity infrastructure)" {
 note bottom of keycloak_store
   Keycloak owns and migrates its identity schema.
   Business services do not read these tables.
-  customerGuid attributes reference Users UUIDs logically.
+  Protected customerGuid attributes reference Users UUIDs logically.
+  Self-registration uses stable issuer/subject linkage, not email matching.
   Internal Keycloak tables are outside the domain model shown here.
 end note
 @enduml

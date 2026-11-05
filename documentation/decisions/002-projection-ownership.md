@@ -23,3 +23,7 @@ event og snapshot til Product Views interne, autentificerede HTTP-interface.
   behøver tælle med for at opfylde minimumskravet til backendapplikationer.
 
 Kontrakt, konfiguration og testprocedure findes i [PROJECTION.md](../PROJECTION.md).
+
+## Implementation update — 5 November 2026
+
+The SEC-01 follow-up mentioned above is now implemented: owning backends independently verify JWTs and enforce roles/resource ownership, while internal projection/PDF writes require service credentials. Real-token direct-port, ownership and self-registration checks passed. See [AUTH.md](../AUTH.md) and [EVIDENCE.md](../EVIDENCE.md). This update preserves the original decision context.

@@ -69,7 +69,7 @@ class OrderResponse <<JSON>> {
   guid : UUID
   userGuid : UUID
   productGuid : UUID
-  status : PENDING | RESERVING | RESERVED | PAYMENT_PENDING
+  status : PENDING | RESERVING | RESERVED | PAYMENT_PENDING | REVIEW_REQUIRED
   status (continued) : COMPLETED | FAILED | REJECTED | CANCELLED
   totalAmount : Decimal or null
   currency : String or null
@@ -165,5 +165,29 @@ note bottom of SystemStatus
   GET /api/v1/status -> 200 even when DEGRADED.
   Six backend services and Keycloak are checked.
   Gateway unavailable -> frontend returns 503 ErrorResponse.
+end note
+class CataloguePage <<GraphQL data.products>> {
+  items : ProductResponse[]
+  total : Integer
+  hasMore : Boolean
+}
+class DraftResponse <<JSON>> {
+  description : String (validated plain text)
+  requiresApproval : true
+}
+class AuditEntry <<JSON>> {
+  from : String or null
+  to : String
+  at : String (database timestamp)
+}
+note bottom of DraftResponse
+  AI does not persist text; user approves a normal product write.
+  Invalid input/output or model timeout returns a JSON error.
+end note
+note bottom of CataloguePage
+  GraphQL response: data and optional errors.
+  Query errors are distinct from HTTP authentication errors.
+  REST errors retain status/message; 401/403 protect role/ownership.
+  Confirmation GET: application/pdf; missing document is not a blank PDF.
 end note
 @enduml

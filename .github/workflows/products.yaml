@@ -7,6 +7,8 @@ on:
       - 'products/**'
       - 'service-common/**'
       - 'pom.xml'
+      - 'Dockerfile'
+      - '.dockerignore'
       - '.github/workflows/service-ci.yaml'
       - '.github/workflows/products.yaml'
   pull_request:
@@ -14,6 +16,8 @@ on:
       - 'products/**'
       - 'service-common/**'
       - 'pom.xml'
+      - 'Dockerfile'
+      - '.dockerignore'
       - '.github/workflows/service-ci.yaml'
       - '.github/workflows/products.yaml'
 

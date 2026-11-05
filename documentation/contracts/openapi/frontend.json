@@ -7754,18 +7754,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "pattern": "^[A-Za-z0-9_-]{1,64}$"
-            },
-            "description": "Scoped to identity and endpoint; identical retry replays 201; changed body gives 409"
-          }
-        ],
         "requestBody": {
           "required": true,
           "content": {

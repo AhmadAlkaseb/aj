@@ -24,7 +24,7 @@ def call(service, path, method='GET', data=None, expected=200):
 
 
 def rabbit(path, method='GET', value=None):
-    req = urllib.request.Request('http://localhost:15672/api/' + path, method=method,
+    req = urllib.request.Request('http://127.0.0.1:15672/api/' + path, method=method,
         data=None if value is None else json.dumps(value).encode(),
         headers={'Content-Type': 'application/json',
                  'Authorization': 'Basic ' + base64.b64encode(b'aj:aj-local').decode()})

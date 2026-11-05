@@ -1,13 +1,52 @@
 discovery.docker "aj" {
   host = "unix:///var/run/docker.sock"
-  filter { name = "label" values = ["com.docker.compose.project=aj"] }
+  filter {
+    name = "label"
+    values = ["com.docker.compose.project=aj"]
+  }
+}
+discovery.relabel "aj" {
+  targets = []
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    regex = "users|products|orders|payments|product-view|product-synchronizer|apigateway|frontend|confirmation-job"
+    action = "keep"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex = "/(.*)"
+    target_label = "container"
+    replacement = "$1"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label = "service"
+  }
 }
 loki.source.docker "aj" {
   host = "unix:///var/run/docker.sock"
   targets = discovery.docker.aj.targets
-  forward_to = [loki.write.local.receiver]
+  relabel_rules = discovery.relabel.aj.rules
+  forward_to = [loki.process.aj.receiver]
   labels = {project = "aj"}
 }
+loki.process "aj" {
+  forward_to = [loki.write.local.receiver]
+  stage.json {
+    expressions = {app_time = "timestamp"}
+  }
+  stage.timestamp {
+    source = "app_time"
+    format = "RFC3339Nano"
+    action_on_failure = "skip"
+  }
+  stage.drop {
+    older_than = "1h"
+    drop_counter_reason = "old_container_history"
+  }
+}
 loki.write "local" {
-  endpoint { url = "http://loki:3100/loki/api/v1/push" }
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
 }

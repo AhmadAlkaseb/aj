@@ -77,7 +77,7 @@ def operation(document, path, method, response=None, request=None, status='200',
     for segment in path.split('/'):
         if segment.startswith('{'):
             params.append({'in':'path', 'name':segment[1:-1], 'required':True, 'schema':GUID})
-    if method == 'post' and path in ['/api/v1/'+x for x in ['users','products','orders','payments']]:
+    if method == 'post' and path in ['/api/v1/'+x for x in ['users','products','orders']]:
         params.append({'in':'header','name':'Idempotency-Key','required':False,'schema':{'type':'string','pattern':'^[A-Za-z0-9_-]{1,64}$'},
                        'description':'Scoped to identity and endpoint; identical retry replays 201; changed body gives 409'})
     if params:
@@ -150,13 +150,34 @@ messages['order.owner']=obj({'orderGuid':GUID,'userGuid':GUID})
 for topic in ['product.created','product.updated','product.reserved','product.removed']:messages[topic]=product
 asyncapi={'asyncapi':'2.6.0','info':{'title':'AJ Motors events','version':'1.0.0'},
     'servers':{'local':{'url':'localhost:5672','protocol':'amqp','description':'Local development; credentials through environment'}},'channels':{}}
+producers={topic:('products' if topic.startswith('product.') or topic in ['quantityreserved','quantityrejected'] else 'users' if topic in ['customer.valid','customer.invalid'] else 'payments' if topic in ['payment.requested','payment.completed','paymentfail'] else 'orders') for topic in messages}
+queues={
+ 'users':('aj.users',['customer.check']),
+ 'products':('aj.products',['quantitycheck','order.cancelled','payment.completed','paymentfail']),
+ 'orders':('aj.orders',['customer.valid','customer.invalid','quantityreserved','quantityrejected','payment.requested','payment.completed','paymentfail']),
+ 'payments':('aj.payments',['payment.authorized','payment.rejected','order.owner','payment.reconcile']),
+ 'product-synchronizer':('aj.product-sync',[t for t in messages if t.startswith('product.')]),
+ 'confirmation-job':('aj.confirmations',['order.completed'])}
+asyncapi['x-topology']={'exchange':'aj.events','type':'topic','durable':True,'deadLetterExchange':'aj.dead','deadLetterQueue':'aj.dead','queues':{name:{'queue':q,'routingKeys':topics,'manualAck':True} for name,(q,topics) in queues.items()}}
 for topic,payload in messages.items():
     envelope=obj({'eventId':GUID,'eventType':enum(topic),'occurredAt':{'type':'string','format':'date-time'},
         'correlationId':GUID,'schemaVersion':{'type':'integer','enum':[1]},'payload':payload})
-    asyncapi['channels'][topic]={'description':'Routing key on aj.events; persistent message; manual ack after commit',
+    asyncapi['channels'][topic]={'x-producer':producers[topic],'x-consumers':[name for name,(q,topics) in queues.items() if topic in topics],'description':'Routing key on aj.events; persistent message; manual ack after commit',
         'bindings':{'amqp':{'is':'routingKey','exchange':{'name':'aj.events','type':'topic','durable':True,'autoDelete':False},'bindingVersion':'0.3.0'}},
         'subscribe':{'message':{'name':topic.replace('.','_'),'contentType':'application/json','payload':envelope,
             'correlationId':{'location':'$message.payload#/correlationId'}}}}
+
+service_events={}
+for service in set(producers.values()) | set(queues):
+    document=copy.deepcopy(asyncapi);document['info']['title']='AJ Motors '+service+' messages';document['channels']={}
+    for topic,channel in asyncapi['channels'].items():
+        publish=producers[topic]==service;subscribe=service in channel['x-consumers']
+        if not publish and not subscribe:continue
+        definition=copy.deepcopy(channel);operation=definition.pop('subscribe')
+        if publish:definition['publish']=copy.deepcopy(operation)
+        if subscribe:definition['subscribe']=operation
+        document['channels'][topic]=definition
+    service_events[service]=document
 
 
 def output(path,value):
@@ -172,4 +193,6 @@ for name,d in specs.items():
         output(ROOT/prefix/'openapi'/f'{name}.json',d)
 for prefix in ['documentation/contracts','frontend/src/main/resources/public/contracts']:
     output(ROOT/prefix/'asyncapi.json',asyncapi)
+for name,document in service_events.items():
+    output(ROOT/'documentation/contracts/asyncapi'/f'{name}.json',document)
 print('Generated contracts match source definitions.' if '--check' in sys.argv else 'Generated OpenAPI/AsyncAPI contracts.')

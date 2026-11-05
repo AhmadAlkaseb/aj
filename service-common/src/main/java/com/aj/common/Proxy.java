@@ -18,7 +18,7 @@ public final class Proxy {
     public static void forward(Context ctx,String base) {
         try {
             String query=ctx.queryString(); String path=ctx.path()+(query==null ? "" : "?"+query);
-            var req=HttpRequest.newBuilder(URI.create(base+path)).timeout(Duration.ofSeconds(6)).header("Content-Type","application/json")
+            var req=HttpRequest.newBuilder(URI.create(base+path)).timeout(Duration.ofSeconds(ctx.path().endsWith("/description-draft") ? 55 : 6)).header("Content-Type","application/json")
                 .method(ctx.method().name(),HttpRequest.BodyPublishers.ofByteArray(ctx.bodyAsBytes()));
             String authorization = ctx.header("Authorization");
             if (authorization != null) req.header("Authorization", authorization);
@@ -28,6 +28,11 @@ public final class Proxy {
             res.headers().firstValue("X-Correlation-ID").ifPresent(v -> Telemetry.correlation(ctx,v));
             ctx.contentType(res.headers().firstValue("Content-Type").orElse("application/json"));
             res.headers().firstValue("Location").ifPresent(v -> ctx.header("Location",v)); ctx.result(res.body());
-        } catch(Exception e) { throw new ServiceUnavailableResponse("Forbindelsen til tjenesten er afbrudt. Dine oplysninger er bevaret i formularen. Prøv igen om lidt."); }
+        } catch(InterruptedException interrupted) {
+            Thread.currentThread().interrupt(); throw unavailable();
+        } catch(java.io.IOException | IllegalArgumentException failure) { throw unavailable(); }
+    }
+    private static ServiceUnavailableResponse unavailable() {
+        return new ServiceUnavailableResponse("Forbindelsen til tjenesten er afbrudt. Dine oplysninger er bevaret i formularen. Prøv igen om lidt.");
     }
 }

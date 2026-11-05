@@ -1,0 +1,11 @@
+{
+  "cars": 10000,
+  "concurrentClients": 20,
+  "requests": 200,
+  "medianSeconds": 0.6155085999926087,
+  "p95Seconds": 1.139441099949181,
+  "maxSeconds": 1.2632087000529282,
+  "targetSeconds": 2,
+  "targetMet": true,
+  "scope": "Direct real GraphQL backend, isolated Mongo database; no claim about internet latency or long-term availability"
+}

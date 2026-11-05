@@ -17,11 +17,11 @@ import java.net.URI;
 import java.util.Set;
 
 /** Verify access tokens against the configured provider, never token-supplied key URLs. */
-public class TokenVerifier {
+public class AccessTokenVerifier {
     private final DefaultJWTProcessor<SecurityContext> processor = new DefaultJWTProcessor<>();
     private final String audience;
 
-    public TokenVerifier(String issuer, String jwksUrl, String audience) {
+    public AccessTokenVerifier(String issuer, String jwksUrl, String audience) {
         this(issuer, audience, remoteKeys(jwksUrl));
     }
 
@@ -32,7 +32,7 @@ public class TokenVerifier {
         } catch (Exception e) { throw new IllegalArgumentException("Invalid OIDC configuration", e); }
     }
 
-    protected TokenVerifier(String issuer, String audience, JWKSource<SecurityContext> keys) {
+    protected AccessTokenVerifier(String issuer, String audience, JWKSource<SecurityContext> keys) {
         this.audience = audience;
             processor.setJWSKeySelector(new JWSVerificationKeySelector<>(JWSAlgorithm.RS256, keys));
             var claims = new DefaultJWTClaimsVerifier<SecurityContext>(

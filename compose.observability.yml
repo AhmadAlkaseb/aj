@@ -12,7 +12,8 @@
         "prometheus-data:/prometheus"
       ],
       "networks": [
-        "backend"
+        "backend",
+        "edge"
       ]
     },
     "loki": {
@@ -35,11 +36,13 @@
       "image": "grafana/alloy:v1.8.0",
       "command": [
         "run",
+        "--storage.path=/var/lib/alloy/data",
         "/etc/alloy/config.alloy"
       ],
       "volumes": [
         "./observability/alloy.alloy:/etc/alloy/config.alloy:ro",
-        "/var/run/docker.sock:/var/run/docker.sock:ro"
+        "/var/run/docker.sock:/var/run/docker.sock:ro",
+        "alloy-data:/var/lib/alloy/data"
       ],
       "networks": [
         "backend"
@@ -48,7 +51,7 @@
     "grafana": {
       "image": "grafana/grafana:11.5.2",
       "ports": [
-        "127.0.0.1:3001:3000"
+        "127.0.0.1:${GRAFANA_PORT:-13001}:3000"
       ],
       "environment": {
         "GF_SECURITY_ADMIN_USER": "admin",
@@ -67,12 +70,17 @@
   "volumes": {
     "prometheus-data": {},
     "loki-data": {},
-    "grafana-data": {}
+    "grafana-data": {},
+    "alloy-data": {}
   },
   "networks": {
     "backend": {
       "external": true,
       "name": "aj-backend"
+    },
+    "edge": {
+      "external": true,
+      "name": "aj-edge"
     }
   }
 }

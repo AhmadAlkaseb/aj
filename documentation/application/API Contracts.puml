@@ -8,6 +8,7 @@ skinparam defaultFontName SansSerif
 left to right direction
 
 interface "Users API" as users {
+  POST /api/v1/users/me : own identity bootstrap
   POST /api/v1/users : UserWrite
   GET /api/v1/users
   GET /api/v1/users/{userGuid}
@@ -26,6 +27,7 @@ class UserWrite <<request>> {
 users ..> UserWrite
 
 interface "Products API" as products {
+  POST /api/v1/products/description-draft : DraftRequest
   POST /api/v1/products : ProductWrite
   GET /api/v1/products
   GET /api/v1/products?status=AVAILABLE
@@ -129,7 +131,8 @@ note bottom of payments
 end note
 
 interface "Operations" as ops {
-  GET /health/live : every app
+  GET /metrics : every HTTP app
+  GET /health/live : every HTTP app
   GET /health : every app
   GET /api/v1/status : gateway via frontend
 }
@@ -151,12 +154,36 @@ interface "OIDC session" as oidc {
 note bottom of oidc
   Keycloak Authorization Code + PKCE S256.
   Login / refresh / SSO / logout use provider endpoints.
-  Role and ownership enforcement on business APIs remains SEC-01.
+  Backends validate tokens, roles and local resource ownership.
+end note
+interface "GraphQL catalogue" as graphql {
+  POST /api/v1/graphql : query, variables
+  Query.products(filter, limit, offset)
+  Query.product(guid)
+  limit <= 100; depth <= 6; complexity <= 200
+}
+class DraftRequest <<request>> {
+  brand : String (required)
+  model : String (required)
+  year : Integer
+}
+products ..> DraftRequest
+interface "Order history and confirmation" as artifacts {
+  GET /api/v1/orders/{orderGuid}/history : owner/admin
+  GET /api/v1/orders/{orderGuid}/confirmation : owner/admin
+  PUT /internal/orders/{orderGuid}/confirmation : application/pdf
+  header: X-Confirmation-Token on internal writer
+}
+note bottom of artifacts
+  Internal writers are never forwarded by the public gateway.
+  First successful document is retained on duplicate jobs.
 end note
 legend bottom
   JSON request names are camelCase. Public identifiers are canonical UUIDs.
   Frontend base: http://localhost:3000 | Gateway: http://localhost:8080
-  Business routes remain public pending SEC-01; session requires OIDC login.
+  Catalogue reads public; own-resource customer access; admin management.
+Users/Products/Orders POST support identity-scoped Idempotency-Key.
+OpenAPI/AsyncAPI and GraphQL SDL are the complete machine-readable contracts.
   Optional scalar fields receive implementation defaults when omitted.
 endlegend
 @enduml

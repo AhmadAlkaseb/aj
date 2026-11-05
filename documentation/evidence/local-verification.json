@@ -1,0 +1,264 @@
+{
+  "reviewDate": "2026-11-05",
+  "gitBase": "fb59279199d68f65b3f6736d892d3d341aa8b9e0",
+  "sourceFingerprint": "b898ab43ecc3f143fccdde01baf504f63e56eabe416f2ba9de59e10328a07f7e",
+  "java": {
+    "unit": 28,
+    "integration": 14,
+    "failures": 0,
+    "errors": 0,
+    "result": "PASS"
+  },
+  "checks": {
+    "security": {
+      "artifactTimestampUTC": "2026-11-05T05:45:35.859847+00:00",
+      "summary": {
+        "result": "PASS",
+        "directPorts": "protected",
+        "customerOwnership": "enforced",
+        "adminOperations": "denied to customers",
+        "selfRegistration": "linked to own profile"
+      }
+    },
+    "reliability": {
+      "artifactTimestampUTC": "2026-11-04T19:43:16.186116+00:00",
+      "summary": {
+        "result": "PASS",
+        "concurrentCommandRetries": 5,
+        "singleOrder": "PASS",
+        "changedRetryPayload": "409",
+        "duplicateInbox": "PASS",
+        "lateReservation": "blocked",
+        "expiry": "compensated",
+        "ambiguousPayment": "retained for review",
+        "latePaymentResult": "completed",
+        "pdfJob": "PASS",
+        "duplicatePdfWrite": "first artifact preserved"
+      }
+    },
+    "monitoring": {
+      "artifactTimestampUTC": "2026-11-04T19:39:04.582336+00:00",
+      "summary": {
+        "result": "PASS",
+        "metricsTargets": 9,
+        "grafanaDashboard": "PASS",
+        "centralLogs": "PASS",
+        "correlatedServices": [
+          "apigateway",
+          "frontend",
+          "orders",
+          "product-sync",
+          "products",
+          "users"
+        ],
+        "outageAlerts": [
+          "AJDependencyDown"
+        ]
+      }
+    },
+    "restore": {
+      "artifactTimestampUTC": "2026-11-04T19:09:50.873232+00:00",
+      "summary": {
+        "postgres": {
+          "users": {
+            "sha256": "801e7e4a4ecfc0f300ec4d1a75dab1f64a3a99f958ec785401e185d58d2b9de7",
+            "bytes": 16673,
+            "restoredRows": 35
+          },
+          "products": {
+            "sha256": "fbdd1ed5217a7e52b0e894ad2ae24f604a2140540091978828fb37b0ec0d59e3",
+            "bytes": 22449,
+            "restoredRows": 62
+          },
+          "orders": {
+            "sha256": "f61b50973a648f23944f4b9c9b9bc70550363c4580a6c9f6b17247ac2ade9f3e",
+            "bytes": 25512,
+            "restoredRows": 68
+          },
+          "payments": {
+            "sha256": "e04d82b7912fd36ea35b14c7d2c77bb67ae52a71fc95113afd4a5ea47532d56c",
+            "bytes": 23355,
+            "restoredRows": 39
+          }
+        },
+        "mongo": {
+          "sha256": "ce4106fc61320f06c497fdfffc74d049a53a6def9e99d6abff47923bd618496d",
+          "bytes": 7885,
+          "restoredRows": 67
+        },
+        "verified": true
+      }
+    },
+    "performance": {
+      "artifactTimestampUTC": "2026-11-05T05:42:56.376713+00:00",
+      "summary": {
+        "cars": 10000,
+        "concurrentClients": 20,
+        "requests": 200,
+        "medianSeconds": 0.6155085999926087,
+        "p95Seconds": 1.139441099949181,
+        "maxSeconds": 1.2632087000529282,
+        "targetSeconds": 2,
+        "targetMet": true,
+        "scope": "Direct real GraphQL backend, isolated Mongo database; no claim about internet latency or long-term availability"
+      }
+    },
+    "kubernetes": {
+      "artifactTimestampUTC": "2026-11-05T05:34:57.130918+00:00",
+      "summary": {
+        "tls": "PASS",
+        "commerce": "PASS",
+        "kedaJob": "PASS",
+        "pdfBytes": 925,
+        "databaseIsolation": "PASS",
+        "hpaScaleFrom": 1,
+        "hpaScaleTo": 2,
+        "hpaStatus": {
+          "conditions": [
+            {
+              "lastTransitionTime": "2026-11-05T05:16:06Z",
+              "message": "recommended size matches current size",
+              "reason": "ReadyForNewScale",
+              "status": "True",
+              "type": "AbleToScale"
+            },
+            {
+              "lastTransitionTime": "2026-11-05T05:16:36Z",
+              "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+              "reason": "ValidMetricFound",
+              "status": "True",
+              "type": "ScalingActive"
+            },
+            {
+              "lastTransitionTime": "2026-11-05T05:34:39Z",
+              "message": "the desired replica count is more than the maximum replica count",
+              "reason": "TooManyReplicas",
+              "status": "True",
+              "type": "ScalingLimited"
+            }
+          ],
+          "currentMetrics": [
+            {
+              "resource": {
+                "current": {
+                  "averageUtilization": 1344,
+                  "averageValue": "672m"
+                },
+                "name": "cpu"
+              },
+              "type": "Resource"
+            }
+          ],
+          "currentReplicas": 2,
+          "desiredReplicas": 2,
+          "lastScaleTime": "2026-11-05T05:34:39Z"
+        }
+      }
+    },
+    "brokerPersistence": {
+      "artifactTimestampUTC": "2026-11-05T05:39:34.647801+00:00",
+      "summary": {
+        "result": "PASS",
+        "nodeIdentityPreserved": true,
+        "durableMessagePreserved": true,
+        "volumesDeleted": false
+      }
+    },
+    "cooperation": {
+      "result": "PASS",
+      "project": "aj-cooperation-65345c78",
+      "backends": [
+        "users",
+        "products",
+        "orders",
+        "payments"
+      ],
+      "freshDatabaseVersions": {
+        "users": "3",
+        "products": "4",
+        "orders": "6",
+        "payments": "3"
+      },
+      "reservation": "RabbitMQ request/reply",
+      "authoritativePrice": "PASS",
+      "compensation": "PASS",
+      "frontendOrGateway": false
+    },
+    "browserWithRealAI": {
+      "result": "PASS",
+      "javascriptErrors": []
+    },
+    "browser": {
+      "result": "PASS",
+      "javascriptErrors": []
+    },
+    "oidcRecovery": {
+      "result": "PASS",
+      "provider": "local Keycloak",
+      "cases": [
+        {
+          "username": "kunde01",
+          "role": "customer",
+          "pkce": "S256",
+          "login": "PASS",
+          "reload": "PASS",
+          "logout": "PASS",
+          "forgedToken": "401"
+        },
+        {
+          "username": "eksamen-admin",
+          "role": "admin",
+          "pkce": "S256",
+          "login": "PASS",
+          "reload": "PASS",
+          "logout": "PASS",
+          "forgedToken": "401"
+        }
+      ],
+      "outageChecked": true
+    },
+    "demoRestart": {
+      "result": "PASS",
+      "demoRecordsPerAPI": {
+        "users": 20,
+        "products": 20,
+        "orders": 20,
+        "payments": 20
+      },
+      "catalogue": "20 products projected into MongoDB",
+      "referencesAndAmounts": "PASS",
+      "restartPreservesEdits": true
+    },
+    "systemRecovery": {
+      "result": "PASS",
+      "tests": 6
+    },
+    "performanceFirstRun": {
+      "summary": {
+        "cars": 10000,
+        "concurrentClients": 20,
+        "requests": 200,
+        "medianSeconds": 1.9492682499985676,
+        "p95Seconds": 3.7823011999716982,
+        "maxSeconds": 5.399638500006404,
+        "targetSeconds": 2,
+        "targetMet": false,
+        "scope": "Direct real GraphQL backend, isolated Mongo database; no claim about internet latency or long-term availability"
+      }
+    },
+    "performanceRepeatRun": {
+      "summary": {
+        "cars": 10000,
+        "concurrentClients": 20,
+        "requests": 200,
+        "medianSeconds": 0.6155085999926087,
+        "p95Seconds": 1.139441099949181,
+        "maxSeconds": 1.2632087000529282,
+        "targetSeconds": 2,
+        "targetMet": true,
+        "scope": "Direct real GraphQL backend, isolated Mongo database; no claim about internet latency or long-term availability"
+      }
+    }
+  },
+  "remoteEvidence": "No successful run IDs or publication are inferred from local results."
+}

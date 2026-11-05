@@ -7,7 +7,8 @@
       "environment": {
         "RABBITMQ_DEFAULT_USER": "aj",
         "RABBITMQ_DEFAULT_PASS": "aj-local",
-        "RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS": "-rabbitmq_prometheus return_per_object_metrics true"
+        "RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS": "-rabbitmq_prometheus return_per_object_metrics true",
+        "RABBITMQ_NODENAME": "${AJ_RABBIT_NODENAME:-rabbit@rabbitmq}"
       },
       "ports": [
         "127.0.0.1:5672:5672",
@@ -34,6 +35,10 @@
         "/bin/sh",
         "-c",
         "rabbitmq-plugins enable --offline rabbitmq_prometheus && exec rabbitmq-server"
+      ],
+      "hostname": "rabbitmq",
+      "extra_hosts": [
+        "${AJ_RABBIT_HOST_ALIAS:-rabbitmq}:127.0.0.1"
       ]
     },
     "users-db": {
@@ -93,6 +98,9 @@
       ],
       "depends_on": {
         "users-db": {
+          "condition": "service_healthy"
+        },
+        "rabbitmq": {
           "condition": "service_healthy"
         }
       }
@@ -157,6 +165,9 @@
       "depends_on": {
         "products-db": {
           "condition": "service_healthy"
+        },
+        "rabbitmq": {
+          "condition": "service_healthy"
         }
       }
     },
@@ -219,6 +230,9 @@
       "depends_on": {
         "orders-db": {
           "condition": "service_healthy"
+        },
+        "rabbitmq": {
+          "condition": "service_healthy"
         }
       }
     },
@@ -279,6 +293,9 @@
       ],
       "depends_on": {
         "payments-db": {
+          "condition": "service_healthy"
+        },
+        "rabbitmq": {
           "condition": "service_healthy"
         }
       }

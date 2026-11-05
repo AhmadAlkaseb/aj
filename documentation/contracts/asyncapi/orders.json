@@ -1,0 +1,1639 @@
+{
+  "asyncapi": "2.6.0",
+  "info": {
+    "title": "AJ Motors orders messages",
+    "version": "1.0.0"
+  },
+  "servers": {
+    "local": {
+      "url": "localhost:5672",
+      "protocol": "amqp",
+      "description": "Local development; credentials through environment"
+    }
+  },
+  "channels": {
+    "customer.check": {
+      "x-producer": "orders",
+      "x-consumers": [
+        "users"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "publish": {
+        "message": {
+          "name": "customer_check",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "customer.check"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "orderGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "userGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "productGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "totalAmount": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 9999999999.99,
+                        "multipleOf": 0.01
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "currency": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "orderGuid",
+                  "userGuid",
+                  "productGuid",
+                  "totalAmount",
+                  "currency"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    },
+    "customer.valid": {
+      "x-producer": "users",
+      "x-consumers": [
+        "orders"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "subscribe": {
+        "message": {
+          "name": "customer_valid",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "customer.valid"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "orderGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "userGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "productGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "totalAmount": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 9999999999.99,
+                        "multipleOf": 0.01
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "currency": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "orderGuid",
+                  "userGuid",
+                  "productGuid",
+                  "totalAmount",
+                  "currency"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    },
+    "customer.invalid": {
+      "x-producer": "users",
+      "x-consumers": [
+        "orders"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "subscribe": {
+        "message": {
+          "name": "customer_invalid",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "customer.invalid"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "orderGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "userGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "productGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "totalAmount": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 9999999999.99,
+                        "multipleOf": 0.01
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "currency": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "orderGuid",
+                  "userGuid",
+                  "productGuid",
+                  "totalAmount",
+                  "currency"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    },
+    "quantitycheck": {
+      "x-producer": "orders",
+      "x-consumers": [
+        "products"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "publish": {
+        "message": {
+          "name": "quantitycheck",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "quantitycheck"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "orderGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "userGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "productGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "totalAmount": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 9999999999.99,
+                        "multipleOf": 0.01
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "currency": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "orderGuid",
+                  "userGuid",
+                  "productGuid",
+                  "totalAmount",
+                  "currency"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    },
+    "quantityreserved": {
+      "x-producer": "products",
+      "x-consumers": [
+        "orders"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "subscribe": {
+        "message": {
+          "name": "quantityreserved",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "quantityreserved"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "orderGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "userGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "productGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "totalAmount": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 9999999999.99,
+                        "multipleOf": 0.01
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "currency": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "orderGuid",
+                  "userGuid",
+                  "productGuid",
+                  "totalAmount",
+                  "currency"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    },
+    "quantityrejected": {
+      "x-producer": "products",
+      "x-consumers": [
+        "orders"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "subscribe": {
+        "message": {
+          "name": "quantityrejected",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "quantityrejected"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "orderGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "userGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "productGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "totalAmount": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 9999999999.99,
+                        "multipleOf": 0.01
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "currency": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "orderGuid",
+                  "userGuid",
+                  "productGuid",
+                  "totalAmount",
+                  "currency"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    },
+    "order.cancelled": {
+      "x-producer": "orders",
+      "x-consumers": [
+        "products"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "publish": {
+        "message": {
+          "name": "order_cancelled",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "order.cancelled"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "orderGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "userGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "productGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "totalAmount": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 9999999999.99,
+                        "multipleOf": 0.01
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "currency": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "orderGuid",
+                  "userGuid",
+                  "productGuid",
+                  "totalAmount",
+                  "currency"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    },
+    "payment.requested": {
+      "x-producer": "payments",
+      "x-consumers": [
+        "orders"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "subscribe": {
+        "message": {
+          "name": "payment_requested",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "payment.requested"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "orderGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "paymentGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "orderGuid",
+                  "paymentGuid"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    },
+    "payment.rejected": {
+      "x-producer": "orders",
+      "x-consumers": [
+        "payments"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "publish": {
+        "message": {
+          "name": "payment_rejected",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "payment.rejected"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "orderGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "paymentGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "orderGuid",
+                  "paymentGuid"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    },
+    "payment.completed": {
+      "x-producer": "payments",
+      "x-consumers": [
+        "products",
+        "orders"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "subscribe": {
+        "message": {
+          "name": "payment_completed",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "payment.completed"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "orderGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "paymentGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "productGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "orderGuid",
+                  "paymentGuid",
+                  "productGuid"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    },
+    "paymentfail": {
+      "x-producer": "payments",
+      "x-consumers": [
+        "products",
+        "orders"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "subscribe": {
+        "message": {
+          "name": "paymentfail",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "paymentfail"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "orderGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "paymentGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "productGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "orderGuid",
+                  "paymentGuid",
+                  "productGuid"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    },
+    "payment.authorized": {
+      "x-producer": "orders",
+      "x-consumers": [
+        "payments"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "publish": {
+        "message": {
+          "name": "payment_authorized",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "payment.authorized"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "orderGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "userGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "productGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "totalAmount": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 9999999999.99,
+                        "multipleOf": 0.01
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "currency": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "paymentGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "orderGuid",
+                  "userGuid",
+                  "productGuid",
+                  "totalAmount",
+                  "currency",
+                  "paymentGuid"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    },
+    "payment.reconcile": {
+      "x-producer": "orders",
+      "x-consumers": [
+        "payments"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "publish": {
+        "message": {
+          "name": "payment_reconcile",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "payment.reconcile"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "orderGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "userGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "productGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "totalAmount": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 9999999999.99,
+                        "multipleOf": 0.01
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "currency": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "paymentGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "orderGuid",
+                  "userGuid",
+                  "productGuid",
+                  "totalAmount",
+                  "currency",
+                  "paymentGuid"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    },
+    "order.completed": {
+      "x-producer": "orders",
+      "x-consumers": [
+        "confirmation-job"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "publish": {
+        "message": {
+          "name": "order_completed",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "order.completed"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "orderGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "userGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "productGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "totalAmount": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 9999999999.99,
+                        "multipleOf": 0.01
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "currency": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "paymentGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "orderGuid",
+                  "userGuid",
+                  "productGuid",
+                  "totalAmount",
+                  "currency",
+                  "paymentGuid"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    },
+    "order.owner": {
+      "x-producer": "orders",
+      "x-consumers": [
+        "payments"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "publish": {
+        "message": {
+          "name": "order_owner",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "order.owner"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "orderGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "userGuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "orderGuid",
+                  "userGuid"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    }
+  },
+  "x-topology": {
+    "exchange": "aj.events",
+    "type": "topic",
+    "durable": true,
+    "deadLetterExchange": "aj.dead",
+    "deadLetterQueue": "aj.dead",
+    "queues": {
+      "users": {
+        "queue": "aj.users",
+        "routingKeys": [
+          "customer.check"
+        ],
+        "manualAck": true
+      },
+      "products": {
+        "queue": "aj.products",
+        "routingKeys": [
+          "quantitycheck",
+          "order.cancelled",
+          "payment.completed",
+          "paymentfail"
+        ],
+        "manualAck": true
+      },
+      "orders": {
+        "queue": "aj.orders",
+        "routingKeys": [
+          "customer.valid",
+          "customer.invalid",
+          "quantityreserved",
+          "quantityrejected",
+          "payment.requested",
+          "payment.completed",
+          "paymentfail"
+        ],
+        "manualAck": true
+      },
+      "payments": {
+        "queue": "aj.payments",
+        "routingKeys": [
+          "payment.authorized",
+          "payment.rejected",
+          "order.owner",
+          "payment.reconcile"
+        ],
+        "manualAck": true
+      },
+      "product-synchronizer": {
+        "queue": "aj.product-sync",
+        "routingKeys": [
+          "product.created",
+          "product.updated",
+          "product.reserved",
+          "product.removed"
+        ],
+        "manualAck": true
+      },
+      "confirmation-job": {
+        "queue": "aj.confirmations",
+        "routingKeys": [
+          "order.completed"
+        ],
+        "manualAck": true
+      }
+    }
+  }
+}

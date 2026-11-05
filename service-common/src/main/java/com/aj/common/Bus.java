@@ -93,6 +93,6 @@ public final class Bus implements AutoCloseable {
         }
     }
     public boolean healthy() { return healthy; }
-    private void disconnect() { try { if(connection!=null) connection.close(); } catch(Exception ignored) {} channel=null; connection=null; }
+    private void disconnect() { try { if(connection!=null) connection.close(); } catch(Exception failure) { org.slf4j.LoggerFactory.getLogger(Bus.class).debug("Broker close failed: {}",failure.getClass().getSimpleName()); } channel=null; connection=null; }
     public void close() { worker.shutdownNow(); try { worker.awaitTermination(5,TimeUnit.SECONDS); } catch(InterruptedException e) { Thread.currentThread().interrupt(); } disconnect(); }
 }

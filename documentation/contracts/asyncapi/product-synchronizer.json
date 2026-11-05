@@ -1,0 +1,898 @@
+{
+  "asyncapi": "2.6.0",
+  "info": {
+    "title": "AJ Motors product-synchronizer messages",
+    "version": "1.0.0"
+  },
+  "servers": {
+    "local": {
+      "url": "localhost:5672",
+      "protocol": "amqp",
+      "description": "Local development; credentials through environment"
+    }
+  },
+  "channels": {
+    "product.created": {
+      "x-producer": "products",
+      "x-consumers": [
+        "product-synchronizer"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "subscribe": {
+        "message": {
+          "name": "product_created",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "product.created"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "guid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "brand": {
+                    "type": "string"
+                  },
+                  "model": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "currency": {
+                    "type": "string"
+                  },
+                  "color": {
+                    "type": "string"
+                  },
+                  "fuelType": {
+                    "type": "string"
+                  },
+                  "transmission": {
+                    "type": "string"
+                  },
+                  "year": {
+                    "type": "integer",
+                    "minimum": 1886
+                  },
+                  "price": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 9999999999.99,
+                    "multipleOf": 0.01
+                  },
+                  "mileage": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "AVAILABLE",
+                      "UNAVAILABLE",
+                      "RESERVED",
+                      "SOLD"
+                    ]
+                  },
+                  "equipment": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "images": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "engine": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string"
+                      },
+                      "powerHp": {
+                        "type": "integer"
+                      },
+                      "capacityLiters": {
+                        "type": "number"
+                      }
+                    },
+                    "required": []
+                  },
+                  "performance": {
+                    "type": "object",
+                    "properties": {
+                      "topSpeedKmh": {
+                        "type": "integer"
+                      },
+                      "zeroTo100": {
+                        "type": "number"
+                      }
+                    },
+                    "required": []
+                  },
+                  "dimensions": {
+                    "type": "object",
+                    "properties": {
+                      "length": {
+                        "type": "integer"
+                      },
+                      "width": {
+                        "type": "integer"
+                      },
+                      "height": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": []
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "createdAt": {
+                    "type": "string"
+                  },
+                  "updatedAt": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "guid",
+                  "brand",
+                  "model",
+                  "description",
+                  "currency",
+                  "color",
+                  "fuelType",
+                  "transmission",
+                  "year",
+                  "price",
+                  "mileage",
+                  "status",
+                  "equipment",
+                  "images",
+                  "engine",
+                  "performance",
+                  "dimensions",
+                  "version",
+                  "createdAt",
+                  "updatedAt"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    },
+    "product.updated": {
+      "x-producer": "products",
+      "x-consumers": [
+        "product-synchronizer"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "subscribe": {
+        "message": {
+          "name": "product_updated",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "product.updated"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "guid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "brand": {
+                    "type": "string"
+                  },
+                  "model": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "currency": {
+                    "type": "string"
+                  },
+                  "color": {
+                    "type": "string"
+                  },
+                  "fuelType": {
+                    "type": "string"
+                  },
+                  "transmission": {
+                    "type": "string"
+                  },
+                  "year": {
+                    "type": "integer",
+                    "minimum": 1886
+                  },
+                  "price": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 9999999999.99,
+                    "multipleOf": 0.01
+                  },
+                  "mileage": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "AVAILABLE",
+                      "UNAVAILABLE",
+                      "RESERVED",
+                      "SOLD"
+                    ]
+                  },
+                  "equipment": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "images": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "engine": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string"
+                      },
+                      "powerHp": {
+                        "type": "integer"
+                      },
+                      "capacityLiters": {
+                        "type": "number"
+                      }
+                    },
+                    "required": []
+                  },
+                  "performance": {
+                    "type": "object",
+                    "properties": {
+                      "topSpeedKmh": {
+                        "type": "integer"
+                      },
+                      "zeroTo100": {
+                        "type": "number"
+                      }
+                    },
+                    "required": []
+                  },
+                  "dimensions": {
+                    "type": "object",
+                    "properties": {
+                      "length": {
+                        "type": "integer"
+                      },
+                      "width": {
+                        "type": "integer"
+                      },
+                      "height": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": []
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "createdAt": {
+                    "type": "string"
+                  },
+                  "updatedAt": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "guid",
+                  "brand",
+                  "model",
+                  "description",
+                  "currency",
+                  "color",
+                  "fuelType",
+                  "transmission",
+                  "year",
+                  "price",
+                  "mileage",
+                  "status",
+                  "equipment",
+                  "images",
+                  "engine",
+                  "performance",
+                  "dimensions",
+                  "version",
+                  "createdAt",
+                  "updatedAt"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    },
+    "product.reserved": {
+      "x-producer": "products",
+      "x-consumers": [
+        "product-synchronizer"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "subscribe": {
+        "message": {
+          "name": "product_reserved",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "product.reserved"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "guid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "brand": {
+                    "type": "string"
+                  },
+                  "model": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "currency": {
+                    "type": "string"
+                  },
+                  "color": {
+                    "type": "string"
+                  },
+                  "fuelType": {
+                    "type": "string"
+                  },
+                  "transmission": {
+                    "type": "string"
+                  },
+                  "year": {
+                    "type": "integer",
+                    "minimum": 1886
+                  },
+                  "price": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 9999999999.99,
+                    "multipleOf": 0.01
+                  },
+                  "mileage": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "AVAILABLE",
+                      "UNAVAILABLE",
+                      "RESERVED",
+                      "SOLD"
+                    ]
+                  },
+                  "equipment": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "images": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "engine": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string"
+                      },
+                      "powerHp": {
+                        "type": "integer"
+                      },
+                      "capacityLiters": {
+                        "type": "number"
+                      }
+                    },
+                    "required": []
+                  },
+                  "performance": {
+                    "type": "object",
+                    "properties": {
+                      "topSpeedKmh": {
+                        "type": "integer"
+                      },
+                      "zeroTo100": {
+                        "type": "number"
+                      }
+                    },
+                    "required": []
+                  },
+                  "dimensions": {
+                    "type": "object",
+                    "properties": {
+                      "length": {
+                        "type": "integer"
+                      },
+                      "width": {
+                        "type": "integer"
+                      },
+                      "height": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": []
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "createdAt": {
+                    "type": "string"
+                  },
+                  "updatedAt": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "guid",
+                  "brand",
+                  "model",
+                  "description",
+                  "currency",
+                  "color",
+                  "fuelType",
+                  "transmission",
+                  "year",
+                  "price",
+                  "mileage",
+                  "status",
+                  "equipment",
+                  "images",
+                  "engine",
+                  "performance",
+                  "dimensions",
+                  "version",
+                  "createdAt",
+                  "updatedAt"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    },
+    "product.removed": {
+      "x-producer": "products",
+      "x-consumers": [
+        "product-synchronizer"
+      ],
+      "description": "Routing key on aj.events; persistent message; manual ack after commit",
+      "bindings": {
+        "amqp": {
+          "is": "routingKey",
+          "exchange": {
+            "name": "aj.events",
+            "type": "topic",
+            "durable": true,
+            "autoDelete": false
+          },
+          "bindingVersion": "0.3.0"
+        }
+      },
+      "subscribe": {
+        "message": {
+          "name": "product_removed",
+          "contentType": "application/json",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "eventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "product.removed"
+                ]
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "correlationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "schemaVersion": {
+                "type": "integer",
+                "enum": [
+                  1
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "guid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "brand": {
+                    "type": "string"
+                  },
+                  "model": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "currency": {
+                    "type": "string"
+                  },
+                  "color": {
+                    "type": "string"
+                  },
+                  "fuelType": {
+                    "type": "string"
+                  },
+                  "transmission": {
+                    "type": "string"
+                  },
+                  "year": {
+                    "type": "integer",
+                    "minimum": 1886
+                  },
+                  "price": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 9999999999.99,
+                    "multipleOf": 0.01
+                  },
+                  "mileage": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "AVAILABLE",
+                      "UNAVAILABLE",
+                      "RESERVED",
+                      "SOLD"
+                    ]
+                  },
+                  "equipment": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "images": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "engine": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string"
+                      },
+                      "powerHp": {
+                        "type": "integer"
+                      },
+                      "capacityLiters": {
+                        "type": "number"
+                      }
+                    },
+                    "required": []
+                  },
+                  "performance": {
+                    "type": "object",
+                    "properties": {
+                      "topSpeedKmh": {
+                        "type": "integer"
+                      },
+                      "zeroTo100": {
+                        "type": "number"
+                      }
+                    },
+                    "required": []
+                  },
+                  "dimensions": {
+                    "type": "object",
+                    "properties": {
+                      "length": {
+                        "type": "integer"
+                      },
+                      "width": {
+                        "type": "integer"
+                      },
+                      "height": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": []
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "createdAt": {
+                    "type": "string"
+                  },
+                  "updatedAt": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "guid",
+                  "brand",
+                  "model",
+                  "description",
+                  "currency",
+                  "color",
+                  "fuelType",
+                  "transmission",
+                  "year",
+                  "price",
+                  "mileage",
+                  "status",
+                  "equipment",
+                  "images",
+                  "engine",
+                  "performance",
+                  "dimensions",
+                  "version",
+                  "createdAt",
+                  "updatedAt"
+                ]
+              }
+            },
+            "required": [
+              "eventId",
+              "eventType",
+              "occurredAt",
+              "correlationId",
+              "schemaVersion",
+              "payload"
+            ]
+          },
+          "correlationId": {
+            "location": "$message.payload#/correlationId"
+          }
+        }
+      }
+    }
+  },
+  "x-topology": {
+    "exchange": "aj.events",
+    "type": "topic",
+    "durable": true,
+    "deadLetterExchange": "aj.dead",
+    "deadLetterQueue": "aj.dead",
+    "queues": {
+      "users": {
+        "queue": "aj.users",
+        "routingKeys": [
+          "customer.check"
+        ],
+        "manualAck": true
+      },
+      "products": {
+        "queue": "aj.products",
+        "routingKeys": [
+          "quantitycheck",
+          "order.cancelled",
+          "payment.completed",
+          "paymentfail"
+        ],
+        "manualAck": true
+      },
+      "orders": {
+        "queue": "aj.orders",
+        "routingKeys": [
+          "customer.valid",
+          "customer.invalid",
+          "quantityreserved",
+          "quantityrejected",
+          "payment.requested",
+          "payment.completed",
+          "paymentfail"
+        ],
+        "manualAck": true
+      },
+      "payments": {
+        "queue": "aj.payments",
+        "routingKeys": [
+          "payment.authorized",
+          "payment.rejected",
+          "order.owner",
+          "payment.reconcile"
+        ],
+        "manualAck": true
+      },
+      "product-synchronizer": {
+        "queue": "aj.product-sync",
+        "routingKeys": [
+          "product.created",
+          "product.updated",
+          "product.reserved",
+          "product.removed"
+        ],
+        "manualAck": true
+      },
+      "confirmation-job": {
+        "queue": "aj.confirmations",
+        "routingKeys": [
+          "order.completed"
+        ],
+        "manualAck": true
+      }
+    }
+  }
+}

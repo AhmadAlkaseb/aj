@@ -1,41 +1,95 @@
-name: Reusable service checks
-
+name: Reusable service pipeline
 on:
   workflow_call:
     inputs:
       service:
         required: true
         type: string
-
 permissions:
   contents: read
-
 jobs:
-  verify:
-    name: ${{ inputs.service }} - unit and integration
+  validate:
+    name: Validate module
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with: {distribution: temurin, java-version: '17', cache: maven}
+      - name: Validate service input and Maven configuration
+        env:
+          SERVICE: ${{ inputs.service }}
+        run: |
+          case "$SERVICE" in users|products|orders|payments|product-view|product-synchronizer|apigateway|frontend|confirmation-job) ;; *) exit 1 ;; esac
+          mvn -B -ntp -pl "$SERVICE" -am validate
+  unit:
+    name: Unit tests
+    needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-          cache: maven
-      - name: Unit tests (Surefire)
-        env:
-          SERVICE: ${{ inputs.service }}
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with: {distribution: temurin, java-version: '17', cache: maven}
+      - name: Surefire
+        env: {SERVICE: '${{ inputs.service }}'}
         run: mvn -B -ntp -pl "$SERVICE" -am test
-      - name: Integration tests and package (Failsafe)
-        env:
-          SERVICE: ${{ inputs.service }}
-        run: mvn -B -ntp -pl "$SERVICE" -am verify -DskipUnitTests=true
-      - name: Save test reports
+      - uses: actions/upload-artifact@v7
         if: always()
-        uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.service }}-test-reports
+          name: ${{ inputs.service }}-unit-reports
+          path: '**/target/surefire-reports/'
+          retention-days: 14
+  integration:
+    name: Integration tests
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with: {distribution: temurin, java-version: '17', cache: maven}
+      - name: Failsafe
+        env: {SERVICE: '${{ inputs.service }}'}
+        run: mvn -B -ntp -pl "$SERVICE" -am verify -DskipUnitTests=true
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: ${{ inputs.service }}-integration-reports
+          path: '**/target/failsafe-reports/'
+          retention-days: 14
+  package:
+    name: Package verified JAR
+    needs: [unit, integration]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with: {distribution: temurin, java-version: '17', cache: maven}
+      - name: Package and checksum
+        env: {SERVICE: '${{ inputs.service }}'}
+        run: |
+          mvn -B -ntp -pl "$SERVICE" -am package -DskipTests
+          test -s "$SERVICE/target/app.jar"
+          cd "$SERVICE/target"
+          sha256sum app.jar > app.jar.sha256
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.service }}-application
           path: |
-            **/target/surefire-reports/
-            **/target/failsafe-reports/
-          if-no-files-found: warn
+            ${{ inputs.service }}/target/app.jar
+            ${{ inputs.service }}/target/app.jar.sha256
+          if-no-files-found: error
+          retention-days: 14
+  gate:
+    name: Service gate
+    if: always()
+    needs: [validate, unit, integration, package]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require every stage
+        env: {RESULTS: '${{ toJSON(needs) }}'}
+        run: |
+          python -c 'import json,os; results=json.loads(os.environ["RESULTS"]); assert all(j["result"]=="success" for j in results.values()), results'

@@ -1,0 +1,41 @@
+name: Roll back verified application release
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Environment to restore
+        type: choice
+        options: [staging, production]
+        required: true
+      release-run-id:
+        description: Successful earlier release workflow run containing release-manifest
+        type: string
+        required: true
+      schema-compatible:
+        description: Previous binaries have been reviewed against the current forward-migrated database schema
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Validate trusted ref and explicit schema compatibility
+        env:
+          COMPATIBLE: ${{ inputs.schema-compatible }}
+          RELEASE_RUN: ${{ inputs.release-run-id }}
+        run: |
+          test "$GITHUB_REF" = refs/heads/main
+          test "$COMPATIBLE" = true
+          [[ "$RELEASE_RUN" =~ ^[0-9]+$ ]]
+  restore:
+    needs: preflight
+    uses: ./.github/workflows/deploy.yaml
+    with:
+      environment: ${{ inputs.target }}
+      artifact-run-id: ${{ inputs.release-run-id }}
+      rollback: true
+    secrets: inherit

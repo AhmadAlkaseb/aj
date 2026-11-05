@@ -52,10 +52,16 @@ public final class Api {
     }
     public static UUID guid(JsonNode node, String field) { return guid(required(node, field)); }
     public static String required(JsonNode node, String field) {
-        if (!node.hasNonNull(field) || !node.get(field).isTextual() || node.get(field).asText().isBlank() || node.get(field).asText().length() > 10000) throw new BadRequestResponse("Feltet '" + field + "' mangler eller er ugyldigt");
+        if (!node.hasNonNull(field) || !node.get(field).isTextual() || node.get(field).asText().isBlank() || node.get(field).asText().length() > (field.equals("query") ? 10000 : field.equals("description") ? 1200 : 255)) throw new BadRequestResponse("Feltet '" + field + "' mangler eller er ugyldigt");
         return node.get(field).asText().trim();
     }
-    public static String text(JsonNode node, String field) { return node.path(field).asText("").trim(); }
+    public static String text(JsonNode node, String field) {
+        if(!node.hasNonNull(field))return "";
+        if(!node.get(field).isTextual())throw new BadRequestResponse("Ugyldigt tekstfelt: "+field);
+        String value=node.get(field).asText().trim();
+        if(value.length()>(field.equals("description") ? 10000 : 255))throw new BadRequestResponse("Tekstfeltet er for langt: "+field);
+        return value;
+    }
     public static String choice(JsonNode n, String f, String fallback, String... allowed) {
         String value = n.has(f) ? required(n, f) : fallback;
         if (!Arrays.asList(allowed).contains(value)) throw new BadRequestResponse("Ugyldig " + f);

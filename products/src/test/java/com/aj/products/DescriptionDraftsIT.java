@@ -32,4 +32,23 @@ class DescriptionDraftsIT {
         var adapter=new DescriptionDrafts(URI.create("http://127.0.0.1:1"),"test",Duration.ofMillis(20));
         assertThrows(ServiceUnavailableResponse.class,()->adapter.generate(Json.read(input)));
     }
+    @Test void rejectsInvalidModelOutput() throws Exception {
+        var server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
+        server.createContext("/",exchange -> {
+            byte[] body="{\"response\":\"not-json\"}".getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(200,body.length);exchange.getResponseBody().write(body);exchange.close();
+        });server.start();
+        try {
+            var adapter=new DescriptionDrafts(URI.create("http://127.0.0.1:"+server.getAddress().getPort()),"test",Duration.ofSeconds(1));
+            assertThrows(ServiceUnavailableResponse.class,()->adapter.generate(Json.read(input)));
+        } finally {server.stop(0);}
+    }
+    @Test void boundsSlowModelRequests() throws Exception {
+        var server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
+        server.createContext("/",exchange -> {try{Thread.sleep(250);}catch(InterruptedException interrupted){Thread.currentThread().interrupt();}exchange.close();});server.start();
+        try {
+            var adapter=new DescriptionDrafts(URI.create("http://127.0.0.1:"+server.getAddress().getPort()),"test",Duration.ofMillis(30));
+            assertThrows(ServiceUnavailableResponse.class,()->adapter.generate(Json.read(input)));
+        } finally {server.stop(0);}
+    }
 }
