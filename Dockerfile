@@ -3,7 +3,7 @@ WORKDIR /workspace
 COPY . .
 RUN --mount=type=cache,target=/root/.m2 mvn -B -ntp package -DskipTests
 
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:25-jre-jammy
 ARG SERVICE
 WORKDIR /app
 RUN groupadd --system aj && useradd --system --gid aj aj
