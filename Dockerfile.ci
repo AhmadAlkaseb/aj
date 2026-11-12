@@ -1,5 +1,5 @@
 # CI promotes the checksummed JAR from the successful service validation pipeline.
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:22-jre-jammy
 ARG SERVICE
 WORKDIR /app
 RUN groupadd --system aj && useradd --system --gid aj aj
