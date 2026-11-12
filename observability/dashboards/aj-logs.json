@@ -1,0 +1,164 @@
+{
+  "uid": "aj-logs",
+  "title": "AJ \u00b7 Logs og fejls\u00f8gning",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": [
+    "AJ Motors"
+  ],
+  "refresh": "5s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "links": [
+    {
+      "title": "\u2302 Control Center",
+      "type": "link",
+      "url": "/d/aj-home",
+      "icon": "home",
+      "targetBlank": false
+    },
+    {
+      "title": "AJ dashboards",
+      "type": "dashboards",
+      "tags": [
+        "AJ Motors"
+      ]
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Applikationslogs",
+      "description": "Use Explore to filter service or correlationId.",
+      "type": "logs",
+      "datasource": {
+        "type": "loki",
+        "uid": "aj-loki"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "{project=\"aj\"}",
+          "refId": "A",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true
+      }
+    },
+    {
+      "id": 2,
+      "title": "HTTP-fejl",
+      "description": "Structured request failures.",
+      "type": "logs",
+      "datasource": {
+        "type": "loki",
+        "uid": "aj-loki"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "{project=\"aj\"} | json | status >= 400",
+          "refId": "A",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true
+      }
+    },
+    {
+      "id": 3,
+      "title": "Beskeder behandlet",
+      "description": "Successful message handling.",
+      "type": "logs",
+      "datasource": {
+        "type": "loki",
+        "uid": "aj-loki"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "{project=\"aj\"} | json | event=\"broker.processed\"",
+          "refId": "A",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true
+      }
+    },
+    {
+      "id": 4,
+      "title": "Fejl og genfors\u00f8g",
+      "description": "Operational errors and retries.",
+      "type": "logs",
+      "datasource": {
+        "type": "loki",
+        "uid": "aj-loki"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "{project=\"aj\"} |~ \"(?i)error|exception|retry|rejected\"",
+          "refId": "A",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true
+      }
+    }
+  ]
+}

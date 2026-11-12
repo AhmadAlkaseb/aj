@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="790" viewBox="0 0 1200 790" role="img" aria-labelledby="title desc">
+<title id="title">Docker Compose system architecture</title><desc id="desc">One Docker Desktop project: aj | 24 named containers | loopback host access</desc>
+<defs><marker id="arrow-172b4d" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#172b4d"/></marker><marker id="arrow-2563a6" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#2563a6"/></marker><marker id="arrow-187a69" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#187a69"/></marker><marker id="arrow-7556a6" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#7556a6"/></marker><marker id="arrow-9c6720" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#9c6720"/></marker></defs>
+<style>text{font-family:Arial,Helvetica,sans-serif} .body{font-size:22px;fill:#172b4d}.small{font-size:19px;fill:#475569}.heading{font-size:19px;font-weight:700;letter-spacing:.5px}</style>
+<rect width="1200" height="790" fill="white"/>
+<text x="24" y="36" font-size="30" fill="#172b4d" font-weight="700" text-anchor="start">Docker Compose system architecture</text>
+<text x="24" y="68" font-size="20" fill="#475569" font-weight="400" text-anchor="start">One Docker Desktop project: aj | 24 named containers | loopback host access</text>
+<rect x="20" y="92" width="1160" height="628" rx="12" fill="#f8fafc" stroke="#2563a6" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="40" y="120" width="360" height="147" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M52,120 H388 Q400,120 400,132 V163 H40 V132 Q40,120 52,120Z" fill="#eef5fc"/>
+<g transform="translate(55 130)" fill="none" stroke="#2563a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<path d="M14 7v8M4 15h20M4 15v5m20-5v5"/><rect x="8" y="0" width="12" height="8" rx="2"/><rect x="0" y="20" width="9" height="7" rx="1"/><rect x="19" y="20" width="9" height="7" rx="1"/>
+</g>
+<text x="88" y="148" font-size="16" fill="#2563a6" font-weight="700" text-anchor="start">EDGE NETWORK | 2 CONTAINERS</text>
+<text x="58" y="184" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">frontend :3000</text>
+<text x="58" y="213" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">apigateway :8080</text>
+<text x="58" y="242" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Gateway also joins backend</text>
+<rect x="450" y="120" width="710" height="147" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M462,120 H1148 Q1160,120 1160,132 V163 H450 V132 Q450,120 462,120Z" fill="#eef5fc"/>
+<g transform="translate(465 130)" fill="none" stroke="#2563a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<path d="M14 7v8M4 15h20M4 15v5m20-5v5"/><rect x="8" y="0" width="12" height="8" rx="2"/><rect x="0" y="20" width="9" height="7" rx="1"/><rect x="19" y="20" width="9" height="7" rx="1"/>
+</g>
+<text x="498" y="148" font-size="16" fill="#2563a6" font-weight="700" text-anchor="start">BACKEND NETWORK | 9 CONTAINERS</text>
+<text x="468" y="184" font-size="22" fill="#172b4d" font-weight="400" text-anchor="start">users · products · orders · payments</text>
+<text x="468" y="213" font-size="22" fill="#172b4d" font-weight="400" text-anchor="start">product-view · product-synchronizer</text>
+<text x="468" y="242" font-size="22" fill="#172b4d" font-weight="400" text-anchor="start">rabbitmq · confirmation-job · keycloak</text>
+<polyline points="400,185 450,185" fill="none" stroke="#2563a6" stroke-width="2.5" marker-end="url(#arrow-2563a6)"/>
+<text x="424" y="167" font-size="16" fill="#172b4d" font-weight="400" text-anchor="middle">HTTP</text>
+<rect x="40" y="335" width="580" height="174" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M52,335 H608 Q620,335 620,347 V378 H40 V347 Q40,335 52,335Z" fill="#edf8f3"/>
+<g transform="translate(55 345)" fill="none" stroke="#187a69" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<path d="M1 5v15c0 6 25 6 25 0V5M1 12c0 6 25 6 25 0"/><ellipse cx="13.5" cy="5" rx="12.5" ry="4"/>
+</g>
+<text x="88" y="363" font-size="16" fill="#187a69" font-weight="700" text-anchor="start">PRIVATE OWNER NETWORKS | 6 STORES</text>
+<text x="58" y="399" font-size="22" fill="#172b4d" font-weight="400" text-anchor="start">users-db · products-db · orders-db</text>
+<text x="58" y="428" font-size="22" fill="#172b4d" font-weight="400" text-anchor="start">payments-db · keycloak-db</text>
+<text x="58" y="457" font-size="22" fill="#172b4d" font-weight="400" text-anchor="start">product-view-db (MongoDB)</text>
+<rect x="660" y="335" width="500" height="174" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M672,335 H1148 Q1160,335 1160,347 V378 H660 V347 Q660,335 672,335Z" fill="#f4f0fa"/>
+<g transform="translate(675 345)" fill="none" stroke="#7556a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<path d="M2 1v23h25M5 17l6-7 6 4 8-11"/><circle cx="11" cy="10" r="2"/><circle cx="17" cy="14" r="2"/>
+</g>
+<text x="708" y="363" font-size="16" fill="#7556a6" font-weight="700" text-anchor="start">OBSERVABILITY | 4 CONTAINERS</text>
+<text x="678" y="399" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">prometheus :9090 · grafana :13001</text>
+<text x="678" y="428" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">alloy → loki :3100</text>
+<text x="678" y="457" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Prometheus joins edge + backend</text>
+<polyline points="550,267 550,335" fill="none" stroke="#187a69" stroke-width="2.5" marker-end="url(#arrow-187a69)"/>
+<text x="530" y="306" font-size="18" fill="#187a69" font-weight="400" text-anchor="end">Application access follows ownership</text>
+<polyline points="920,267 920,335" fill="none" stroke="#7556a6" stroke-width="2.5" marker-end="url(#arrow-7556a6)" stroke-dasharray="7 5"/>
+<text x="943" y="306" font-size="19" fill="#7556a6" font-weight="400" text-anchor="start">Metrics / logs</text>
+<rect x="40" y="548" width="1120" height="148" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M52,548 H1148 Q1160,548 1160,560 V591 H40 V560 Q40,548 52,548Z" fill="#f4f0fa"/>
+<g transform="translate(55 558)" fill="none" stroke="#7556a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="88" y="576" font-size="16" fill="#7556a6" font-weight="700" text-anchor="start">LOCAL ADMINISTRATION | 3 CONTAINERS</text>
+<text x="58" y="612" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">database-gui :18080 → five SQL stores | mongo-gui :18081 → MongoDB</text>
+<text x="58" y="641" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">kubernetes-gui :14466 → kind control plane (read-only; no Secrets)</text>
+<text x="58" y="670" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Grafana Control Center links all GUIs; explicit local admin network access</text>
+<text x="24" y="750" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Named volumes retain SQL, MongoDB, broker state and monitoring history.</text>
+<text x="24" y="779" font-size="19" fill="#172b4d" font-weight="400" text-anchor="start">The kind control-plane container is separate from the 24-service Compose project.</text>
+</svg>

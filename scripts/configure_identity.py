@@ -13,8 +13,8 @@ BASE = os.environ.get('KEYCLOAK_ADMIN_URL', 'http://127.0.0.1:8180')
 
 def configure():
     form = urllib.parse.urlencode({'client_id': 'admin-cli', 'grant_type': 'password',
-        'username': os.environ.get('KEYCLOAK_ADMIN_USER', 'keycloak-admin'),
-        'password': os.environ.get('KEYCLOAK_ADMIN_PASSWORD', 'KeycloakAdmin123!')}).encode()
+        'username': os.environ.get('KEYCLOAK_ADMIN_USER', os.environ.get('AJ_ADMIN_USER', 'admin')),
+        'password': os.environ.get('KEYCLOAK_ADMIN_PASSWORD', os.environ.get('AJ_ADMIN_PASSWORD', 'Admin123!'))}).encode()
     with urllib.request.urlopen(BASE + '/realms/master/protocol/openid-connect/token', form, timeout=15) as r:
         token = json.load(r)['access_token']
 

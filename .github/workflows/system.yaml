@@ -1,35 +1,17 @@
 name: System acceptance
-on:
+'on':
   workflow_call:
+    inputs:
+      plan:
+        type: string
+        default: '{}'
+        description: Change plan; empty object selects full verification
   workflow_dispatch:
-  push:
-    paths:
-      [
-        '**/src/**',
-        '**/pom.xml',
-        'pom.xml',
-        'identity/**',
-        'scripts/**',
-        'Dockerfile',
-        '.dockerignore',
-        '*compose*.yml',
-        '.github/workflows/**',
-        'k8s/**',
-      ]
-  pull_request:
-    paths:
-      [
-        '**/src/**',
-        '**/pom.xml',
-        'pom.xml',
-        'identity/**',
-        'scripts/**',
-        'Dockerfile',
-        '.dockerignore',
-        '*compose*.yml',
-        '.github/workflows/**',
-        'k8s/**',
-      ]
+    inputs:
+      plan:
+        type: string
+        default: '{}'
+        description: Change plan; empty object selects full verification
 permissions:
   contents: read
 defaults:
@@ -44,12 +26,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with: { python-version: '3.12' }
-      - name: Start isolated runner stack
-        run: docker compose --profile jobs build && docker compose up -d --wait --wait-timeout 300
-      - run: python scripts/configure_identity.py
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: '3.12'
+      - name: Bootstrap isolated runner stack and shared accounts
+        run: python scripts/start_local.py
       - name: API purchase and dependency failures
         run: |
           mkdir -p test-results
@@ -68,7 +52,7 @@ jobs:
           mkdir -p test-results
           docker compose ps -a > test-results/containers.txt
           docker compose logs --no-color > test-results/containers.log 2>&1
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: api-system-reports
@@ -77,16 +61,20 @@ jobs:
       - name: Remove ephemeral runner stack
         if: always()
         run: docker compose down --volumes --remove-orphans
+    if: inputs.plan == '{}' || fromJSON(inputs.plan).flags['api']
   browser:
     name: Browser, roles and identity
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with: { python-version: '3.12' }
-      - run: docker compose up -d --build --wait --wait-timeout 300
-      - run: python scripts/configure_identity.py
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: '3.12'
+      - name: Bootstrap isolated runner stack and shared accounts
+        run: python scripts/start_local.py
       - name: Install browser runtime
         run: |
           python -m pip install playwright==1.64.1
@@ -95,6 +83,8 @@ jobs:
         run: python scripts/check_security.py
       - name: Desktop and mobile purchase journey
         run: python scripts/browser_check.py
+      - name: Grafana home and all database GUIs
+        run: python scripts/check_gui_hub.py --without-cluster
       - name: OIDC login, logout and provider outage
         run: python scripts/check_oidc.py --failures
       - name: Collect diagnostics
@@ -103,7 +93,7 @@ jobs:
           mkdir -p test-results
           docker compose ps -a > test-results/containers.txt
           docker compose logs --no-color > test-results/containers.log 2>&1
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: browser-system-reports
@@ -112,29 +102,49 @@ jobs:
       - name: Remove ephemeral runner stack
         if: always()
         run: docker compose down --volumes --remove-orphans
+    if: inputs.plan == '{}' || fromJSON(inputs.plan).flags['browser']
   cooperation:
     name: Fresh database backend cooperation
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with: { python-version: '3.12' }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: '3.12'
       - name: Self-starting backends, owner stores and real broker
         run: python scripts/cooperation.py
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: cooperation-system-reports
           path: test-results/cooperation/
           retention-days: 14
+    if: inputs.plan == '{}' || fromJSON(inputs.plan).flags['cooperation']
   gate:
     name: System gate
     if: always()
-    needs: [api, browser, cooperation]
+    needs:
+      - api
+      - browser
+      - cooperation
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - env: { RESULTS: '${{ toJSON(needs) }}' }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Explain planned skips and reject blocked checks
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+          PLAN: ${{ inputs.plan }}
         run: |
-          python -c 'import json,os; results=json.loads(os.environ["RESULTS"]); assert all(j["result"]=="success" for j in results.values()), results'
+          python - <<'PY'
+          import json, os, subprocess, sys
+          plan = json.loads(os.environ["PLAN"] or "{}")
+          tracks = {'api': 'api', 'browser': 'browser', 'cooperation': 'cooperation'}
+          expected = {name: plan.get("flags", {}).get(flag, True) for name, flag in tracks.items()}
+          subprocess.run([sys.executable, "scripts/ci_gate.py", "--expected", json.dumps(expected)], check=True)
+          PY

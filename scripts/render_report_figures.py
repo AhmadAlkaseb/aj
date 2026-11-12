@@ -21,12 +21,14 @@ def main():
         candidates=sorted((Path(os.environ.get('LOCALAPPDATA',''))/'ms-playwright').glob('chromium-*/chrome-win*/chrome.exe'),reverse=True) if sys.platform=='win32' else []
         browser=p.chromium.launch(**({'executable_path':str(candidates[0])} if candidates else {}))
         page=browser.new_page();page.set_content('<html><body></body></html>');page.add_script_tag(path=str(script))
-        page.evaluate("mermaid.initialize({startOnLoad:false,securityLevel:'strict',theme:'neutral',themeVariables:{fontSize:'20px'},flowchart:{htmlLabels:false,nodeSpacing:25,rankSpacing:35}})")
+        page.evaluate("mermaid.initialize({startOnLoad:false,securityLevel:'strict',theme:'base',themeVariables:{fontFamily:'Arial, Helvetica, sans-serif',fontSize:'20px',primaryColor:'#eef5fc',primaryTextColor:'#172b4d',primaryBorderColor:'#2563a6',lineColor:'#475569',secondaryColor:'#edf8f3',tertiaryColor:'#f4f0fa',edgeLabelBackground:'#ffffff'},flowchart:{htmlLabels:false,nodeSpacing:25,rankSpacing:35,curve:'linear'}})")
         for name,diagram in diagrams:
             svg=page.evaluate('async ({name,diagram})=>(await mermaid.render("overview-"+name,diagram)).svg',{'name':name,'diagram':diagram})
             (directory/(name+'.svg')).write_text(svg,encoding='utf-8')
         browser.close()
     print('Rendered '+str(len(diagrams))+' compact report overview figures.')
+    from render_architecture_models import main as render_models
+    render_models()
 
 
 if __name__=='__main__':main()

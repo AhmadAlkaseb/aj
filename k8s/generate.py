@@ -5,6 +5,7 @@ Secrets and TLS keys are generated separately into ignored test-results/k8s.
 import copy
 import json
 import subprocess
+from monitoring import resources as monitoring_resources
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parent.parent
@@ -13,6 +14,9 @@ NS='aj'
 
 def main():
     config=json.loads(subprocess.check_output(['docker','compose','config','--format','json'],cwd=ROOT))
+    app_images=['users','products','orders','payments','product-view','product-synchronizer','apigateway','frontend','confirmation-job']
+    image_rows=json.loads(subprocess.check_output(['docker','image','inspect',*['aj-'+name+':local' for name in app_images]],cwd=ROOT))
+    image_ids={name:row['Id'] for name,row in zip(app_images,image_rows)}
     items=[{'apiVersion':'v1','kind':'Namespace','metadata':{'name':NS}}]
     def resource(kind,name,spec,api='v1'):
         obj={'apiVersion':api,'kind':kind,'metadata':{'name':name,'namespace':NS},'spec':spec};items.append(obj);return obj
@@ -27,6 +31,7 @@ def main():
         source=config['services'][name];labels={'app':name,'tier':'application' if name in apps else 'infrastructure'}
         env=[]
         for key,value in source.get('environment',{}).items():
+            if key in ['AJ_ADMIN_USER','AJ_ADMIN_PASSWORD']:continue
             if key=='DB_BASELINE_EXISTING':value='false' # Kubernetes starts its own empty volumes.
             if key in ['DB_PASSWORD','POSTGRES_PASSWORD','KC_DB_PASSWORD']:entry=secret('database-password')
             elif key=='RABBITMQ_DEFAULT_PASS':entry=secret('rabbit-password')
@@ -58,15 +63,23 @@ def main():
             container['startupProbe']={'httpGet':{'path':'/health/live','port':7000},'periodSeconds':5,'failureThreshold':36}
         if name=='keycloak':
             container['args']=source['command'];container['resources']['limits']['memory']='768Mi'
+            container['resources']['limits']['cpu']='2000m'
+            container['resources']['requests']['cpu']='100m'
             volumes.append({'name':'realm','configMap':{'name':'aj-realm'}})
             container['volumeMounts']=[{'name':'realm','mountPath':'/opt/keycloak/data/import','readOnly':True}]
             container['readinessProbe']={'httpGet':{'path':'/identity/realms/aj/.well-known/openid-configuration','port':8180},'periodSeconds':5,'timeoutSeconds':3}
         if name.endswith('-db'):
-            container['readinessProbe']={'exec':{'command':['pg_isready','-U',source['environment']['POSTGRES_USER'],'-d',source['environment']['POSTGRES_DB']]},'periodSeconds':5}
+            container['readinessProbe']={'exec':{'command':['pg_isready','-U',source['environment']['POSTGRES_USER'],'-d',source['environment']['POSTGRES_DB']]},'periodSeconds':5,'timeoutSeconds':5}
         if name=='rabbitmq':
             container['command']=source['command'];container['ports']+=[{'name':'management','containerPort':15672},{'name':'metrics','containerPort':15692}]
             container['readinessProbe']={'exec':{'command':['rabbitmq-diagnostics','-q','ping']},'periodSeconds':10,'timeoutSeconds':5}
-        if name=='product-view-mongo':container['resources']['limits']['memory']='768Mi'
+        if name=='product-view-mongo':
+            container['resources']['limits']['memory']='768Mi'
+            container['readinessProbe']={'exec':{'command':['mongosh','--quiet','--eval',"quit(db.adminCommand('ping').ok ? 0 : 1)"]},'periodSeconds':10,'timeoutSeconds':5}
+        if name in infra:
+            container['startupProbe']={'tcpSocket':{'port':port},'periodSeconds':5,'failureThreshold':60}
+            container['livenessProbe']={'tcpSocket':{'port':port},'periodSeconds':15,'timeoutSeconds':5,'failureThreshold':6}
+        if name=='keycloak':container['startupProbe']['failureThreshold']=180
         for value in source.get('volumes',[]):
             if value['type']!='volume':continue
             claim=name+'-data'
@@ -81,7 +94,9 @@ def main():
             for key in ['ports','readinessProbe','livenessProbe','startupProbe']:init.pop(key,None)
             pod['initContainers']=[init]
         workers=['users','products','orders','payments','product-synchronizer']
-        resource('Deployment',name,{'replicas':1,'selector':{'matchLabels':{'app':name}},'strategy':{'type':'Recreate'} if name in infra+workers else {'type':'RollingUpdate'},'template':{'metadata':{'labels':labels},'spec':pod}},'apps/v1')
+        metadata={'labels':labels}
+        if name in apps:metadata['annotations']={'aj/image-id':image_ids[name]}
+        resource('Deployment',name,{'replicas':1,'selector':{'matchLabels':{'app':name}},'strategy':{'type':'Recreate'} if name in infra+workers else {'type':'RollingUpdate'},'template':{'metadata':metadata,'spec':pod}},'apps/v1')
         ports=[{'name':'http' if port in [7000,8180] else 'data','port':port,'targetPort':port}]
         if name=='rabbitmq':ports += [{'name':'management','port':15672,'targetPort':15672},{'name':'metrics','port':15692,'targetPort':15692}]
         resource('Service',name,{'selector':{'app':name},'ports':ports})
@@ -110,7 +125,7 @@ def main():
     resource('TriggerAuthentication','confirmation-broker',{'secretTargetRef':[{'parameter':'host','name':'aj-secrets','key':'rabbit-url'}]},'keda.sh/v1alpha1')
     resource('ScaledJob','confirmation',{'pollingInterval':5,'minReplicaCount':0,'maxReplicaCount':2,
         'successfulJobsHistoryLimit':3,'failedJobsHistoryLimit':3,'jobTargetRef':{'backoffLimit':2,'activeDeadlineSeconds':60,
-            'template':{'metadata':{'labels':{'app':'confirmation-job'}},'spec':{'restartPolicy':'Never','containers':[{'name':'confirmation',
+            'template':{'metadata':{'labels':{'app':'confirmation-job','tier':'application'},'annotations':{'aj/image-id':image_ids['confirmation-job']}},'spec':{'restartPolicy':'Never','containers':[{'name':'confirmation',
                 'image':'aj-confirmation-job:local','imagePullPolicy':'Never','env':[{'name':'RABBITMQ_URL',**secret('rabbit-url')},{'name':'ORDERS_URL','value':'http://orders:7000'},{'name':'CONFIRMATION_TOKEN',**secret('confirmation-token')}],
                 'resources':{'requests':{'cpu':'50m','memory':'128Mi'},'limits':{'cpu':'500m','memory':'256Mi'}}}]}}},
         'triggers':[{'type':'rabbitmq','metadata':{'queueName':'aj.confirmations','mode':'QueueLength','value':'1','protocol':'amqp'},'authenticationRef':{'name':'confirmation-broker'}}]},'keda.sh/v1alpha1')
@@ -130,6 +145,7 @@ def main():
     resource('Ingress','aj',{'tls':[{'hosts':['localhost'],'secretName':'aj-tls'}],'rules':[{'host':'localhost','http':{'paths':[
         {'path':'/identity','pathType':'Prefix','backend':{'service':{'name':'keycloak','port':{'number':8180}}}},
         {'path':'/','pathType':'Prefix','backend':{'service':{'name':'frontend','port':{'number':7000}}}}]}}]},'networking.k8s.io/v1')
+    items.extend(monitoring_resources())
     destination=ROOT/'k8s/base.json';destination.write_text(json.dumps({'apiVersion':'v1','kind':'List','items':items},indent=2)+'\n',encoding='utf-8')
     print('Generated Kubernetes resources without embedding deployment secrets.')
 

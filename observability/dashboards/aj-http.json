@@ -1,0 +1,152 @@
+{
+  "uid": "aj-http",
+  "title": "AJ \u00b7 HTTP og services",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": [
+    "AJ Motors"
+  ],
+  "refresh": "5s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "links": [
+    {
+      "title": "\u2302 Control Center",
+      "type": "link",
+      "url": "/d/aj-home",
+      "icon": "home",
+      "targetBlank": false
+    },
+    {
+      "title": "AJ dashboards",
+      "type": "dashboards",
+      "tags": [
+        "AJ Motors"
+      ]
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Services online",
+      "description": "1 = reachable; 0 = scrape failed.",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "up{job=\"aj-applications\"}",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 2,
+      "title": "Requests / sekund",
+      "description": "Includes health checks.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum by(service)(rate(aj_http_requests_total[5m]))",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 3,
+      "title": "HTTP 5xx / sekund",
+      "description": "Server errors.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum by(service)(rate(aj_http_requests_total{status=~\"5..\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 4,
+      "title": "P95 svartid (sekunder)",
+      "description": "95th percentile response time.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95,sum by(le,service)(rate(aj_http_duration_seconds_bucket[5m])))",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    }
+  ]
+}

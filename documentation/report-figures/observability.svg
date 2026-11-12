@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="474" viewBox="0 0 1200 474" role="img" aria-labelledby="title desc">
+<title id="title">Observability and message visibility</title><desc id="desc">Six Grafana dashboards: one GUI portal and five operational views</desc>
+<defs><marker id="arrow-172b4d" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#172b4d"/></marker><marker id="arrow-2563a6" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#2563a6"/></marker><marker id="arrow-187a69" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#187a69"/></marker><marker id="arrow-7556a6" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#7556a6"/></marker><marker id="arrow-9c6720" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#9c6720"/></marker></defs>
+<style>text{font-family:Arial,Helvetica,sans-serif} .body{font-size:22px;fill:#172b4d}.small{font-size:19px;fill:#475569}.heading{font-size:19px;font-weight:700;letter-spacing:.5px}</style>
+<rect width="1200" height="474" fill="white"/>
+<text x="24" y="36" font-size="30" fill="#172b4d" font-weight="700" text-anchor="start">Observability and message visibility</text>
+<text x="24" y="68" font-size="20" fill="#475569" font-weight="400" text-anchor="start">Six Grafana dashboards: one GUI portal and five operational views</text>
+<rect x="24" y="112" width="332" height="109" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M36,112 H344 Q356,112 356,124 V155 H24 V124 Q24,112 36,112Z" fill="#eef5fc"/>
+<g transform="translate(39 122)" fill="none" stroke="#2563a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="72" y="140" font-size="16" fill="#2563a6" font-weight="700" text-anchor="start">TELEMETRY SOURCES</text>
+<text x="42" y="176" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Apps: HTTP + outbox metrics</text>
+<text x="42" y="205" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">RabbitMQ: queue + ACK metrics</text>
+<rect x="423" y="112" width="305" height="109" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M435,112 H716 Q728,112 728,124 V155 H423 V124 Q423,112 435,112Z" fill="#f4f0fa"/>
+<g transform="translate(438 122)" fill="none" stroke="#7556a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<path d="M2 1v23h25M5 17l6-7 6 4 8-11"/><circle cx="11" cy="10" r="2"/><circle cx="17" cy="14" r="2"/>
+</g>
+<text x="471" y="140" font-size="16" fill="#7556a6" font-weight="700" text-anchor="start">METRICS</text>
+<text x="441" y="176" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Prometheus</text>
+<text x="441" y="205" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Queue depth, rate and alerts</text>
+<rect x="24" y="284" width="332" height="109" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M36,284 H344 Q356,284 356,296 V327 H24 V296 Q24,284 36,284Z" fill="#eef5fc"/>
+<g transform="translate(39 294)" fill="none" stroke="#2563a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<path d="M2 1v23h25M5 17l6-7 6 4 8-11"/><circle cx="11" cy="10" r="2"/><circle cx="17" cy="14" r="2"/>
+</g>
+<text x="72" y="312" font-size="16" fill="#2563a6" font-weight="700" text-anchor="start">STRUCTURED LOGS</text>
+<text x="42" y="348" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">HTTP + broker event metadata</text>
+<text x="42" y="377" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">eventId and correlationId</text>
+<rect x="423" y="284" width="305" height="109" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M435,284 H716 Q728,284 728,296 V327 H423 V296 Q423,284 435,284Z" fill="#f4f0fa"/>
+<g transform="translate(438 294)" fill="none" stroke="#7556a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<path d="M2 1v23h25M5 17l6-7 6 4 8-11"/><circle cx="11" cy="10" r="2"/><circle cx="17" cy="14" r="2"/>
+</g>
+<text x="471" y="312" font-size="16" fill="#7556a6" font-weight="700" text-anchor="start">LOG COLLECTION</text>
+<text x="441" y="348" font-size="19" fill="#172b4d" font-weight="400" text-anchor="start">Alloy → Loki</text>
+<text x="441" y="377" font-size="19" fill="#172b4d" font-weight="400" text-anchor="start">Application logs; no DB logs</text>
+<rect x="810" y="112" width="366" height="311" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M822,112 H1164 Q1176,112 1176,124 V155 H810 V124 Q810,112 822,112Z" fill="#f4f0fa"/>
+<g transform="translate(825 122)" fill="none" stroke="#7556a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<path d="M2 1v23h25M5 17l6-7 6 4 8-11"/><circle cx="11" cy="10" r="2"/><circle cx="17" cy="14" r="2"/>
+</g>
+<text x="858" y="140" font-size="16" fill="#7556a6" font-weight="700" text-anchor="start">GRAFANA | SIX VIEWS</text>
+<text x="828" y="176" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">1  Control Center: all GUI links</text>
+<text x="828" y="205" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">2  Operations overview</text>
+<text x="828" y="234" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">3  HTTP and services</text>
+<text x="828" y="263" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">4  RabbitMQ and delivery</text>
+<text x="828" y="292" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">5  Logs and troubleshooting</text>
+<text x="828" y="321" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">6  Kubernetes operation</text>
+<text x="828" y="350" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">    (active cluster metrics only)</text>
+<polyline points="356,166 423,166" fill="none" stroke="#7556a6" stroke-width="2.5" marker-end="url(#arrow-7556a6)"/>
+<polyline points="356,338 423,338" fill="none" stroke="#7556a6" stroke-width="2.5" marker-end="url(#arrow-7556a6)"/>
+<polyline points="728,166 810,166" fill="none" stroke="#7556a6" stroke-width="2.5" marker-end="url(#arrow-7556a6)"/>
+<polyline points="728,338 810,338" fill="none" stroke="#7556a6" stroke-width="2.5" marker-end="url(#arrow-7556a6)"/>
+<text x="24" y="459" font-size="19" fill="#172b4d" font-weight="400" text-anchor="start">Headlamp reads cluster resources in standby; active in-cluster monitoring supplies Kubernetes metrics.</text>
+</svg>

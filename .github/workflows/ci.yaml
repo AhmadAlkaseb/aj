@@ -1,0 +1,146 @@
+name: AJ CI · Change-aware pipeline
+run-name: CI · ${{ github.event_name }} · ${{ github.head_ref || github.ref_name }}
+'on':
+  pull_request: null
+  push:
+    branches:
+      - main
+  merge_group: null
+  workflow_dispatch: null
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  plan:
+    name: 01 · Plan changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      services: ${{ steps.plan.outputs.services }}
+      plan: ${{ steps.plan.outputs.plan }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Select affected services and explain every skip
+        id: plan
+        run: python scripts/ci_plan.py
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: ci-change-plan
+          path: test-results/ci/plan.json
+          retention-days: 14
+  quality:
+    name: 02 · Quality gates
+    needs: plan
+    if: fromJSON(needs.plan.outputs.plan).flags.quality
+    uses: ./.github/workflows/quality.yaml
+    with:
+      plan: ${{ needs.plan.outputs.plan }}
+  services:
+    name: 03 · ${{ matrix.service }}
+    needs:
+      - plan
+      - quality
+    if:
+      always() && needs.plan.result == 'success' && needs.plan.outputs.services != '[]' && (needs.quality.result
+      == 'success' || needs.quality.result == 'skipped' && !fromJSON(needs.plan.outputs.plan).flags.quality)
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        service: ${{ fromJSON(needs.plan.outputs.services) }}
+    uses: ./.github/workflows/service-ci.yaml
+    with:
+      service: ${{ matrix.service }}
+  containers:
+    name: 04 · Container verification
+    needs:
+      - plan
+      - services
+    if:
+      always() && needs.plan.result == 'success' && fromJSON(needs.plan.outputs.plan).flags.containers
+      && needs.services.result == 'success'
+    uses: ./.github/workflows/container-ci.yaml
+    with:
+      services: ${{ needs.plan.outputs.services }}
+  system:
+    name: 05 · System acceptance
+    needs:
+      - plan
+      - quality
+      - services
+      - containers
+    if:
+      always() && needs.plan.result == 'success' && fromJSON(needs.plan.outputs.plan).flags.system &&
+      (needs.quality.result == 'success' || needs.quality.result == 'skipped' && !fromJSON(needs.plan.outputs.plan).flags.quality)
+      && (needs.services.result == 'success' || needs.services.result == 'skipped' && needs.plan.outputs.services
+      == '[]') && (needs.containers.result == 'success' || needs.containers.result == 'skipped' && !fromJSON(needs.plan.outputs.plan).flags.containers)
+    uses: ./.github/workflows/system.yaml
+    with:
+      plan: ${{ needs.plan.outputs.plan }}
+  security:
+    name: 06 · Security and dependencies
+    needs: plan
+    if: fromJSON(needs.plan.outputs.plan).flags.security
+    uses: ./.github/workflows/security.yaml
+    with:
+      plan: ${{ needs.plan.outputs.plan }}
+  codeql:
+    name: 06 · CodeQL · public repositories
+    needs: plan
+    if: fromJSON(needs.plan.outputs.plan).flags.codeql && github.event.repository.private == false
+    permissions:
+      contents: read
+      security-events: write
+    uses: ./.github/workflows/codeql.yaml
+  docs:
+    name: 07 · Documentation integrity
+    needs: plan
+    if: fromJSON(needs.plan.outputs.plan).flags.docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Check SVG sources and local image references
+        run: python scripts/check_documentation.py
+  ready:
+    name: Ready to merge
+    if: always()
+    needs:
+      - plan
+      - quality
+      - services
+      - containers
+      - system
+      - security
+      - codeql
+      - docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Reject failures, cancellations and unexpected skipped jobs
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+          PLAN: ${{ needs.plan.outputs.plan }}
+          PRIVATE_REPOSITORY: ${{ github.event.repository.private }}
+        run: |
+          python - <<'PY'
+          import json, os, subprocess, sys
+          results = json.loads(os.environ['RESULTS'])
+          flags = json.loads(os.environ.get('PLAN') or '{}').get('flags', {})
+          expected = {'plan': True, **{name: flags.get(name, False) for name in
+                      ['quality', 'containers', 'system', 'security', 'docs']}}
+          expected['services'] = flags.get('containers', False)
+          expected['codeql'] = flags.get('codeql', False) and os.environ['PRIVATE_REPOSITORY'] == 'false'
+          subprocess.run([sys.executable, 'scripts/ci_gate.py', '--expected', json.dumps(expected),
+                          '--title', 'Ready to merge'], check=True)
+          PY

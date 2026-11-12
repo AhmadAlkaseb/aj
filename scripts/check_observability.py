@@ -10,6 +10,7 @@ from pathlib import Path
 FAILURES='--failures' in sys.argv
 if FAILURES:sys.argv.remove('--failures')
 from smoke import api,wait_for,compose
+from configure_local import credentials as local_credentials
 
 ROOT=Path(__file__).resolve().parent.parent
 
@@ -19,9 +20,9 @@ def get(url):
 
 
 def main():
-    subprocess.run(['docker','compose','-f','compose.observability.yml','up','-d'],cwd=ROOT,check=True,stdout=subprocess.DEVNULL)
+    subprocess.run(['docker','compose','up','-d','prometheus','loki','alloy','grafana'],cwd=ROOT,check=True,stdout=subprocess.DEVNULL)
     wait_for(lambda:len([t for t in get('http://127.0.0.1:9090/api/v1/targets')['data']['activeTargets'] if t['health']=='up'])>=9,120)
-    credentials=base64.b64encode(b'admin:aj-monitoring-local').decode()
+    credentials=base64.b64encode(':'.join(local_credentials()).encode()).decode()
     request=urllib.request.Request('http://127.0.0.1:13001/api/dashboards/uid/aj-platform',headers={'Authorization':'Basic '+credentials})
     with urllib.request.urlopen(request,timeout=15) as r:assert json.load(r)['dashboard']['title']=='AJ Motors operations'
     user=api('/users')[0]

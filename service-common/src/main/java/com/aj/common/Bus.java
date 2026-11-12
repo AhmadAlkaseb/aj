@@ -62,7 +62,11 @@ public final class Bus implements AutoCloseable {
                 for (Outbox e: events) {
                     try {
                         channel.basicPublish("aj.events", e.topic, new AMQP.BasicProperties.Builder().deliveryMode(2).contentType("application/json").messageId(e.eventId.toString()).build(), e.payload.getBytes(StandardCharsets.UTF_8));
-                        channel.waitForConfirmsOrDie(3000); em.remove(e);
+                        channel.waitForConfirmsOrDie(3000);
+                        Telemetry.log(Map.of("event","broker.published","eventId",e.eventId.toString(),"topic",e.topic,
+                            "correlationId",Json.read(e.payload).path("correlationId").asText(e.eventId.toString()),
+                            "queue",Objects.toString(queue,"publisher"),"state","broker-confirmed"));
+                        em.remove(e);
                     } catch (Exception ex) { throw new IllegalStateException(ex); }
                 }
                 return null;
@@ -80,9 +84,11 @@ public final class Bus implements AutoCloseable {
                     if(projection!=null)Telemetry.gauge("projection_lag_seconds",Math.max(0,java.time.Duration.between(event.occurredAt(),java.time.Instant.now()).toMillis()/1000.0));
                     Telemetry.log(Map.of("event","broker.processed","eventId",id,"topic",topic,"correlationId",event.correlationId(),"queue",queue));
                     channel.basicAck(msg.getEnvelope().getDeliveryTag(), false);
+                    Telemetry.log(Map.of("event","broker.acked","eventId",id,"topic",topic,"correlationId",event.correlationId(),"queue",queue));
                 } catch (IllegalArgumentException | io.javalin.http.BadRequestResponse malformed) {
                     org.slf4j.LoggerFactory.getLogger(Bus.class).error("Invalid event {}",id);
                     channel.basicReject(msg.getEnvelope().getDeliveryTag(),false);
+                    Telemetry.log(Map.of("event","broker.rejected","eventId",Objects.toString(id,"missing"),"topic",topic,"queue",queue));
                 } catch (Exception ex) { channel.basicNack(msg.getEnvelope().getDeliveryTag(),false,true); throw ex; }
             }
             healthy=true; lastFailure=null;

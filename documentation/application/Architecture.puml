@@ -1,6 +1,6 @@
 @startuml
 !pragma layout smetana
-title AJ Motors - Architecture
+title AJ Motors - System architecture
 skinparam componentStyle rectangle
 skinparam shadowing false
 skinparam defaultFontName SansSerif
@@ -18,7 +18,7 @@ component "Orders\nlocalhost:7004" as orders
 component "Payments (manual)\nlocalhost:7005" as payments
 component "Product View (read)\nlocalhost:7006" as view
 component "Product Synchronizer\nlocalhost:7007" as sync
-component "Confirmation Job\nOne order.completed delivery then exit\nKEDA ScaledJob / Compose jobs profile" as job
+component "PDF confirmation processor\nCompose: continuous worker\nKubernetes: one-shot KEDA Job" as job
 component "Ollama\nOptional local description drafts\nllama3.2:3b" as ai
 component "Prometheus / Loki / Grafana\nMetrics, correlation logs, alerts" as monitoring
 component "Keycloak\nLocal third-party OIDC provider\nlocalhost:8180" as keycloak
@@ -84,6 +84,6 @@ Solid arrow: synchronous request / database access
 Dashed arrow: asynchronous RabbitMQ delivery
 service-common is a build library, not a running service.
 Kubernetes: owner PVCs, private Services, Calico policies; frontend HPA 1..2.
-Stateful event workers: one replica, Recreate rollout; PDF jobs bounded to one delivery.
+Kubernetes event workers: one replica, Recreate; PDF Jobs bounded to one delivery.
 endlegend
 @enduml

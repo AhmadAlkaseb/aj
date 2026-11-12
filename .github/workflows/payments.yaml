@@ -1,33 +1,11 @@
-name: payments CI
-
-on:
-  workflow_dispatch:
-  push:
-    paths:
-      - 'payments/**'
-      - 'service-common/**'
-      - 'pom.xml'
-      - 'Dockerfile'
-      - '.dockerignore'
-      - '.github/workflows/service-ci.yaml'
-      - '.github/workflows/payments.yaml'
-  pull_request:
-    paths:
-      - 'payments/**'
-      - 'service-common/**'
-      - 'pom.xml'
-      - 'Dockerfile'
-      - '.dockerignore'
-      - '.github/workflows/service-ci.yaml'
-      - '.github/workflows/payments.yaml'
-
+name: Manual · payments
+'on':
+  workflow_dispatch: {}
 permissions:
   contents: read
-
 concurrency:
   group: payments-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
   checks:
     uses: ./.github/workflows/service-ci.yaml

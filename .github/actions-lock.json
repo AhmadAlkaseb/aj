@@ -1,0 +1,62 @@
+{
+  "actions/checkout": {
+    "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+    "source": "https://github.com/actions/checkout",
+    "version": "v7"
+  },
+  "actions/download-artifact": {
+    "commit": "9000827ccba6bdab643e8b6fd33ac0654aef8333",
+    "source": "https://github.com/actions/download-artifact",
+    "version": "v8"
+  },
+  "actions/setup-java": {
+    "commit": "b843ebf9b913146b38da2eaa7aeddf76074ae1ad",
+    "source": "https://github.com/actions/setup-java",
+    "version": "v6"
+  },
+  "actions/setup-node": {
+    "commit": "949feb2413d6458794dcd2491c4babbbce0c15c1",
+    "source": "https://github.com/actions/setup-node",
+    "version": "v7"
+  },
+  "actions/setup-python": {
+    "commit": "6d4fd22b20465ccc0f7354476588e8df7c9ca0e0",
+    "source": "https://github.com/actions/setup-python",
+    "version": "v7"
+  },
+  "actions/upload-artifact": {
+    "commit": "cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+    "source": "https://github.com/actions/upload-artifact",
+    "version": "v7"
+  },
+  "aquasecurity/trivy-action": {
+    "commit": "ed142fd0673e97e23eac54620cfb913e5ce36c25",
+    "source": "https://github.com/aquasecurity/trivy-action",
+    "version": "v0.36.0"
+  },
+  "docker/build-push-action": {
+    "commit": "c3c9e263c25d99ce0380d002d59b67737d91b0dc",
+    "source": "https://github.com/docker/build-push-action",
+    "version": "v7"
+  },
+  "docker/login-action": {
+    "commit": "8aa5831fb8d48d8f76594c7ddde61ae58019f550",
+    "source": "https://github.com/docker/login-action",
+    "version": "v4"
+  },
+  "docker/setup-buildx-action": {
+    "commit": "f87e5991a6d7451dcb8d9637bfbc97413f497069",
+    "source": "https://github.com/docker/setup-buildx-action",
+    "version": "v4"
+  },
+  "github/codeql-action/analyze": {
+    "commit": "33d7b85da1a04171e211befe2c739303b9a4c066",
+    "source": "https://github.com/github/codeql-action",
+    "version": "v4"
+  },
+  "github/codeql-action/init": {
+    "commit": "33d7b85da1a04171e211befe2c739303b9a4c066",
+    "source": "https://github.com/github/codeql-action",
+    "version": "v4"
+  }
+}

@@ -8,7 +8,9 @@
         "RABBITMQ_DEFAULT_USER": "aj",
         "RABBITMQ_DEFAULT_PASS": "aj-local",
         "RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS": "-rabbitmq_prometheus return_per_object_metrics true",
-        "RABBITMQ_NODENAME": "${AJ_RABBIT_NODENAME:-rabbit@rabbitmq}"
+        "RABBITMQ_NODENAME": "${AJ_RABBIT_NODENAME:-rabbit@rabbitmq}",
+        "AJ_ADMIN_USER": "${AJ_ADMIN_USER:-admin}",
+        "AJ_ADMIN_PASSWORD": "${AJ_ADMIN_PASSWORD:-Admin123!}"
       },
       "ports": [
         "127.0.0.1:5672:5672",
@@ -39,7 +41,8 @@
       "hostname": "rabbitmq",
       "extra_hosts": [
         "${AJ_RABBIT_HOST_ALIAS:-rabbitmq}:127.0.0.1"
-      ]
+      ],
+      "container_name": "rabbitmq"
     },
     "users-db": {
       "image": "postgres:16-alpine",
@@ -66,7 +69,8 @@
         "interval": "5s",
         "timeout": "3s",
         "retries": 20
-      }
+      },
+      "container_name": "users-db"
     },
     "users": {
       "build": {
@@ -103,7 +107,8 @@
         "rabbitmq": {
           "condition": "service_healthy"
         }
-      }
+      },
+      "container_name": "users"
     },
     "products-db": {
       "image": "postgres:16-alpine",
@@ -130,7 +135,8 @@
         "interval": "5s",
         "timeout": "3s",
         "retries": 20
-      }
+      },
+      "container_name": "products-db"
     },
     "products": {
       "build": {
@@ -169,7 +175,8 @@
         "rabbitmq": {
           "condition": "service_healthy"
         }
-      }
+      },
+      "container_name": "products"
     },
     "orders-db": {
       "image": "postgres:16-alpine",
@@ -196,7 +203,8 @@
         "interval": "5s",
         "timeout": "3s",
         "retries": 20
-      }
+      },
+      "container_name": "orders-db"
     },
     "orders": {
       "build": {
@@ -234,7 +242,8 @@
         "rabbitmq": {
           "condition": "service_healthy"
         }
-      }
+      },
+      "container_name": "orders"
     },
     "payments-db": {
       "image": "postgres:16-alpine",
@@ -261,7 +270,8 @@
         "interval": "5s",
         "timeout": "3s",
         "retries": 20
-      }
+      },
+      "container_name": "payments-db"
     },
     "payments": {
       "build": {
@@ -298,7 +308,8 @@
         "rabbitmq": {
           "condition": "service_healthy"
         }
-      }
+      },
+      "container_name": "payments"
     },
     "product-view-mongo": {
       "image": "mongo:7",
@@ -320,7 +331,8 @@
         "interval": "5s",
         "timeout": "5s",
         "retries": 20
-      }
+      },
+      "container_name": "product-view-db"
     },
     "product-view": {
       "build": {
@@ -349,7 +361,8 @@
         "product-view-mongo": {
           "condition": "service_healthy"
         }
-      }
+      },
+      "container_name": "product-view"
     },
     "product-synchronizer": {
       "build": {
@@ -372,7 +385,8 @@
       ],
       "networks": [
         "backend"
-      ]
+      ],
+      "container_name": "product-synchronizer"
     },
     "apigateway": {
       "build": {
@@ -396,7 +410,8 @@
       "networks": [
         "backend",
         "edge"
-      ]
+      ],
+      "container_name": "apigateway"
     },
     "frontend": {
       "build": {
@@ -417,7 +432,8 @@
       ],
       "networks": [
         "edge"
-      ]
+      ],
+      "container_name": "frontend"
     },
     "keycloak-db": {
       "image": "postgres:16-alpine",
@@ -441,7 +457,8 @@
         "interval": "5s",
         "timeout": "3s",
         "retries": 20
-      }
+      },
+      "container_name": "keycloak-db"
     },
     "keycloak": {
       "image": "quay.io/keycloak/keycloak:26.8.1",
@@ -455,8 +472,8 @@
         "KC_DB_URL": "jdbc:postgresql://keycloak-db:5432/keycloak",
         "KC_DB_USERNAME": "keycloak",
         "KC_DB_PASSWORD": "keycloak-local",
-        "KC_BOOTSTRAP_ADMIN_USERNAME": "keycloak-admin",
-        "KC_BOOTSTRAP_ADMIN_PASSWORD": "KeycloakAdmin123!",
+        "KC_BOOTSTRAP_ADMIN_USERNAME": "${AJ_ADMIN_USER:-admin}",
+        "KC_BOOTSTRAP_ADMIN_PASSWORD": "${AJ_ADMIN_PASSWORD:-Admin123!}",
         "KC_HTTP_PORT": "8180",
         "KC_HOSTNAME": "http://localhost:8180",
         "KC_HEALTH_ENABLED": "true"
@@ -485,12 +502,10 @@
         "timeout": "5s",
         "start_period": "90s",
         "retries": 15
-      }
+      },
+      "container_name": "keycloak"
     },
     "confirmation-job": {
-      "profiles": [
-        "jobs"
-      ],
       "build": {
         "context": ".",
         "dockerfile": "Dockerfile",
@@ -499,12 +514,160 @@
         }
       },
       "image": "aj-confirmation-job:local",
-      "restart": "no",
+      "restart": "unless-stopped",
       "environment": {
         "RABBITMQ_URL": "amqp://aj:aj-local@rabbitmq:5672/%2f",
         "ORDERS_URL": "http://orders:7000",
-        "CONFIRMATION_TOKEN": "${CONFIRMATION_TOKEN:-aj-confirmation-local}"
+        "CONFIRMATION_TOKEN": "${CONFIRMATION_TOKEN:-aj-confirmation-local}",
+        "CONFIRMATION_WORKER": "true"
       },
+      "networks": [
+        "backend"
+      ],
+      "container_name": "confirmation-job",
+      "healthcheck": {
+        "disable": true
+      },
+      "depends_on": {
+        "rabbitmq": {
+          "condition": "service_healthy"
+        },
+        "orders": {
+          "condition": "service_healthy"
+        }
+      }
+    },
+    "prometheus": {
+      "restart": "unless-stopped",
+      "image": "prom/prometheus:v3.2.1",
+      "ports": [
+        "127.0.0.1:9090:9090"
+      ],
+      "volumes": [
+        "./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro",
+        "./observability/alerts.yml:/etc/prometheus/alerts.yml:ro",
+        "prometheus-data:/prometheus"
+      ],
+      "networks": [
+        "backend",
+        "edge"
+      ],
+      "container_name": "prometheus"
+    },
+    "loki": {
+      "restart": "unless-stopped",
+      "image": "grafana/loki:3.4.2",
+      "command": [
+        "-config.file=/etc/loki/local-config.yaml"
+      ],
+      "ports": [
+        "127.0.0.1:3100:3100"
+      ],
+      "volumes": [
+        "./observability/loki.yml:/etc/loki/local-config.yaml:ro",
+        "loki-data:/loki"
+      ],
+      "networks": [
+        "backend"
+      ],
+      "container_name": "loki"
+    },
+    "alloy": {
+      "restart": "unless-stopped",
+      "image": "grafana/alloy:v1.8.0",
+      "command": [
+        "run",
+        "--storage.path=/var/lib/alloy/data",
+        "/etc/alloy/config.alloy"
+      ],
+      "volumes": [
+        "./observability/alloy.alloy:/etc/alloy/config.alloy:ro",
+        "/var/run/docker.sock:/var/run/docker.sock:ro",
+        "alloy-data:/var/lib/alloy/data"
+      ],
+      "networks": [
+        "backend"
+      ],
+      "container_name": "alloy"
+    },
+    "grafana": {
+      "restart": "unless-stopped",
+      "image": "grafana/grafana:11.5.2",
+      "ports": [
+        "127.0.0.1:${GRAFANA_PORT:-13001}:3000"
+      ],
+      "environment": {
+        "GF_SECURITY_ADMIN_USER": "${AJ_ADMIN_USER:-admin}",
+        "GF_SECURITY_ADMIN_PASSWORD": "${AJ_ADMIN_PASSWORD:-Admin123!}",
+        "GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH": "/var/lib/grafana/dashboards/details/aj-home.json"
+      },
+      "volumes": [
+        "./observability/grafana:/etc/grafana/provisioning:ro",
+        "./observability/dashboard.json:/var/lib/grafana/dashboards/aj.json:ro",
+        "./observability/dashboards:/var/lib/grafana/dashboards/details:ro",
+        "grafana-data:/var/lib/grafana"
+      ],
+      "networks": [
+        "backend"
+      ],
+      "container_name": "grafana"
+    },
+    "database-gui": {
+      "image": "adminer:5.4.1",
+      "container_name": "database-gui",
+      "restart": "unless-stopped",
+      "ports": [
+        "127.0.0.1:18080:8080"
+      ],
+      "environment": {
+        "ADMINER_DEFAULT_SERVER": "users-db",
+        "ADMINER_DESIGN": "nette"
+      },
+      "networks": [
+        "users-data",
+        "products-data",
+        "orders-data",
+        "payments-data",
+        "identity-data"
+      ]
+    },
+    "mongo-gui": {
+      "image": "mongo-express:1.0.2-20",
+      "container_name": "mongo-gui",
+      "restart": "unless-stopped",
+      "ports": [
+        "127.0.0.1:18081:8081"
+      ],
+      "environment": {
+        "ME_CONFIG_MONGODB_URL": "${MONGO_ADMIN_URL:-mongodb://admin:Admin123!@product-view-mongo:27017/?authSource=admin}",
+        "ME_CONFIG_BASICAUTH": "true",
+        "ME_CONFIG_BASICAUTH_ENABLED": "true",
+        "ME_CONFIG_BASICAUTH_USERNAME": "${AJ_ADMIN_USER:-admin}",
+        "ME_CONFIG_BASICAUTH_PASSWORD": "${AJ_ADMIN_PASSWORD:-Admin123!}"
+      },
+      "networks": [
+        "product-view-data"
+      ],
+      "depends_on": {
+        "product-view-mongo": {
+          "condition": "service_healthy"
+        }
+      }
+    },
+    "kubernetes-gui": {
+      "image": "ghcr.io/headlamp-k8s/headlamp:v0.46.0",
+      "container_name": "kubernetes-gui",
+      "restart": "unless-stopped",
+      "ports": [
+        "127.0.0.1:14466:4466"
+      ],
+      "command": [
+        "-kubeconfig=/config/kubeconfig.json",
+        "-html-static-dir=/headlamp/frontend"
+      ],
+      "volumes": [
+        "./test-results/admin:/config:ro"
+      ],
       "networks": [
         "backend"
       ]
@@ -517,7 +680,23 @@
     "orders-postgres-data": {},
     "payments-postgres-data": {},
     "product-view-mongo-data": {},
-    "keycloak-postgres-data": {}
+    "keycloak-postgres-data": {},
+    "prometheus-data": {
+      "external": true,
+      "name": "aj_prometheus-data"
+    },
+    "loki-data": {
+      "external": true,
+      "name": "aj_loki-data"
+    },
+    "grafana-data": {
+      "external": true,
+      "name": "aj_grafana-data"
+    },
+    "alloy-data": {
+      "external": true,
+      "name": "aj_alloy-data"
+    }
   },
   "networks": {
     "backend": {

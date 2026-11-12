@@ -1,18 +1,22 @@
 name: Roll back verified application release
-on:
+'on':
   workflow_dispatch:
     inputs:
       target:
         description: Environment to restore
         type: choice
-        options: [staging, production]
+        options:
+          - staging
+          - production
         required: true
       release-run-id:
         description: Successful earlier release workflow run containing release-manifest
         type: string
         required: true
       schema-compatible:
-        description: Previous binaries have been reviewed against the current forward-migrated database schema
+        description:
+          Previous binaries have been reviewed against the current forward-migrated database
+          schema
         type: boolean
         default: false
 permissions:

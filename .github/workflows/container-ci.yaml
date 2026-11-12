@@ -1,0 +1,60 @@
+name: Reusable · verified JAR to scanned container
+'on':
+  workflow_call:
+    inputs:
+      services:
+        type: string
+        required: true
+permissions:
+  contents: read
+jobs:
+  image:
+    name: Build and scan · ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        service: ${{ fromJSON(inputs.services) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: ${{ matrix.service }}-application
+          path: test-results/ci-images/${{ matrix.service }}-application
+      - name: Verify tested artifact checksum
+        env:
+          SERVICE: ${{ matrix.service }}
+        run: |
+          cd "test-results/ci-images/$SERVICE-application"
+          sha256sum -c app.jar.sha256
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - name: Build the tested JAR · no Maven rebuild, no publication
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: test-results/ci-images
+          file: Dockerfile.ci
+          build-args: SERVICE=${{ matrix.service }}
+          load: true
+          push: false
+          tags: aj-${{ matrix.service }}:ci
+          cache-from: type=gha,scope=ci-${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=ci-${{ matrix.service }}
+      - name: Scan runtime image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: aj-${{ matrix.service }}:ci
+          format: json
+          output: image-scan.json
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: ci-container-${{ matrix.service }}
+          path: image-scan.json
+          retention-days: 14

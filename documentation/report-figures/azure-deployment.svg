@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="710" viewBox="0 0 1200 710" role="img" aria-labelledby="title desc">
+<title id="title">Proposed Azure deployment</title><desc id="desc">Selected cloud target | not provisioned | private data and operator access</desc>
+<defs><marker id="arrow-172b4d" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#172b4d"/></marker><marker id="arrow-2563a6" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#2563a6"/></marker><marker id="arrow-187a69" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#187a69"/></marker><marker id="arrow-7556a6" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#7556a6"/></marker><marker id="arrow-9c6720" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#9c6720"/></marker></defs>
+<style>text{font-family:Arial,Helvetica,sans-serif} .body{font-size:22px;fill:#172b4d}.small{font-size:19px;fill:#475569}.heading{font-size:19px;font-weight:700;letter-spacing:.5px}</style>
+<rect width="1200" height="710" fill="white"/>
+<text x="24" y="36" font-size="30" fill="#172b4d" font-weight="700" text-anchor="start">Proposed Azure deployment</text>
+<text x="24" y="68" font-size="20" fill="#475569" font-weight="400" text-anchor="start">Selected cloud target | not provisioned | private data and operator access</text>
+<rect x="24" y="118" width="350" height="110" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M36,118 H362 Q374,118 374,130 V161 H24 V130 Q24,118 36,118Z" fill="#eef5fc"/>
+<g transform="translate(39 128)" fill="none" stroke="#2563a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="72" y="146" font-size="16" fill="#2563a6" font-weight="700" text-anchor="start">PUBLIC HTTPS ENTRY</text>
+<text x="42" y="182" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Browser → TLS ingress</text>
+<text x="42" y="211" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Application and login only</text>
+<rect x="424" y="118" width="350" height="110" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M436,118 H762 Q774,118 774,130 V161 H424 V130 Q424,118 436,118Z" fill="#eef5fc"/>
+<g transform="translate(439 128)" fill="none" stroke="#2563a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="472" y="146" font-size="16" fill="#2563a6" font-weight="700" text-anchor="start">RELEASE ARTIFACTS</text>
+<text x="442" y="182" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">GHCR: verified image digests</text>
+<text x="442" y="211" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Same revision promoted</text>
+<rect x="824" y="118" width="350" height="110" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M836,118 H1162 Q1174,118 1174,130 V161 H824 V130 Q824,118 836,118Z" fill="#edf8f3"/>
+<g transform="translate(839 128)" fill="none" stroke="#187a69" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="872" y="146" font-size="16" fill="#187a69" font-weight="700" text-anchor="start">SECRETS AND ADMIN</text>
+<text x="842" y="182" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Key Vault: workload identity</text>
+<text x="842" y="211" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Admin GUIs stay private</text>
+<rect x="24" y="323" width="350" height="140" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M36,323 H362 Q374,323 374,335 V366 H24 V335 Q24,323 36,323Z" fill="#edf8f3"/>
+<g transform="translate(39 333)" fill="none" stroke="#187a69" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<path d="m14 1 11 4v8c0 7-11 12-11 12S3 20 3 13V5Z"/><path d="m8 12 4 4 8-9"/>
+</g>
+<text x="72" y="351" font-size="16" fill="#187a69" font-weight="700" text-anchor="start">IDENTITY ON AKS</text>
+<text x="42" y="387" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Keycloak: HTTPS OIDC issuer</text>
+<text x="42" y="416" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">External GitHub broker</text>
+<text x="42" y="445" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Separate identity database</text>
+<rect x="424" y="323" width="350" height="140" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M436,323 H762 Q774,323 774,335 V366 H424 V335 Q424,323 436,323Z" fill="#eef5fc"/>
+<g transform="translate(439 333)" fill="none" stroke="#2563a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="472" y="351" font-size="16" fill="#2563a6" font-weight="700" text-anchor="start">APPLICATIONS ON AKS</text>
+<text x="442" y="387" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Frontend + API Gateway</text>
+<text x="442" y="416" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Domain APIs + Synchronizer</text>
+<text x="442" y="445" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Bounded workers; HTTP HPA</text>
+<rect x="824" y="323" width="350" height="140" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M836,323 H1162 Q1174,323 1174,335 V366 H824 V335 Q824,323 836,323Z" fill="#fff7e8"/>
+<g transform="translate(839 333)" fill="none" stroke="#9c6720" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="872" y="351" font-size="16" fill="#9c6720" font-weight="700" text-anchor="start">ISOLATED COMPUTE</text>
+<text x="842" y="387" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Ollama: private AI inference</text>
+<text x="842" y="416" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">KEDA: terminating PDF Jobs</text>
+<text x="842" y="445" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Confirmation → Orders API</text>
+<polyline points="199,228 199,274 599,274 599,323" fill="none" stroke="#2563a6" stroke-width="2.5" marker-end="url(#arrow-2563a6)"/>
+<polyline points="599,228 599,323" fill="none" stroke="#2563a6" stroke-width="2.5" marker-end="url(#arrow-2563a6)"/>
+<polyline points="999,228 999,274 706,274 706,323" fill="none" stroke="#187a69" stroke-width="2.5" marker-end="url(#arrow-187a69)"/>
+<polyline points="424,392 374,392" fill="none" stroke="#187a69" stroke-width="2.5" marker-end="url(#arrow-187a69)"/>
+<polyline points="774,392 824,392" fill="none" stroke="#9c6720" stroke-width="2.5" marker-end="url(#arrow-9c6720)" stroke-dasharray="7 5"/>
+<rect x="24" y="563" width="350" height="110" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M36,563 H362 Q374,563 374,575 V606 H24 V575 Q24,563 36,563Z" fill="#edf8f3"/>
+<g transform="translate(39 573)" fill="none" stroke="#187a69" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="72" y="591" font-size="16" fill="#187a69" font-weight="700" text-anchor="start">RELATIONAL OWNERS</text>
+<text x="42" y="627" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Azure PostgreSQL + HA plan</text>
+<text x="42" y="656" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Separate databases and roles</text>
+<rect x="424" y="563" width="350" height="110" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M436,563 H762 Q774,563 774,575 V606 H424 V575 Q424,563 436,563Z" fill="#edf8f3"/>
+<g transform="translate(439 573)" fill="none" stroke="#187a69" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<path d="M14 7v8M4 15h20M4 15v5m20-5v5"/><rect x="8" y="0" width="12" height="8" rx="2"/><rect x="0" y="20" width="9" height="7" rx="1"/><rect x="19" y="20" width="9" height="7" rx="1"/>
+</g>
+<text x="472" y="591" font-size="16" fill="#187a69" font-weight="700" text-anchor="start">STATEFUL CLUSTERS</text>
+<text x="442" y="627" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Native MongoDB replica set</text>
+<text x="442" y="656" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">RabbitMQ: 3-node quorum</text>
+<rect x="824" y="563" width="350" height="110" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M836,563 H1162 Q1174,563 1174,575 V606 H824 V575 Q824,563 836,563Z" fill="#f4f0fa"/>
+<g transform="translate(839 573)" fill="none" stroke="#7556a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="872" y="591" font-size="16" fill="#7556a6" font-weight="700" text-anchor="start">OPERATIONS</text>
+<text x="842" y="627" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Prometheus / Grafana / Alloy</text>
+<text x="842" y="656" font-size="21" fill="#172b4d" font-weight="400" text-anchor="start">Loki → private Blob Storage</text>
+<polyline points="199,463 199,563" fill="none" stroke="#187a69" stroke-width="2.5" marker-end="url(#arrow-187a69)"/>
+<polyline points="524,463 524,511 282,511 282,563" fill="none" stroke="#187a69" stroke-width="2.5" marker-end="url(#arrow-187a69)"/>
+<polyline points="599,463 599,563" fill="none" stroke="#187a69" stroke-width="2.5" marker-end="url(#arrow-187a69)"/>
+<polyline points="706,463 706,511 999,511 999,563" fill="none" stroke="#7556a6" stroke-width="2.5" marker-end="url(#arrow-7556a6)"/>
+<text x="24" y="700" font-size="19" fill="#172b4d" font-weight="400" text-anchor="start">Replicas need separate nodes/zones and tested backups. The local single-node demo does not establish cloud HA.</text>
+</svg>

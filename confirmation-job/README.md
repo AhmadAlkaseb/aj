@@ -5,8 +5,10 @@ queue, generates a PDF, writes through the authenticated Orders internal API,
 acknowledges only after storage, and exits. No shared database or filesystem.
 
 Build: `mvn -pl confirmation-job -am verify`.
-Compose demonstration: `docker compose --profile jobs build confirmation-job`, then
-`docker compose run --rm confirmation-job`. Kubernetes uses a KEDA ScaledJob.
+Normal root Compose startup runs this application continuously with
+`CONFIRMATION_WORKER=true`. For a bounded demonstration use
+`docker compose run --rm -e CONFIRMATION_WORKER=false confirmation-job`.
+Kubernetes uses the default one-task-and-exit mode through a KEDA ScaledJob.
 
 Configure RABBITMQ_URL, ORDERS_URL and CONFIRMATION_TOKEN. Malformed payloads are
 dead-lettered; temporary owner failures requeue and exit unsuccessfully.

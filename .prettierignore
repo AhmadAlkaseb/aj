@@ -4,6 +4,7 @@
 /.github/*
 !/.github/workflows/
 !/.github/dependabot.yml
+!/.github/actions-lock.json
 !/frontend/
 /frontend/*
 !/frontend/src/

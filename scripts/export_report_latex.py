@@ -86,6 +86,9 @@ def main():
     executable('tectonic');executable('pandoc')
     out=ROOT/'test-results/report-latex';out.mkdir(parents=True,exist_ok=True)
     original=(ROOT/'documentation/Report.md').read_text(encoding='utf-8')
+    source_characters=len((ROOT/'documentation/Report.md').read_bytes().decode('utf-8'))
+    if source_characters>30*2400:
+        raise RuntimeError(f'Report source contains {source_characters} characters including whitespace; maximum is 72000.')
     metadata=re.match(r'^---\n(.*?)\n---\n',original,re.S)
     metadata_path=out/'metadata.yaml'
     metadata_path.write_text(metadata[1] if metadata else 'fontsize: 10pt\npapersize: a4\ngeometry: margin=16mm\n',encoding='utf-8')
@@ -131,7 +134,7 @@ def main():
     if not contents or len(figure_pages)!=len(re.findall(r'^\\caption\{',latex,re.M)):
         raise RuntimeError('Contents or figure-list entries are incomplete')
     destination=ROOT/'documentation/Report.pdf';destination.write_bytes(pdf.read_bytes())
-    evidence={'engine':'Pandoc + Tectonic (LaTeX)','pages':count,'limit':30,'coverNumbered':False,'firstPrintedPage':1,
+    evidence={'engine':'Pandoc + Tectonic (LaTeX)','pages':count,'limit':30,'sourceCharactersIncludingWhitespace':source_characters,'characterLimit':72000,'coverNumbered':False,'firstPrintedPage':1,
         'toc':contents,'figures':figure_pages,'sha256':hashlib.sha256(pdf.read_bytes()).hexdigest(),'sourceSha256':hashlib.sha256(original.encode()).hexdigest(),
         'styleSha256':hashlib.sha256((ROOT/'documentation/report-style.tex').read_bytes()).hexdigest()}
     (ROOT/'documentation/evidence/report-export.json').write_text(json.dumps(evidence,indent=2)+'\n',encoding='utf-8')

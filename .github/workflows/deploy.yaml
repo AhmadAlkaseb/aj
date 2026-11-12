@@ -1,5 +1,5 @@
 name: Reusable Kubernetes deployment
-on:
+'on':
   workflow_call:
     inputs:
       environment:
@@ -42,9 +42,12 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       ROLLBACK: ${{ inputs.rollback }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with: { python-version: '3.12' }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: '3.12'
       - name: Validate environment and prepare temporary credentials
         run: |
           python scripts/ci_environment.py setup
@@ -53,7 +56,7 @@ jobs:
           kubectl --context "$KUBE_CONTEXT" -n "$KUBE_NAMESPACE" get deployment/frontend -o name
           kubectl --context "$KUBE_CONTEXT" -n "$KUBE_NAMESPACE" auth can-i create jobs.batch | grep -qx yes
           kubectl --context "$KUBE_CONTEXT" -n "$KUBE_NAMESPACE" auth can-i patch deployments.apps | grep -qx yes
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: release-manifest
           path: test-results/release
@@ -84,13 +87,17 @@ jobs:
       - name: Verify HTTPS, identity, catalogue and selected business flow
         id: smoke
         env:
-          BUSINESS_SMOKE: ${{ vars.BUSINESS_SMOKE || (inputs.environment == 'staging' && 'true' || 'false') }}
+          BUSINESS_SMOKE:
+            ${{ vars.BUSINESS_SMOKE || (inputs.environment == 'staging' && 'true' || 'false')
+            }}
         run: |
           args=()
           if [ "$BUSINESS_SMOKE" = true ]; then args+=(--business); fi
           python scripts/deployment_smoke.py --base-url "$PUBLIC_BASE_URL" --identity-url "$IDENTITY_BASE_URL" --ca "$DEPLOY_CA_FILE" "${args[@]}"
       - name: Restore previous application digests when schema compatibility is configured
-        if: ${{ failure() && steps.rollout.outcome != 'skipped' && steps.rollout.outcome != '' && !inputs.rollback && vars.ROLLBACK_SCHEMA_COMPATIBLE == 'true' }}
+        if:
+          ${{ failure() && steps.rollout.outcome != 'skipped' && steps.rollout.outcome != '' && !inputs.rollback
+          && vars.ROLLBACK_SCHEMA_COMPATIBLE == 'true' }}
         run: |
           test -s test-results/deploy/previous-release.json
           python scripts/release.py test-results/deploy/previous-release.json --context "$KUBE_CONTEXT" --namespace "$KUBE_NAMESPACE" --apply --rollback-compatible --output-dir test-results/rollback
@@ -105,7 +112,7 @@ jobs:
           kubectl --context "$KUBE_CONTEXT" -n "$KUBE_NAMESPACE" logs -l tier=application --all-containers --tail=100 --prefix > test-results/diagnostics/applications.log 2>&1 || true
       - name: Retain release evidence without kubeconfig or TLS keys
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: deployment-${{ inputs.environment }}-${{ github.run_attempt }}
           path: |

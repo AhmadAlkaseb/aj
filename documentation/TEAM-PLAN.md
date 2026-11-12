@@ -47,6 +47,11 @@ Disse faglige udkast bygger på løsningens egenskaber. Deltagerne skal selv bek
 | Asger | En vellykket lokal transaktion afslutter ikke et distribueret køb. Gentagelser, gamle beskeder og uklare betalinger kræver gemte tilstande og eksplicit recovery. | Et konkret forløb med reservation, kompensation eller manuel betalingsafklaring. |
 | Laith | Containere er ikke i sig selv høj tilgængelighed. Migrationer, readiness, netværk, målinger og afprøvet restore skal vurderes sammen. | Et konkret driftsproblem og den måling eller log, som hjalp med at finde årsagen. |
 
-## CI-02 — accepteret antagelse
+## CI-02 — lokal verifikation som alternativ
 
-Gruppen har valgt at gå ud fra, at det konfigurerede CI-/releaseflow fungerer. Det behandles derfor ikke som en aktiv implementeringsopgave i denne omgang. Det er en accepteret antagelse, ikke et observeret GitHub-resultat; der er ikke indsat opdigtede run-ID'er, image-digests, branch-regler eller rollback-kørsler. Se [CI-STATUS.md](CI-STATUS.md).
+Ved slutgennemgangen 12. november kunne brugeren ikke logge ind på GitHub og bad
+om et alternativ. Workflows kontrolleres derfor lokalt med faktisk Java-verifikation,
+Python-policytests, Actionlint, formatering og zizmor. Det er ikke en GitHub-kørsel;
+der tilføjes ingen opdigtede run-ID'er, image-digests, branch-regler eller rollback.
+Brugeren gennemfører selv registrering af ekstern OAuth-app efter klargøringen.
+Se [CI-STATUS.md](CI-STATUS.md) og [afleveringsindex](submission/README.md).

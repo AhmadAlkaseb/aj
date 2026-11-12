@@ -2,7 +2,7 @@
   "uid": "aj-platform",
   "title": "AJ Motors operations",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "refresh": "5s",
   "time": {
     "from": "now-15m",
@@ -197,6 +197,43 @@
           "refId": "A"
         }
       ]
+    },
+    {
+      "id": 10,
+      "title": "Application logs",
+      "type": "logs",
+      "datasource": {
+        "type": "loki",
+        "uid": "aj-loki"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 24,
+        "h": 12
+      },
+      "options": {
+        "showTime": true,
+        "showCommonLabels": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "targets": [
+        {
+          "expr": "{project=\"aj\"}",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "title": "\u2302 Control Center",
+      "type": "link",
+      "url": "/d/aj-home",
+      "icon": "home",
+      "targetBlank": false
     }
   ]
 }

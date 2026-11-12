@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="850" viewBox="0 0 1200 850" role="img" aria-labelledby="title desc">
+<title id="title">Change-aware CI and verified release</title><desc id="desc">Explicit dependencies | failures block dependants | only declared skips are accepted</desc>
+<defs><marker id="arrow-172b4d" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#172b4d"/></marker><marker id="arrow-2563a6" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#2563a6"/></marker><marker id="arrow-187a69" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#187a69"/></marker><marker id="arrow-7556a6" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#7556a6"/></marker><marker id="arrow-9c6720" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#9c6720"/></marker></defs>
+<style>text{font-family:Arial,Helvetica,sans-serif} .body{font-size:22px;fill:#172b4d}.small{font-size:19px;fill:#475569}.heading{font-size:19px;font-weight:700;letter-spacing:.5px}</style>
+<rect width="1200" height="850" fill="white"/>
+<text x="24" y="36" font-size="30" fill="#172b4d" font-weight="700" text-anchor="start">Change-aware CI and verified release</text>
+<text x="24" y="68" font-size="20" fill="#475569" font-weight="400" text-anchor="start">Explicit dependencies | failures block dependants | only declared skips are accepted</text>
+<rect x="16" y="96" width="770" height="720" rx="12" fill="#f8fafc" stroke="#2563a6" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="36" y="120" width="730" height="100" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M48,120 H754 Q766,120 766,132 V163 H36 V132 Q36,120 48,120Z" fill="#eef5fc"/>
+<g transform="translate(51 130)" fill="none" stroke="#2563a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="84" y="148" font-size="16" fill="#2563a6" font-weight="700" text-anchor="start">01 CHANGE PLAN</text>
+<text x="54" y="184" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Changed paths → affected services, selected checks and RUN / SKIP reasons</text>
+<rect x="36" y="270" width="340" height="110" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M48,270 H364 Q376,270 376,282 V313 H36 V282 Q36,270 48,270Z" fill="#eef5fc"/>
+<g transform="translate(51 280)" fill="none" stroke="#2563a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="84" y="298" font-size="16" fill="#2563a6" font-weight="700" text-anchor="start">02 QUALITY</text>
+<text x="54" y="334" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Formatting + static analysis</text>
+<text x="54" y="363" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">API and deployment contracts</text>
+<rect x="426" y="270" width="340" height="110" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M438,270 H754 Q766,270 766,282 V313 H426 V282 Q426,270 438,270Z" fill="#f4f0fa"/>
+<g transform="translate(441 280)" fill="none" stroke="#7556a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="474" y="298" font-size="16" fill="#7556a6" font-weight="700" text-anchor="start">PARALLEL TRACKS</text>
+<text x="444" y="334" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Selected security + audits</text>
+<text x="444" y="363" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Documentation integrity</text>
+<polyline points="206,220 206,270" fill="none" stroke="#2563a6" stroke-width="2.5" marker-end="url(#arrow-2563a6)"/>
+<polyline points="596,220 596,270" fill="none" stroke="#7556a6" stroke-width="2.5" marker-end="url(#arrow-7556a6)"/>
+<rect x="36" y="435" width="340" height="135" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M48,435 H364 Q376,435 376,447 V478 H36 V447 Q36,435 48,435Z" fill="#eef5fc"/>
+<g transform="translate(51 445)" fill="none" stroke="#2563a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="84" y="463" font-size="16" fill="#2563a6" font-weight="700" text-anchor="start">03 SERVICE MATRIX</text>
+<text x="54" y="499" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Validate</text>
+<text x="54" y="528" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Unit + integration → JAR</text>
+<text x="54" y="557" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">At most three services at once</text>
+<polyline points="206,380 206,435" fill="none" stroke="#2563a6" stroke-width="2.5" marker-end="url(#arrow-2563a6)"/>
+<rect x="36" y="650" width="340" height="135" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M48,650 H364 Q376,650 376,662 V693 H36 V662 Q36,650 48,650Z" fill="#eef5fc"/>
+<g transform="translate(51 660)" fill="none" stroke="#2563a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="84" y="678" font-size="16" fill="#2563a6" font-weight="700" text-anchor="start">04 CONTAINER VERIFICATION</text>
+<text x="54" y="714" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Verify downloaded JAR hash</text>
+<text x="54" y="743" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Build that runtime artifact</text>
+<text x="54" y="772" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Trivy scan; no PR publication</text>
+<polyline points="206,570 206,650" fill="none" stroke="#2563a6" stroke-width="2.5" marker-end="url(#arrow-2563a6)"/>
+<rect x="426" y="650" width="340" height="135" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M438,650 H754 Q766,650 766,662 V693 H426 V662 Q426,650 438,650Z" fill="#eef5fc"/>
+<g transform="translate(441 660)" fill="none" stroke="#2563a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="474" y="678" font-size="16" fill="#2563a6" font-weight="700" text-anchor="start">05 SYSTEM ACCEPTANCE</text>
+<text x="444" y="714" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Selected API + browser checks</text>
+<text x="444" y="743" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Backend cooperation fixture</text>
+<text x="444" y="772" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Only after required builds pass</text>
+<polyline points="376,718 426,718" fill="none" stroke="#2563a6" stroke-width="2.5" marker-end="url(#arrow-2563a6)"/>
+<rect x="426" y="435" width="340" height="135" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M438,435 H754 Q766,435 766,447 V478 H426 V447 Q426,435 438,435Z" fill="#edf8f3"/>
+<g transform="translate(441 445)" fill="none" stroke="#187a69" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="474" y="463" font-size="16" fill="#187a69" font-weight="700" text-anchor="start">READY TO MERGE</text>
+<text x="444" y="499" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Always-run gate</text>
+<text x="444" y="528" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Reject errors / cancellations</text>
+<text x="444" y="557" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Reject unexpected skipped jobs</text>
+<polyline points="596,650 596,570" fill="none" stroke="#187a69" stroke-width="2.5" marker-end="url(#arrow-187a69)"/>
+<polyline points="596,380 596,435" fill="none" stroke="#7556a6" stroke-width="2.5" marker-end="url(#arrow-7556a6)"/>
+<rect x="834" y="120" width="342" height="135" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M846,120 H1164 Q1176,120 1176,132 V163 H834 V132 Q834,120 846,120Z" fill="#fff7e8"/>
+<g transform="translate(849 130)" fill="none" stroke="#9c6720" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="882" y="148" font-size="16" fill="#9c6720" font-weight="700" text-anchor="start">MANUAL TRUSTED RELEASE</text>
+<text x="852" y="184" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">All nine service pipelines</text>
+<text x="852" y="213" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Full quality + system checks</text>
+<text x="852" y="242" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Full applicable security checks</text>
+<rect x="834" y="320" width="342" height="135" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M846,320 H1164 Q1176,320 1176,332 V363 H834 V332 Q834,320 846,320Z" fill="#fff7e8"/>
+<g transform="translate(849 330)" fill="none" stroke="#9c6720" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="882" y="348" font-size="16" fill="#9c6720" font-weight="700" text-anchor="start">BUILD AND SCAN</text>
+<text x="852" y="384" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Checksummed JAR artifacts</text>
+<text x="852" y="413" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">SBOM + provenance</text>
+<text x="852" y="442" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">One revision; nine digests</text>
+<polyline points="1005,255 1005,320" fill="none" stroke="#9c6720" stroke-width="2.5" marker-end="url(#arrow-9c6720)"/>
+<rect x="834" y="520" width="342" height="110" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M846,520 H1164 Q1176,520 1176,532 V563 H834 V532 Q834,520 846,520Z" fill="#fff7e8"/>
+<g transform="translate(849 530)" fill="none" stroke="#9c6720" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="882" y="548" font-size="16" fill="#9c6720" font-weight="700" text-anchor="start">STAGING</text>
+<text x="852" y="584" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Migrate → rollout → readiness</text>
+<text x="852" y="613" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">HTTPS + identity + smoke</text>
+<polyline points="1005,455 1005,520" fill="none" stroke="#9c6720" stroke-width="2.5" marker-end="url(#arrow-9c6720)"/>
+<rect x="834" y="705" width="342" height="110" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<path d="M846,705 H1164 Q1176,705 1176,717 V748 H834 V717 Q834,705 846,705Z" fill="#edf8f3"/>
+<g transform="translate(849 715)" fill="none" stroke="#187a69" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect x="1" y="2" width="26" height="23" rx="3"/><path d="M1 9h26M6 5h1m3 0h1M7 15l-3 3 3 3m14-6 3 3-3 3m-6-7-3 8"/>
+</g>
+<text x="882" y="733" font-size="16" fill="#187a69" font-weight="700" text-anchor="start">PRODUCTION</text>
+<text x="852" y="769" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Promote identical digests</text>
+<text x="852" y="798" font-size="20" fill="#172b4d" font-weight="400" text-anchor="start">Configured environment gate</text>
+<polyline points="1005,630 1005,705" fill="none" stroke="#187a69" stroke-width="2.5" marker-end="url(#arrow-187a69)"/>
+</svg>

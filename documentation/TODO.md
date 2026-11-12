@@ -1,12 +1,16 @@
 # AJ Motors — resterende arbejde
 
-**Opdateret:** 5. november 2026. **Aflevering:** 11. december 2026.
+**Opdateret:** 12. november 2026. **Aflevering:** 11. december 2026.
 
 De implementerede og lokalt verificerede opgaver er fjernet. Der er ingen åbne P0-afklaringer. Accepterede valg og navngivne ejere/reviewers findes i [IMPLEMENTATION-PLAN.md](IMPLEMENTATION-PLAN.md), dokumentationen i [Report.md](Report.md), og faktiske lokale resultater i [EVIDENCE.md](EVIDENCE.md).
 
-## Afgrænsning — CI-02
+## Afgrænsning — GitHub og eksternt login
 
-Efter brugerens beslutning går vi ud fra, at CI-/releaseflowet fungerer. CI-02 er derfor taget ud af den aktive opgaveliste. Det er ikke markeret som remote verificeret; faktisk status og den eventuelle senere procedure findes i [CI-STATUS.md](CI-STATUS.md).
+Brugeren kan ikke logge ind på GitHub her og bad om et alternativ. CI er derfor
+kontrolleret lokalt med rigtige test-/buildresultater, ikke markeret remote verificeret.
+Brugeren opretter selv OAuth-appen bagefter. Følg [EXTERNAL-LOGIN.md](EXTERNAL-LOGIN.md)
+og den komplette [afleveringscheckliste](submission/README.md). Disse kontotrin
+kan ikke erstattes af lokal konfiguration eller en antaget bestået GitHub-kørsel.
 
 ## P1 — DOC-01: forfatternes afsluttende gennemlæsning
 

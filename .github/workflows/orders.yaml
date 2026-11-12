@@ -1,33 +1,11 @@
-name: orders CI
-
-on:
-  workflow_dispatch:
-  push:
-    paths:
-      - 'orders/**'
-      - 'service-common/**'
-      - 'pom.xml'
-      - 'Dockerfile'
-      - '.dockerignore'
-      - '.github/workflows/service-ci.yaml'
-      - '.github/workflows/orders.yaml'
-  pull_request:
-    paths:
-      - 'orders/**'
-      - 'service-common/**'
-      - 'pom.xml'
-      - 'Dockerfile'
-      - '.dockerignore'
-      - '.github/workflows/service-ci.yaml'
-      - '.github/workflows/orders.yaml'
-
+name: Manual · orders
+'on':
+  workflow_dispatch: {}
 permissions:
   contents: read
-
 concurrency:
   group: orders-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
   checks:
     uses: ./.github/workflows/service-ci.yaml

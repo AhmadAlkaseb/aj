@@ -1,7 +1,8 @@
 {
-  "name": "aj-monitoring",
+  "name": "aj",
   "services": {
     "prometheus": {
+      "restart": "unless-stopped",
       "image": "prom/prometheus:v3.2.1",
       "ports": [
         "127.0.0.1:9090:9090"
@@ -14,9 +15,11 @@
       "networks": [
         "backend",
         "edge"
-      ]
+      ],
+      "container_name": "prometheus"
     },
     "loki": {
+      "restart": "unless-stopped",
       "image": "grafana/loki:3.4.2",
       "command": [
         "-config.file=/etc/loki/local-config.yaml"
@@ -30,9 +33,11 @@
       ],
       "networks": [
         "backend"
-      ]
+      ],
+      "container_name": "loki"
     },
     "alloy": {
+      "restart": "unless-stopped",
       "image": "grafana/alloy:v1.8.0",
       "command": [
         "run",
@@ -46,32 +51,49 @@
       ],
       "networks": [
         "backend"
-      ]
+      ],
+      "container_name": "alloy"
     },
     "grafana": {
+      "restart": "unless-stopped",
       "image": "grafana/grafana:11.5.2",
       "ports": [
         "127.0.0.1:${GRAFANA_PORT:-13001}:3000"
       ],
       "environment": {
-        "GF_SECURITY_ADMIN_USER": "admin",
-        "GF_SECURITY_ADMIN_PASSWORD": "${GRAFANA_PASSWORD:-aj-monitoring-local}"
+        "GF_SECURITY_ADMIN_USER": "${AJ_ADMIN_USER:-admin}",
+        "GF_SECURITY_ADMIN_PASSWORD": "${AJ_ADMIN_PASSWORD:-Admin123!}",
+        "GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH": "/var/lib/grafana/dashboards/details/aj-home.json"
       },
       "volumes": [
         "./observability/grafana:/etc/grafana/provisioning:ro",
         "./observability/dashboard.json:/var/lib/grafana/dashboards/aj.json:ro",
+        "./observability/dashboards:/var/lib/grafana/dashboards/details:ro",
         "grafana-data:/var/lib/grafana"
       ],
       "networks": [
         "backend"
-      ]
+      ],
+      "container_name": "grafana"
     }
   },
   "volumes": {
-    "prometheus-data": {},
-    "loki-data": {},
-    "grafana-data": {},
-    "alloy-data": {}
+    "prometheus-data": {
+      "external": true,
+      "name": "aj_prometheus-data"
+    },
+    "loki-data": {
+      "external": true,
+      "name": "aj_loki-data"
+    },
+    "grafana-data": {
+      "external": true,
+      "name": "aj_grafana-data"
+    },
+    "alloy-data": {
+      "external": true,
+      "name": "aj_alloy-data"
+    }
   },
   "networks": {
     "backend": {

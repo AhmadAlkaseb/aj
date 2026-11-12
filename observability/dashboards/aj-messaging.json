@@ -1,0 +1,365 @@
+{
+  "uid": "aj-messaging",
+  "title": "AJ \u00b7 RabbitMQ og beskedlevering",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": [
+    "AJ Motors"
+  ],
+  "refresh": "5s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "links": [
+    {
+      "title": "\u2302 Control Center",
+      "type": "link",
+      "url": "/d/aj-home",
+      "icon": "home",
+      "targetBlank": false
+    },
+    {
+      "title": "AJ dashboards",
+      "type": "dashboards",
+      "tags": [
+        "AJ Motors"
+      ]
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Venter p\u00e5 afsendelse (outbox)",
+      "description": "Committed events still in application database; RabbitMQ cannot see these yet.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "aj_outbox_pending",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 2,
+      "title": "\u00c6ldste ventende afsendelse (sekunder)",
+      "description": "Age of oldest outbox event.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "aj_outbox_oldest_seconds",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 3,
+      "title": "Venter i RabbitMQ (Ready)",
+      "description": "Accepted by broker, waiting to be fetched.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "rabbitmq_queue_messages_ready",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 4,
+      "title": "Under behandling (Unacked)",
+      "description": "Delivered, awaiting consumer acknowledgement. Fast processing may occur between scrapes.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "rabbitmq_queue_messages_unacked",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 5,
+      "title": "Sendt til broker / sekund",
+      "description": "Publish rate, not HTTP requests.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_global_messages_received_total[5m]))",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 6,
+      "title": "Kvitteret af broker / sekund",
+      "description": "Publisher confirms; does not mean business processing is complete.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_global_messages_confirmed_total[5m]))",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 7,
+      "title": "Behandlet og kvitteret / sekund",
+      "description": "Consumer acknowledgements across queues.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(rabbitmq_global_messages_acknowledged_total[5m]))",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 8,
+      "title": "Modtagne beskeder siden broker-start",
+      "description": "Broker counter resets when RabbitMQ restarts; historical samples remain in Prometheus.",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rabbitmq_global_messages_received_total)",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 9,
+      "title": "Kvitterede beskeder siden broker-start",
+      "description": "Consumer acknowledgements; one event can be delivered to multiple queues.",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rabbitmq_global_messages_acknowledged_total)",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 10,
+      "title": "Afviste beskeder (dead letters)",
+      "description": "Requires operator review; no automatic purge.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "rabbitmq_queue_messages{queue=\"aj.dead\"}",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 11,
+      "title": "Beskedhistorik",
+      "description": "Search eventId or correlationId to follow a business event.",
+      "type": "logs",
+      "datasource": {
+        "type": "loki",
+        "uid": "aj-loki"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "{project=\"aj\"} | json | event=~\"broker.*\"",
+          "refId": "A",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true
+      }
+    }
+  ]
+}

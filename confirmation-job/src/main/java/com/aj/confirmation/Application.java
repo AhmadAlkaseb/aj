@@ -11,7 +11,7 @@ import java.net.http.*;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
-/** Handles at most one event and exits. ScaledJob supplies event-driven scheduling. */
+/** ScaledJob handles one event; the local Compose worker can remain available continuously. */
 public final class Application {
     private Application() {}
     public static byte[] document(JsonNode data) throws java.io.IOException {
@@ -29,10 +29,24 @@ public final class Application {
         }
     }
     public static void main(String[] args) throws Exception {
+        boolean continuous=Boolean.parseBoolean(Api.env("CONFIRMATION_WORKER","false"));
+        do {
+            try { process(continuous); }
+            catch(Exception failure) {
+                if(!continuous)throw failure;
+                System.err.println("Confirmation worker will retry: "+failure.getClass().getSimpleName());
+                Thread.sleep(3000);
+            }
+        } while(continuous);
+    }
+    private static void process(boolean continuous) throws Exception {
         ConnectionFactory factory=new ConnectionFactory();factory.setUri(Api.env("RABBITMQ_URL","amqp://aj:aj-local@localhost:5672/%2f"));
         factory.setConnectionTimeout(3000);factory.setAutomaticRecoveryEnabled(false);
         try(var connection=factory.newConnection();var channel=connection.createChannel()) {
-            Bus.topology(channel);var message=channel.basicGet("aj.confirmations",false);if(message==null)return;
+            Bus.topology(channel);
+            do {
+            var message=channel.basicGet("aj.confirmations",false);
+            if(message==null){if(!continuous)return;Thread.sleep(1000);continue;}
             try {
                 var event=Events.decode(message.getProps().getMessageId(),message.getEnvelope().getRoutingKey(),Json.read(new String(message.getBody(),StandardCharsets.UTF_8)));
                 String order=Api.guid(event.payload(),"orderGuid").toString();byte[] pdf=document(event.payload());
@@ -49,6 +63,7 @@ public final class Application {
             } catch(Exception failure) {
                 channel.basicNack(message.getEnvelope().getDeliveryTag(),false,true);throw failure;
             }
+            } while(continuous);
         }
     }
 }

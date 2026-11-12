@@ -18,12 +18,14 @@ realm, public client, roller og demobrugere automatisk fra `identity/aj-realm.js
 | Formål | Brugernavn | Adgangskode |
 | --- | --- | --- |
 | Kunde | `kunde01` til `kunde20` | `Demo123!` |
-| Administrator i AJ Motors | `eksamen-admin` | `Admin123!` |
-| Drift af Keycloak på http://localhost:8180/admin/ | `keycloak-admin` | `KeycloakAdmin123!` |
+| Administrator i AJ Motors | `admin` | `Admin123!` |
+| Drift af Keycloak på http://localhost:8180/admin/ | `admin` | `Admin123!` |
 
 Kundelogins har rollen `customer`; eksamensadministratoren har rollen `admin`.
 Kunderne har en `customerGuid`-claim, der matcher de faste kundeidentiteter i eksamensdataene.
-Driftskontoen til Keycloak er adskilt fra AJ Motors-administratoren.
+Det samme lokale administrationslogin bruges til AJ Motors, Keycloak, Grafana,
+RabbitMQ og databaserne. Startscriptet anvender det også i eksisterende volumes,
+uden at slette data. Se [lokal opsætning](LOCAL_SETUP.md). Eksisterende demokonti bevares.
 Alle konti og adgangskoder her er offentlige lokale demodata; opsætningen bruger
 udviklingstilstand og HTTP og er ikke en produktionsopsætning.
 
@@ -113,3 +115,9 @@ Users, Products, Orders og Payments validerer selv RS256-signatur, issuer, audie
 `python scripts/configure_identity.py` opdaterer eksisterende realm idempotent, aktiverer selvregistrering og konfigurerer den fortrolige backend-testklient. Den køres af startscriptet; ved rå Compose-start køres den efter Keycloak er klar. Testhemmeligheden bruges aldrig i frontend. `python scripts/check_security.py` tester reelle tokens, ejerskab, selvregistrering og afviste adminhandlinger.
 
 Kubernetes bruger lokale TLS-certifikater og private Services/netværkspolitikker. Offentlige demokonti og udviklingsadgangskoder er kun til lokal demonstration.
+# Eksternt GitHub-login
+
+Den eksisterende lokale Keycloak-opsætning kan suppleres med rigtig GitHub-federation.
+Se [opsætning og faktisk loginverifikation](EXTERNAL-LOGIN.md). Konfiguratoren
+bevarer lokale konti, backend-tokenkontrol og ejerskab; en ejet OAuth-app er nødvendig.
+Lokalt OIDC alene dokumenteres ikke som et gennemført eksternt login.

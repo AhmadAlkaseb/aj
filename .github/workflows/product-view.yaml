@@ -1,33 +1,11 @@
-name: product-view CI
-
-on:
-  workflow_dispatch:
-  push:
-    paths:
-      - 'product-view/**'
-      - 'service-common/**'
-      - 'pom.xml'
-      - 'Dockerfile'
-      - '.dockerignore'
-      - '.github/workflows/service-ci.yaml'
-      - '.github/workflows/product-view.yaml'
-  pull_request:
-    paths:
-      - 'product-view/**'
-      - 'service-common/**'
-      - 'pom.xml'
-      - 'Dockerfile'
-      - '.dockerignore'
-      - '.github/workflows/service-ci.yaml'
-      - '.github/workflows/product-view.yaml'
-
+name: Manual · product-view
+'on':
+  workflow_dispatch: {}
 permissions:
   contents: read
-
 concurrency:
   group: product-view-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
   checks:
     uses: ./.github/workflows/service-ci.yaml

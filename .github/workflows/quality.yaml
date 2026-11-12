@@ -1,9 +1,17 @@
 name: Static analysis and contracts
-on:
+'on':
   workflow_call:
-  push:
-  pull_request:
+    inputs:
+      plan:
+        type: string
+        default: '{}'
+        description: Change plan; empty object selects full verification
   workflow_dispatch:
+    inputs:
+      plan:
+        type: string
+        default: '{}'
+        description: Change plan; empty object selects full verification
 permissions:
   contents: read
 jobs:
@@ -12,83 +20,137 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with: { node-version: '22', cache: npm }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+          cache: npm
       - run: npm ci --ignore-scripts
       - run: npm run format:check
+    if: inputs.plan == '{}' || fromJSON(inputs.plan).flags['formatting']
   javascript:
     name: ESLint JavaScript
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with: { node-version: '22', cache: npm }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+          cache: npm
       - run: npm ci --ignore-scripts
       - run: npm run lint
+    if: inputs.plan == '{}' || fromJSON(inputs.plan).flags['javascript']
   static-analysis:
     name: SpotBugs
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v6
-        with: { distribution: temurin, java-version: '17', cache: maven }
-      - run: mvn -B -ntp -Pquality verify -DskipTests
-      - uses: actions/upload-artifact@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - run: |
+          python - <<'PY'
+          import json, os, subprocess
+          from scripts.ci_plan import SERVICES
+          plan = json.loads(os.environ['PLAN'] or '{}')
+          services = plan.get('services') or SERVICES
+          assert services and set(services) <= set(SERVICES)
+          subprocess.run(['mvn','-B','-ntp','-Pquality','-pl',','.join(services),'-am','verify','-DskipTests'],check=True)
+          PY
+        name: SpotBugs for affected Java modules and their dependencies
+        env:
+          PLAN: ${{ inputs.plan }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
           name: spotbugs-reports
           path: '**/target/spotbugsXml.xml'
           retention-days: 14
+    if: inputs.plan == '{}' || fromJSON(inputs.plan).flags['static-analysis']
   contracts:
     name: OpenAPI and AsyncAPI
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with: { python-version: '3.12' }
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          {
-            node-version: '22',
-            cache: npm,
-            cache-dependency-path: tools/contracts/package-lock.json,
-          }
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tools/contracts/package-lock.json
       - run: python -m pip install -r scripts/requirements-validation.txt
       - run: python scripts/generate_contracts.py --check
       - run: python scripts/check_contracts.py
       - run: npm ci --prefix tools/contracts --ignore-scripts
       - run: npm run validate --prefix tools/contracts
+    if: inputs.plan == '{}' || fromJSON(inputs.plan).flags['contracts']
   deployment-validation:
     name: Workflows and deployment logic
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with: { python-version: '3.12' }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Install free CI policy tools
+        run: python -m pip install -r scripts/requirements-ci.txt
       - uses: docker://rhysd/actionlint:1.7.7
       - run: docker compose config --quiet
       - name: Deployment boundary tests
         run: |
           mkdir -p test-results
           python -m unittest discover -s scripts/tests -v > test-results/pipeline-tests.log 2>&1
-      - uses: actions/upload-artifact@v7
+      - name: Audit workflow security with free open-source zizmor
+        run: zizmor --offline --min-severity high --min-confidence high .github/workflows
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
           name: deployment-validation-reports
           path: test-results/pipeline-tests.log
           retention-days: 14
+    if: inputs.plan == '{}' || fromJSON(inputs.plan).flags['deployment-validation']
   gate:
     name: Quality gate
     if: always()
-    needs: [formatting, javascript, static-analysis, contracts, deployment-validation]
+    needs:
+      - formatting
+      - javascript
+      - static-analysis
+      - contracts
+      - deployment-validation
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - env: { RESULTS: '${{ toJSON(needs) }}' }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Explain planned skips and reject blocked checks
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+          PLAN: ${{ inputs.plan }}
         run: |
-          python -c 'import json,os; results=json.loads(os.environ["RESULTS"]); assert all(j["result"]=="success" for j in results.values()), results'
+          python - <<'PY'
+          import json, os, subprocess, sys
+          plan = json.loads(os.environ["PLAN"] or "{}")
+          tracks = {'formatting': 'formatting', 'javascript': 'javascript', 'static-analysis': 'static-analysis', 'contracts': 'contracts', 'deployment-validation': 'deployment-validation'}
+          expected = {name: plan.get("flags", {}).get(flag, True) for name, flag in tracks.items()}
+          subprocess.run([sys.executable, "scripts/ci_gate.py", "--expected", json.dumps(expected)], check=True)
+          PY

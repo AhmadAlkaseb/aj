@@ -1,33 +1,11 @@
-name: apigateway CI
-
-on:
-  workflow_dispatch:
-  push:
-    paths:
-      - 'apigateway/**'
-      - 'service-common/**'
-      - 'pom.xml'
-      - 'Dockerfile'
-      - '.dockerignore'
-      - '.github/workflows/service-ci.yaml'
-      - '.github/workflows/apigateway.yaml'
-  pull_request:
-    paths:
-      - 'apigateway/**'
-      - 'service-common/**'
-      - 'pom.xml'
-      - 'Dockerfile'
-      - '.dockerignore'
-      - '.github/workflows/service-ci.yaml'
-      - '.github/workflows/apigateway.yaml'
-
+name: Manual · apigateway
+'on':
+  workflow_dispatch: {}
 permissions:
   contents: read
-
 concurrency:
   group: apigateway-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
   checks:
     uses: ./.github/workflows/service-ci.yaml

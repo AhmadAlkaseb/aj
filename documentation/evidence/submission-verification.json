@@ -1,0 +1,18 @@
+{
+  "result": "PASS",
+  "reportPages": 25,
+  "reportSourceCharacters": 69812,
+  "embeddedAppendices": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E"
+  ],
+  "editablePresentations": {
+    "mandatory-assignment-1": 9,
+    "mandatory-assignment-2": 9
+  },
+  "externalGitHubLogin": "requires owned OAuth app and actual user login",
+  "remoteCi": "not inferred from local verification"
+}

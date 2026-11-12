@@ -4,6 +4,27 @@
       "name": "aj-availability",
       "rules": [
         {
+          "alert": "AJQueueBacklog",
+          "expr": "rabbitmq_queue_messages_ready{queue!=\"aj.dead\"} > 0",
+          "for": "60s",
+          "labels": {"severity": "warning"},
+          "annotations": {"summary": "Messages have been waiting in a business queue for at least one minute"}
+        },
+        {
+          "alert": "AJDeploymentUnavailable",
+          "expr": "kube_deployment_spec_replicas{namespace=\"aj\"} > kube_deployment_status_replicas_available{namespace=\"aj\"}",
+          "for": "120s",
+          "labels": {"severity": "warning"},
+          "annotations": {"summary": "Kubernetes deployment has fewer available replicas than requested"}
+        },
+        {
+          "alert": "AJContainerRestarting",
+          "expr": "increase(kube_pod_container_status_restarts_total{namespace=\"aj\"}[10m]) > 3",
+          "for": "30s",
+          "labels": {"severity": "warning"},
+          "annotations": {"summary": "A Kubernetes container is repeatedly restarting"}
+        },
+        {
           "alert": "AJDependencyDown",
           "expr": "up == 0",
           "for": "10s",

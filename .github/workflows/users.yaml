@@ -1,33 +1,11 @@
-name: users CI
-
-on:
-  workflow_dispatch:
-  push:
-    paths:
-      - 'users/**'
-      - 'service-common/**'
-      - 'pom.xml'
-      - 'Dockerfile'
-      - '.dockerignore'
-      - '.github/workflows/service-ci.yaml'
-      - '.github/workflows/users.yaml'
-  pull_request:
-    paths:
-      - 'users/**'
-      - 'service-common/**'
-      - 'pom.xml'
-      - 'Dockerfile'
-      - '.dockerignore'
-      - '.github/workflows/service-ci.yaml'
-      - '.github/workflows/users.yaml'
-
+name: Manual · users
+'on':
+  workflow_dispatch: {}
 permissions:
   contents: read
-
 concurrency:
   group: users-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
   checks:
     uses: ./.github/workflows/service-ci.yaml

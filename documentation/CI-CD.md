@@ -1,6 +1,84 @@
 # CI/CD — build, verify, publish and deploy
 
-The repository has nine service entry-point workflows and reusable workflows for Java checks, quality, system acceptance, image publication and Kubernetes deployment. PR/push checks run on disposable GitHub-hosted machines. Deployment runs only from a manual main-branch release/rollback on a configured runner with cluster access.
+`ci.yaml` is the single PR/main-push/merge-queue entry point. It plans affected work,
+explains skipped tracks and presents a dependency graph with one stable **Ready to merge**
+check. The nine service entry points are now manual debugging tools, avoiding duplicate
+automatic runs. PR checks use disposable GitHub-hosted Linux runners; deployments remain
+manual, trusted-main releases on a configured runner with cluster access.
+
+## Change-aware CI
+
+```mermaid
+flowchart LR
+    Changes[01 · Change plan] --> Quality[02 · Selected quality checks]
+    Quality --> Services[03 · Affected service matrix]
+    Services --> Images[04 · Tested JAR → build → scan]
+    Images --> System[05 · Selected system tests]
+    Changes --> Security[06 · Security + dependency audits]
+    Changes --> Docs[07 · Documentation integrity]
+    System --> Gate[Ready to merge]
+    Security --> Gate
+    Docs --> Gate
+    Quality --> Gate
+```
+
+Each affected service expands to **validate → unit + integration → package → service gate**.
+Packaging waits for both test tracks. Image verification waits for tested JARs; system
+acceptance waits for selected builds/scans. Independent security and documentation tracks
+can finish even when another track fails. The final gate runs after all selected work
+and fails on errors, cancellation, missing jobs or unexpected skips. Only skips declared
+by the change plan are accepted. Configure **Ready to merge** as the required branch check.
+The workflow itself has no path filter that can leave that check permanently pending.
+
+| Changed area | Work selected |
+| --- | --- |
+| Report/Markdown/SVG only | Documentation integrity; no Java/image/system matrix |
+| Frontend CSS/HTML | Frontend package/tests, formatting, container scan and browser acceptance; Java static analysis/ESLint skip when unaffected |
+| Frontend JavaScript | Frontend pipeline plus ESLint and browser acceptance |
+| One owner backend | That service, Java analysis, contracts, API acceptance and fresh-database cooperation |
+| `service-common`, parent build, Dockerfiles or workflow definitions | Full service and quality verification |
+| Compose, identity, Kubernetes or monitoring configuration | Runtime/deployment validation and system acceptance |
+| Missing Git base, merge queue, manual CI or release | Full verification as a safe fallback |
+
+Renames account for both old and new paths; deletions still select their owner. Every run
+uploads `ci-change-plan`, prints reasons for RUN/SKIP and writes native GitHub test-result
+tables. Unit/integration XML and scan reports remain downloadable artifacts. Workflow
+concurrency cancels superseded PR runs; matrices use at most three runners in parallel.
+
+Dependency audits are selective too: Python source and requirements select their
+relevant checks; npm lock/config changes select npm audit; infrastructure changes
+select IaC scanning. A CSS-only change does not repeat unrelated Python dependency
+audits. Selected security tracks still scan for secrets. Weekly and release runs
+perform the complete security suite, including the CI tool requirements.
+
+CI and release images use `Dockerfile.ci`: the downloaded JAR checksum is verified and
+that exact tested JAR is copied into the runtime image. Image creation does not compile
+another untested JAR. Maven/npm caches and Buildx caches reduce repeated work; PR images
+are scanned locally without publishing to GHCR. Release candidates retain SBOM/provenance
+and are promoted only after their exact digest passes scanning.
+
+## Free tools and supply-chain controls
+
+All added components are open source or native GitHub features. There is no external
+reporting SaaS, paid formatter, paid Grafana plugin or third-party account requirement.
+Prettier, ESLint, SpotBugs, Actionlint, Trivy, Bandit, pip-audit and zizmor are free tools.
+CodeQL runs only for public repositories, where it is free; private repositories keep
+the open-source gates and explicitly skip that optional CodeQL track.
+
+Remote Actions are pinned to complete commit SHAs. [actions-lock.json](../.github/actions-lock.json)
+records verified versions and upstream repositories; updates are deliberate through
+`python scripts/pin_workflow_actions.py` or reviewed Dependabot PRs. Checkouts do not
+persist repository credentials. PR workflows do not use `pull_request_target`, access
+deployment secrets or publish packages. zizmor checks workflow trust boundaries in
+addition to Actionlint syntax validation.
+
+Sources: [GitHub job dependencies](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-jobs),
+[GitHub job summaries](https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#adding-a-job-summary),
+[zizmor installation](https://docs.zizmor.sh/installation/),
+[Prettier](https://prettier.io/docs/), [Actionlint](https://github.com/rhysd/actionlint),
+[Trivy](https://github.com/aquasecurity/trivy).
+
+## Release dependencies
 
 ```mermaid
 flowchart TD
@@ -14,10 +92,11 @@ flowchart TD
     Release --> Quality[SpotBugs, contracts and pipeline tests]
     Release --> System[API, browser and isolated cooperation]
     Release --> Security[CodeQL]
-    All --> Images[Build nine candidates with SBOM and provenance]
-    Quality --> Images
-    System --> Images
-    Security --> Images
+    All --> Ready[Release readiness gate]
+    Quality --> Ready
+    System --> Ready
+    Security --> Ready
+    Ready --> Images[Build nine tested JARs with SBOM and provenance]
     Images --> Scan[Scan exact image digests]
     Scan --> Manifest[One revision and nine verified digests]
     Manifest --> Staging[Staging: migrate, roll out and smoke]
@@ -29,9 +108,11 @@ flowchart TD
 
 | Workflow | Stages / purpose |
 | --- | --- |
-| `users.yaml`, `products.yaml`, `orders.yaml`, `payments.yaml`, `product-view.yaml`, `product-synchronizer.yaml`, `apigateway.yaml`, `frontend.yaml`, `confirmation-job.yaml` | Service-specific triggers; call the same reusable Java pipeline. |
+| `ci.yaml` | Change plan → selected quality → affected services → container scans → system acceptance, independent security/docs, then Ready to merge. |
+| `users.yaml`, `products.yaml`, `orders.yaml`, `payments.yaml`, `product-view.yaml`, `product-synchronizer.yaml`, `apigateway.yaml`, `frontend.yaml`, `confirmation-job.yaml` | Manual service debugging; automatic runs are centralized in ci.yaml. |
 | `service-ci.yaml` | Validate → parallel unit/integration jobs → package/checksum → service gate. Every job gets a fresh checkout; reports and JARs are separate artifacts. |
-| `quality.yaml` | Parallel Prettier, ESLint, SpotBugs, OpenAPI/AsyncAPI checks and workflow/deployment tests → quality gate. |
+| `quality.yaml` | Selected Prettier, ESLint, module-scoped SpotBugs, contracts, Actionlint, zizmor and policy tests → skip-aware quality gate. |
+| `container-ci.yaml` | Verify JAR checksum → build runtime image → Trivy scan; no PR publication. |
 | `system.yaml` | Separate runner environments for API/broker/recovery, browser/roles/OIDC and self-starting backend cooperation → system gate. Outage tests within one environment run sequentially. |
 | `codeql.yaml` | Security queries; standalone checks and a reusable release gate. |
 | `security.yaml` | Mandatory release gate: Trivy dependency/secret/IaC matrix, Bandit, pip-audit and npm audit; also weekly scanning. |

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="352" viewBox="0 0 1200 352" role="img" aria-labelledby="title desc">
+<title id="title">Kubernetes recovery and bounded scaling</title><desc id="desc">Three independently verified control loops; scaling does not replicate state stores</desc>
+<defs><marker id="arrow-172b4d" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#172b4d"/></marker><marker id="arrow-2563a6" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#2563a6"/></marker><marker id="arrow-187a69" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#187a69"/></marker><marker id="arrow-7556a6" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#7556a6"/></marker><marker id="arrow-9c6720" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#9c6720"/></marker></defs>
+<style>text{font-family:Arial,Helvetica,sans-serif} .body{font-size:22px;fill:#172b4d}.small{font-size:19px;fill:#475569}.heading{font-size:19px;font-weight:700;letter-spacing:.5px}</style>
+<rect width="1200" height="352" fill="white"/>
+<text x="24" y="36" font-size="30" fill="#172b4d" font-weight="700" text-anchor="start">Kubernetes recovery and bounded scaling</text>
+<text x="24" y="68" font-size="20" fill="#475569" font-weight="400" text-anchor="start">Three independently verified control loops; scaling does not replicate state stores</text>
+<text x="24" y="137" font-size="17" fill="#2563a6" font-weight="700" text-anchor="start">POD RECOVERY</text>
+<rect x="228" y="102" width="290" height="59" rx="12" fill="#eef5fc" stroke="#2563a6" stroke-width="1.6"/>
+<text x="373" y="138" font-size="19" fill="#172b4d" font-weight="400" text-anchor="middle">Frontend pod removed</text>
+<polyline points="518,132 548,132" fill="none" stroke="#2563a6" stroke-width="2.5" marker-end="url(#arrow-2563a6)"/>
+<rect x="548" y="102" width="290" height="59" rx="12" fill="#eef5fc" stroke="#2563a6" stroke-width="1.6"/>
+<text x="693" y="138" font-size="19" fill="#172b4d" font-weight="400" text-anchor="middle">Deployment replaces pod</text>
+<polyline points="838,132 868,132" fill="none" stroke="#2563a6" stroke-width="2.5" marker-end="url(#arrow-2563a6)"/>
+<rect x="868" y="102" width="290" height="59" rx="12" fill="#eef5fc" stroke="#2563a6" stroke-width="1.6"/>
+<text x="1013" y="138" font-size="19" fill="#172b4d" font-weight="400" text-anchor="middle">Readiness restores traffic</text>
+<text x="24" y="216" font-size="17" fill="#187a69" font-weight="700" text-anchor="start">CPU AUTOSCALING</text>
+<rect x="228" y="181" width="290" height="59" rx="12" fill="#edf8f3" stroke="#187a69" stroke-width="1.6"/>
+<text x="373" y="217" font-size="19" fill="#172b4d" font-weight="400" text-anchor="middle">CPU exceeds target</text>
+<polyline points="518,211 548,211" fill="none" stroke="#187a69" stroke-width="2.5" marker-end="url(#arrow-187a69)"/>
+<rect x="548" y="181" width="290" height="59" rx="12" fill="#edf8f3" stroke="#187a69" stroke-width="1.6"/>
+<text x="693" y="217" font-size="19" fill="#172b4d" font-weight="400" text-anchor="middle">metrics-server → HPA</text>
+<polyline points="838,211 868,211" fill="none" stroke="#187a69" stroke-width="2.5" marker-end="url(#arrow-187a69)"/>
+<rect x="868" y="181" width="290" height="59" rx="12" fill="#edf8f3" stroke="#187a69" stroke-width="1.6"/>
+<text x="1013" y="217" font-size="19" fill="#172b4d" font-weight="400" text-anchor="middle">Frontend grows: 1 → 2</text>
+<text x="24" y="295" font-size="17" fill="#9c6720" font-weight="700" text-anchor="start">EVENT-DRIVEN JOB</text>
+<rect x="228" y="260" width="290" height="59" rx="12" fill="#fff7e8" stroke="#9c6720" stroke-width="1.6"/>
+<text x="373" y="296" font-size="19" fill="#172b4d" font-weight="400" text-anchor="middle">order.completed queued</text>
+<polyline points="518,290 548,290" fill="none" stroke="#9c6720" stroke-width="2.5" marker-end="url(#arrow-9c6720)"/>
+<rect x="548" y="260" width="290" height="59" rx="12" fill="#fff7e8" stroke="#9c6720" stroke-width="1.6"/>
+<text x="693" y="296" font-size="19" fill="#172b4d" font-weight="400" text-anchor="middle">KEDA starts one-shot Job</text>
+<polyline points="838,290 868,290" fill="none" stroke="#9c6720" stroke-width="2.5" marker-end="url(#arrow-9c6720)"/>
+<rect x="868" y="260" width="290" height="59" rx="12" fill="#fff7e8" stroke="#9c6720" stroke-width="1.6"/>
+<text x="1013" y="296" font-size="19" fill="#172b4d" font-weight="400" text-anchor="middle">Store PDF → ACK → exit</text>
+</svg>

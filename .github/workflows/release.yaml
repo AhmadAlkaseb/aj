@@ -1,5 +1,5 @@
-name: Verified release and deployment
-on:
+name: AJ CD · Verified release and deployment
+'on':
   workflow_dispatch:
     inputs:
       publish:
@@ -9,7 +9,10 @@ on:
       target:
         description: Deployment target (production promotes the same staging digests)
         type: choice
-        options: [none, staging, production]
+        options:
+          - none
+          - staging
+          - production
         default: none
 permissions:
   contents: read
@@ -41,17 +44,15 @@ jobs:
       max-parallel: 3
       matrix:
         service:
-          [
-            users,
-            products,
-            orders,
-            payments,
-            product-view,
-            product-synchronizer,
-            apigateway,
-            frontend,
-            confirmation-job,
-          ]
+          - users
+          - products
+          - orders
+          - payments
+          - product-view
+          - product-synchronizer
+          - apigateway
+          - frontend
+          - confirmation-job
     uses: ./.github/workflows/service-ci.yaml
     with:
       service: ${{ matrix.service }}
@@ -67,9 +68,11 @@ jobs:
       contents: read
       security-events: write
     uses: ./.github/workflows/codeql.yaml
+    if: github.event.repository.private == false
   images:
-    if: inputs.publish
-    needs: [services, quality, system, security, supply-chain]
+    if: "!cancelled() && inputs.publish && needs.verify.result == 'success'"
+    needs:
+      - verify
     permissions:
       contents: read
       packages: write
@@ -78,7 +81,7 @@ jobs:
     needs: preflight
     uses: ./.github/workflows/security.yaml
   staging:
-    if: inputs.target != 'none'
+    if: "!cancelled() && inputs.target != 'none' && needs.images.result == 'success'"
     needs: images
     uses: ./.github/workflows/deploy.yaml
     with:
@@ -86,7 +89,7 @@ jobs:
       artifact-run-id: ${{ format('{0}', github.run_id) }}
     secrets: inherit
   production:
-    if: inputs.target == 'production'
+    if: "!cancelled() && inputs.target == 'production' && needs.staging.result == 'success'"
     needs: staging
     uses: ./.github/workflows/deploy.yaml
     with:
@@ -97,20 +100,63 @@ jobs:
     name: Release result
     if: always()
     needs:
-      [preflight, services, quality, system, security, supply-chain, images, staging, production]
+      - preflight
+      - services
+      - quality
+      - system
+      - security
+      - supply-chain
+      - verify
+      - images
+      - staging
+      - production
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       - name: Write stage results and propagate failures
-        env: { RESULTS: '${{ toJSON(needs) }}' }
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+          PUBLISH: ${{ inputs.publish }}
+          TARGET: ${{ inputs.target }}
+          PRIVATE_REPOSITORY: ${{ github.event.repository.private }}
         run: |
           python - <<'PY'
           import json, os
           from pathlib import Path
           results = json.loads(os.environ['RESULTS'])
-          lines = ['## Release stages', '', '| Stage | Result |', '| --- | --- |']
-          lines += [f'| {name} | {job["result"]} |' for name, job in results.items()]
-          with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a') as out:
-              out.write('\n'.join(lines) + '\n')
-          assert not any(job['result'] in ('failure', 'cancelled') for job in results.values()), results
+          expected = {name: True for name in ['preflight','services','quality','system','supply-chain','verify']}
+          expected.update(security=os.environ['PRIVATE_REPOSITORY']=='false', images=os.environ['PUBLISH']=='true',
+                          staging=os.environ['TARGET']!='none', production=os.environ['TARGET']=='production')
+          import subprocess, sys
+          subprocess.run([sys.executable,'scripts/ci_gate.py','--expected',json.dumps(expected),'--title','Release result'],check=True)
+          PY
+  verify:
+    name: Release readiness · all required checks
+    if: always()
+    needs:
+      - preflight
+      - services
+      - quality
+      - system
+      - security
+      - supply-chain
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Require every release track; CodeQL is free on public repositories
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+          PRIVATE_REPOSITORY: ${{ github.event.repository.private }}
+        run: |
+          python - <<'PY'
+          import json, os, subprocess, sys
+          expected = {name: True for name in ["preflight", "services", "quality", "system", "supply-chain"]}
+          expected["security"] = os.environ["PRIVATE_REPOSITORY"] == "false"
+          subprocess.run([sys.executable, "scripts/ci_gate.py", "--expected", json.dumps(expected), "--title", "Release readiness"], check=True)
           PY

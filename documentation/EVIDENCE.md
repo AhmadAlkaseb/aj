@@ -1,5 +1,27 @@
 # Verification evidence
 
+## Assignment review · 12 November 2026
+
+A new isolated `python scripts/verify_java.py --quality` run completed successfully:
+28 unit tests and 14 integration tests, no failures/errors/skips, and SpotBugs.
+The Python suite passed 47 CI/deployment/federation policy tests. Actionlint,
+Prettier and high-confidence/high-severity zizmor workflow checks passed.
+
+Fresh runtime checks passed 24 Compose containers, shared logins, six Grafana
+dashboards, 35 panel queries and nine healthy metrics targets. The isolated
+RabbitMQ publish/Ready/consume check passed. Browser checks passed five SQL GUI
+logins, Mongo Express and Headlamp node access with Secret reads denied.
+
+The report export and both nine-slide editable presentations pass
+`python scripts/check_submission.py`; compact delivery evidence is recorded in
+[submission-verification.json](evidence/submission-verification.json).
+Full logs/screenshots remain in ignored `test-results`. The user will register
+the external OAuth app afterwards; no completed GitHub account login is claimed.
+GitHub-hosted execution/publication remains unverified, with local verification
+used as the requested alternative for this session.
+
+## Earlier verification record
+
 Reviewed 5 November 2026. Results below are local and refer to the recorded source fingerprint. Historical artifact timestamps are retained in [the JSON record](evidence/local-verification.json). They are not fabricated GitHub run results.
 
 | Check | Observed result |

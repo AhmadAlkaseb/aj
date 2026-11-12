@@ -12,12 +12,28 @@ for builds uden Docker. Kør fra repository-roden:
 ./scripts/start.ps1
 ```
 
+Alle lokale containere samles i Docker Desktop under **aj** med faste navne som
+`rabbitmq`, `users`, `users-db`, `product-view-db` og `grafana`.
+Fælles lokalt administratorlogin: **`admin / Admin123!`** til AJ Motors, Grafana,
+RabbitMQ, Keycloak og databaserne. Det kan ændres centralt via `.env`; se
+[lokal drift og login](documentation/LOCAL_SETUP.md).
+
+Start eller vælg Kubernetes eksplicit med `./scripts/start.ps1 -Runtime kubernetes`;
+programmet åbnes da på **https://localhost:8443**, og Grafana/RabbitMQ bruger
+klyngens genererede adgangskoder. Se [Kubernetes-drift](documentation/KUBERNETES.md).
+
 Åbn **http://localhost:3000**. Første build henter Maven-afhængigheder og Docker-images.
+Startscriptet starter også Loki, Alloy, Grafana og Prometheus. Se logs og dashboard på
+**http://localhost:13001** (`admin` / `Admin123!`, medmindre `AJ_ADMIN_PASSWORD` er sat).
+Se [vejledning til logs og overvågning](documentation/OBSERVABILITY.md).
+Grafanas **AJ Control Center** samler alle GUI’er: fem PostgreSQL-databaser,
+MongoDB, Kubernetes, RabbitMQ, Keycloak, Swagger og CI/CD. Databaseværktøjerne
+bruger samme lokale administratorlogin. Kubernetes-GUI’en har læseadgang.
 Ved opstart seedes 20 fiktive kunder, 20 biler, 20 ordrer og 20 betalinger automatisk.
 Der er 10 ledige biler til nye reservationer. Genstart bevarer ændringer uden dubletter;
 se [eksamensdata](documentation/DEMO_DATA.md) for forløb, kontrol og deaktivering.
 Vent på grøn systemstatus. Tryk **Log ind** og brug `kunde01 / Demo123!` eller
-`eksamen-admin / Admin123!`. Se [loginvejledningen](documentation/AUTH.md).
+`admin / Admin123!`. Se [loginvejledningen](documentation/AUTH.md).
 Backends beskytter roller og ejerskab. Kunder ser egne oplysninger og ordrer; administratoren vedligeholder biler og registrerer betalinger. Opret en kunde og en bil, reservér bilen, og gå til Ordrer
 for at oprette en manuel betaling. Under Betalinger kan resultatet registreres som
 modtaget eller mislykket. Kataloget opdateres asynkront.
@@ -54,8 +70,8 @@ ved efterfølgende start. Projektet ændrer ikke mapperne under `system-integrat
 | service-common | — | Fælles buildbibliotek; ingen kørende service |
 
 De otte Java-applikationer bruger intern app-port 7000. Lokale porte er bundet til 127.0.0.1.
-PostgreSQL bruger `postgres / postgres`. RabbitMQ UI: http://localhost:15672,
-login `aj / aj-local`. Dette er udviklingsoplysninger til den lokale opsætning.
+Fælles administrationslogin er `admin / Admin123!`. RabbitMQ UI: http://localhost:15672.
+Applikationernes interne servicekonti bevares. Dette er udviklingsoplysninger til den lokale opsætning.
 
 Hver SQL-database er på sit eget Docker-netværk og kan kun nås internt af sin egen app.
 Product View er eneste MongoDB-ejer. Synchronizer sender snapshots gennem et internt

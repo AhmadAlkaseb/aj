@@ -1,0 +1,36 @@
+discovery.kubernetes "aj" {
+  role = "pod"
+  namespaces { names = ["aj"] }
+}
+discovery.relabel "aj" {
+  targets = discovery.kubernetes.aj.targets
+  rule {
+    source_labels = ["__meta_kubernetes_pod_label_tier"]
+    regex = "application"
+    action = "keep"
+  }
+  rule {
+    source_labels = ["__meta_kubernetes_pod_container_init"]
+    regex = "true"
+    action = "drop"
+  }
+  rule {
+    source_labels = ["__meta_kubernetes_pod_label_app"]
+    target_label = "service"
+  }
+  rule {
+    source_labels = ["__meta_kubernetes_pod_name"]
+    target_label = "pod"
+  }
+  rule {
+    target_label = "project"
+    replacement = "aj"
+  }
+}
+loki.source.kubernetes "aj" {
+  targets = discovery.relabel.aj.output
+  forward_to = [loki.write.local.receiver]
+}
+loki.write "local" {
+  endpoint { url = "http://loki:3100/loki/api/v1/push" }
+}

@@ -1,0 +1,140 @@
+{
+  "uid": "aj-home",
+  "title": "AJ \u00b7 Control Center",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": [
+    "AJ Motors",
+    "home"
+  ],
+  "editable": true,
+  "refresh": "30s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "html",
+        "content": "<h1>AJ Control Center</h1><p>Alle v\u00e6rkt\u00f8jer, databaser og pipelines samlet \u00e9t sted. V\u00e6lg et v\u00e6rkt\u00f8j nedenfor. Eksterne GUI\u2019er \u00e5bner i en ny fane.</p><p><strong>F\u00e6lles administrator:</strong> admin \u00b7 brug samme lokale kodeord i v\u00e6rkt\u00f8jerne. Headlamp bruger lokal l\u00e6seadgang. Kubernetes-workloads kan st\u00e5 i standby, mens Compose k\u00f8rer.</p>"
+      }
+    },
+    {
+      "id": 2,
+      "type": "text",
+      "title": "PostgreSQL \u00b7 alle databaser",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 8,
+        "h": 13
+      },
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"border-top:3px solid #5794f2;padding:18px 12px\"><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#5794f2\" href=\"http://localhost:18080/?pgsql=users-db&amp;username=admin&amp;db=users\" target=\"_blank\" rel=\"noopener noreferrer\">Users \u2197</a><br><span style=\"color:#a6adbb\">Kunder og inbox/outbox</span></p><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#5794f2\" href=\"http://localhost:18080/?pgsql=products-db&amp;username=admin&amp;db=products\" target=\"_blank\" rel=\"noopener noreferrer\">Products \u2197</a><br><span style=\"color:#a6adbb\">Biler, priser og reservationer</span></p><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#5794f2\" href=\"http://localhost:18080/?pgsql=orders-db&amp;username=admin&amp;db=orders\" target=\"_blank\" rel=\"noopener noreferrer\">Orders \u2197</a><br><span style=\"color:#a6adbb\">Ordrer, historik og PDF</span></p><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#5794f2\" href=\"http://localhost:18080/?pgsql=payments-db&amp;username=admin&amp;db=payments\" target=\"_blank\" rel=\"noopener noreferrer\">Payments \u2197</a><br><span style=\"color:#a6adbb\">Betalinger og audit</span></p><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#5794f2\" href=\"http://localhost:18080/?pgsql=keycloak-db&amp;username=admin&amp;db=keycloak\" target=\"_blank\" rel=\"noopener noreferrer\">Keycloak DB \u2197</a><br><span style=\"color:#a6adbb\">Identitetsdatabasen</span></p></div>"
+      }
+    },
+    {
+      "id": 3,
+      "type": "text",
+      "title": "MongoDB \u00b7 katalog",
+      "transparent": true,
+      "gridPos": {
+        "x": 8,
+        "y": 4,
+        "w": 8,
+        "h": 13
+      },
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"border-top:3px solid #73bf69;padding:18px 12px\"><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#73bf69\" href=\"http://localhost:18081/\" target=\"_blank\" rel=\"noopener noreferrer\">Mongo Express \u2197</a><br><span style=\"color:#a6adbb\">Databaser, collections og dokumenter</span></p><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#73bf69\" href=\"/d/aj-platform\">Product View \u2197</a><br><span style=\"color:#a6adbb\">Den afledte l\u00e6semodel i Grafana</span></p><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#73bf69\" href=\"http://localhost:18080/\" target=\"_blank\" rel=\"noopener noreferrer\">Databaseoversigt \u2197</a><br><span style=\"color:#a6adbb\">\u00c5bn alle PostgreSQL-servere</span></p></div>"
+      }
+    },
+    {
+      "id": 4,
+      "type": "text",
+      "title": "Kubernetes \u00b7 Headlamp",
+      "transparent": true,
+      "gridPos": {
+        "x": 16,
+        "y": 4,
+        "w": 8,
+        "h": 13
+      },
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"border-top:3px solid #b877d9;padding:18px 12px\"><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#b877d9\" href=\"http://localhost:14466/\" target=\"_blank\" rel=\"noopener noreferrer\">Kubernetes GUI \u2197</a><br><span style=\"color:#a6adbb\">Nodes, pods, workloads, Services og PVC</span></p><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#b877d9\" href=\"/d/aj-kubernetes\">Kubernetes-m\u00e5linger \u2197</a><br><span style=\"color:#a6adbb\">HPA, replikaer og genstarter i aktiv Kubernetes-k\u00f8rsel</span></p><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#b877d9\" href=\"https://headlamp.dev/docs/latest/\" target=\"_blank\" rel=\"noopener noreferrer\">Kubernetes-projekt \u2197</a><br><span style=\"color:#a6adbb\">Officiel Headlamp-dokumentation</span></p></div>"
+      }
+    },
+    {
+      "id": 5,
+      "type": "text",
+      "title": "Beskeder og identitet",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 8,
+        "h": 13
+      },
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"border-top:3px solid #ffb357;padding:18px 12px\"><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#ffb357\" href=\"http://localhost:15672/\" target=\"_blank\" rel=\"noopener noreferrer\">RabbitMQ \u2197</a><br><span style=\"color:#a6adbb\">Exchanges, k\u00f8er, Ready og Unacked</span></p><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#ffb357\" href=\"http://localhost:8180/admin/\" target=\"_blank\" rel=\"noopener noreferrer\">Keycloak \u2197</a><br><span style=\"color:#a6adbb\">Brugere, roller og clients</span></p><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#ffb357\" href=\"/d/aj-messaging\">Beskedlevering \u2197</a><br><span style=\"color:#a6adbb\">Outbox, publish, confirms og ACK</span></p></div>"
+      }
+    },
+    {
+      "id": 6,
+      "type": "text",
+      "title": "Overv\u00e5gning og fejls\u00f8gning",
+      "transparent": true,
+      "gridPos": {
+        "x": 8,
+        "y": 17,
+        "w": 8,
+        "h": 13
+      },
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"border-top:3px solid #56d2d9;padding:18px 12px\"><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#56d2d9\" href=\"/d/aj-platform\">Driftsoverblik \u2197</a><br><span style=\"color:#a6adbb\">HTTP, afh\u00e6ngigheder og k\u00f8er</span></p><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#56d2d9\" href=\"/d/aj-http\">HTTP og services \u2197</a><br><span style=\"color:#a6adbb\">Svartider, trafik og fejl</span></p><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#56d2d9\" href=\"/d/aj-logs\">Logs \u00b7 Loki \u2197</a><br><span style=\"color:#a6adbb\">S\u00f8g p\u00e5 service, eventId eller correlationId</span></p><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#56d2d9\" href=\"http://localhost:9090/\" target=\"_blank\" rel=\"noopener noreferrer\">Prometheus \u2197</a><br><span style=\"color:#a6adbb\">Targets, PromQL og alarmer</span></p><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#56d2d9\" href=\"/explore\">Grafana Explore \u2197</a><br><span style=\"color:#a6adbb\">Ad hoc-analyse af metrics og logs</span></p></div>"
+      }
+    },
+    {
+      "id": 7,
+      "type": "text",
+      "title": "Udvikling og CI/CD",
+      "transparent": true,
+      "gridPos": {
+        "x": 16,
+        "y": 17,
+        "w": 8,
+        "h": 13
+      },
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"border-top:3px solid #f2495c;padding:18px 12px\"><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#f2495c\" href=\"http://localhost:3000/\" target=\"_blank\" rel=\"noopener noreferrer\">AJ Motors \u2197</a><br><span style=\"color:#a6adbb\">\u00c5bn programmet</span></p><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#f2495c\" href=\"http://localhost:3000/swagger/\" target=\"_blank\" rel=\"noopener noreferrer\">Swagger \u00b7 API GUI \u2197</a><br><span style=\"color:#a6adbb\">Interaktive API-kontrakter</span></p><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#f2495c\" href=\"https://github.com/AhmadAlkaseb/aj/actions\" target=\"_blank\" rel=\"noopener noreferrer\">CI \u00b7 pipeline og resultater \u2197</a><br><span style=\"color:#a6adbb\">Workflows og resultater \u00b7 nye CI-regler aktiveres ved push</span></p><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#f2495c\" href=\"https://github.com/AhmadAlkaseb/aj/actions/workflows/release.yaml\" target=\"_blank\" rel=\"noopener noreferrer\">Release og deployment \u2197</a><br><span style=\"color:#a6adbb\">Verificering \u2192 staging \u2192 produktion</span></p><p style=\"margin:0 0 18px 0\"><a style=\"font-size:18px;font-weight:600;color:#f2495c\" href=\"http://localhost:3001/\" target=\"_blank\" rel=\"noopener noreferrer\">Open WebUI \u00b7 valgfri \u2197</a><br><span style=\"color:#a6adbb\">Eksisterende separat AI-v\u00e6rkt\u00f8j; kr\u00e6ver at det er startet</span></p></div>"
+      }
+    }
+  ],
+  "links": [
+    {
+      "title": "Alle dashboards",
+      "type": "dashboards",
+      "tags": [
+        "AJ Motors"
+      ],
+      "asDropdown": true
+    }
+  ]
+}

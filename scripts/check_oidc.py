@@ -15,6 +15,7 @@ import urllib.parse
 import urllib.request
 import uuid
 from playwright.sync_api import sync_playwright, expect
+from configure_local import credentials as local_credentials
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / 'test-results'
@@ -32,7 +33,8 @@ def main():
     with sync_playwright() as p:
         candidates = sorted((Path(os.environ.get('LOCALAPPDATA', '/tmp')) / 'ms-playwright').glob('chromium-*/chrome-win64/chrome.exe'), reverse=True)
         browser = p.chromium.launch(headless=True, **({'executable_path': str(candidates[0])} if candidates else {}))
-        for username, password, role in [('kunde01', 'Demo123!', 'customer'), ('eksamen-admin', 'Admin123!', 'admin')]:
+        username, password = local_credentials()
+        for username, password, role in [('kunde01', 'Demo123!', 'customer'), (username, password, 'admin')]:
             context = browser.new_context(viewport={'width': 1440, 'height': 1000})
             page = context.new_page()
             errors = []

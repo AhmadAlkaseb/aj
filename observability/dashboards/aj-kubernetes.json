@@ -1,0 +1,212 @@
+{
+  "uid": "aj-kubernetes",
+  "title": "AJ \u00b7 Kubernetes drift",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": [
+    "AJ Motors"
+  ],
+  "refresh": "5s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "links": [
+    {
+      "title": "\u2302 Control Center",
+      "type": "link",
+      "url": "/d/aj-home",
+      "icon": "home",
+      "targetBlank": false
+    },
+    {
+      "title": "AJ dashboards",
+      "type": "dashboards",
+      "tags": [
+        "AJ Motors"
+      ]
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "title": "\u00d8nskede replikaer",
+      "description": "Desired number of application pods.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "kube_deployment_spec_replicas{namespace=\"aj\"}",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 2,
+      "title": "Tilg\u00e6ngelige replikaer",
+      "description": "Ready and available pods.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "kube_deployment_status_replicas_available{namespace=\"aj\"}",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 3,
+      "title": "Container-genstarter",
+      "description": "Investigate increasing restarts.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "kube_pod_container_status_restarts_total{namespace=\"aj\"}",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 4,
+      "title": "Pods klar",
+      "description": "Readiness determines traffic routing.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "kube_pod_status_ready{namespace=\"aj\",condition=\"true\"}",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 5,
+      "title": "HPA \u00f8nskede replikaer",
+      "description": "CPU autoscaling target.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "kube_horizontalpodautoscaler_status_desired_replicas{namespace=\"aj\"}",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 6,
+      "title": "Vedvarende lagring",
+      "description": "1 means the data volume is bound.",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aj-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "kube_persistentvolumeclaim_status_phase{namespace=\"aj\",phase=\"Bound\"}",
+          "refId": "A",
+          "legendFormat": "{{service}}{{queue}}{{pod}}{{deployment}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    }
+  ]
+}
