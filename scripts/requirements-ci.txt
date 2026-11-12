@@ -1,2 +1,2 @@
-PyYAML==6.0.2
+PyYAML==6.0.3
 zizmor==1.32.0
