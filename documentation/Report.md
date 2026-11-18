@@ -17,6 +17,8 @@ urlcolor: blue
 
 ## Development of Large Systems — Project Report
 
+![AJ Motors cover illustration](report-figures/cover.png)
+
 **Authors**
 
 - Ahmad Abdel Razak Hussein Alkaseb
@@ -24,14 +26,11 @@ urlcolor: blue
 - Asger Valdemar Bergøe
 - Laith Abdel Razak Hussein Alkaseb
 
-**Institution:** Business Academy Copenhagen (EK)  
-**Course:** Development of Large Systems  
-**Delivery date:** 11 December 2026  
-**Status of this document:** Working report, requirements and deployment review updated on 12 November 2026
+```{=latex}
+\vspace{\baselineskip}
+```
 
-**Repository:** [AhmadAlkaseb/aj](https://github.com/AhmadAlkaseb/aj)
-
-This report covers the technical and project-management topics in Mandatory Assignments 1 and 2 and follows the report structure in the final project description. It distinguishes implemented behaviour from proposed work.
+**Delivery date:** 11 December 2026
 
 <!-- PDF layout: the cover has no page number; the next page starts at 1. -->
 \thispagestyle{empty}
@@ -42,17 +41,17 @@ This report covers the technical and project-management topics in Mandatory Assi
 
 | Figure | Description | Location |
 | --- | --- | --- |
-| 1 | System architecture | Section 2.1; [SVG](report-figures/architecture.svg) |
-| 2 | Databases and ownership references | Section 2.2; [SVG](report-figures/databases.svg) |
-| 3 | API endpoints and request contracts | Section 2.3; [SVG](report-figures/api-contracts.svg) |
-| 4 | API response contracts | Section 2.3; [SVG](report-figures/api-responses.svg) |
+| 1 | System architecture | Section 2.1 |
+| 2 | Databases and ownership references | Section 2.2 |
+| 3 | API endpoints and request contracts | Section 2.3 |
+| 4 | API response contracts | Section 2.3 |
 | 5 | Reservation and payment saga | Section 2.4.5 |
-| 6 | Reliable message delivery | Section 2.4.7; [SVG](report-figures/message-delivery.svg) |
-| 7 | Docker Compose system architecture | Section 3.1; [SVG](report-figures/docker-compose.svg) |
-| 8 | Local Kubernetes deployment | Section 3.2; [SVG](report-figures/kubernetes-deployment.svg) |
-| 9 | Kubernetes recovery and bounded scaling | Section 3.2; [SVG](report-figures/kubernetes-recovery.svg) |
+| 6 | Reliable message delivery | Section 2.4.7 |
+| 7 | Docker Compose system architecture | Section 3.1 |
+| 8 | Local Kubernetes deployment | Section 3.2 |
+| 9 | Kubernetes recovery and bounded scaling | Section 3.2 |
 | 10 | Verification and gated release pipeline | Section 3.2.2 |
-| 11 | Observability and message visibility | Section 3.2.3; [SVG](report-figures/observability.svg) |
+| 11 | Observability and message visibility | Section 3.2.3 |
 | 12 | Proposed Azure deployment | Section 3.3 |
 | 13 | Verification boundaries | Section 4.1 |
 
@@ -62,7 +61,8 @@ This report covers the technical and project-management topics in Mandatory Assi
 - Appendix B: Mandatory Assignment 2 coverage.
 - Appendix C: Final-project requirement assessment.
 - Appendix D: Installation and verification procedure.
-- Appendix E: Evidence, documentation and outstanding decisions.
+- Appendix E: Evidence and delivery boundaries.
+- Appendix F: External identity activation and verification.
 
 ## Table of contents
 
@@ -91,7 +91,7 @@ The implemented development system contains customer management, car management,
 
 For examination demonstrations, startup automatically inserts 20 fictional customers, cars, orders and payments with stable references. Six examples are completed, four have pending payments and ten cars remain available after failed historical payments.
 
-Stripe remains outside scope. Identity uses self-hosted Keycloak/OpenID Connect with exam accounts and self-registration. The requirement names an external identity provider; local Keycloak alone is therefore not asserted as unambiguously meeting that condition. GitHub federation is implemented as an idempotent broker configurator and redirect verifier; activation needs an owned OAuth app and a real browser login. See [EXTERNAL-LOGIN.md](EXTERNAL-LOGIN.md). [3], [20], [31], [35], [36]
+Stripe remains outside scope. Identity uses self-hosted Keycloak/OpenID Connect with exam accounts and self-registration. The requirement names an external identity provider; local Keycloak alone is therefore not asserted as unambiguously meeting that condition. GitHub federation is implemented as an idempotent broker configurator and redirect verifier; activation needs an owned OAuth app and a real browser login. The activation and verification procedure is included in Appendix F. [3], [20], [31], [35], [36]
 
 ## 1.2. Functional and non-functional requirements
 
@@ -153,13 +153,13 @@ Choices support the course's distributed-systems goals. Their trade-offs and act
 
 ## 2.1. Introduction to the microservices architecture
 
-The application separates customer information, authoritative product state, product queries, orders and payments. A gateway routes public API requests, while RabbitMQ coordinates reservation outcomes, payment outcomes and read-model changes.
+Figure 1 presents the group's architecture design: the Frontend communicates through an API Gateway with Users, Products, Product View, Orders and Payments. Separate stores hold customer, product, order and payment data. Product Synchronizer consumes product events to update the catalogue read model.
 
-![Figure 1 — System architecture](report-figures/architecture.svg)
+![Figure 1 — System architecture](report-figures/architecture-user.pdf)
 
-*Figure 1. Logical system architecture. Solid arrows represent synchronous HTTP or owner database access; dashed arrows represent RabbitMQ delivery. Editable overview: [model sources](report-figures/README.md); full UML: [Architecture.puml](application/Architecture.puml).*
+*Figure 1. Group architecture design. Blue boxes denote internal services and red boxes external integrations. Solid arrows show synchronous communication; dashed arrows show asynchronous messages. The RabbitMQ boxes identify product events, quantitycheck/quantityreserved and paymentfail.*
 
-This view describes responsibilities and communication independently of the runtime. The frontend uses Keycloak for browser login, and backends validate tokens using its public keys.
+The design includes Stripe and a generic OAuth integration. In the implemented system, payment is registered manually and Stripe is outside scope. Keycloak/OpenID Connect handles browser login, and backends validate its tokens. The drawn Synchronizer-to-read-store connection is realised through Product View's authenticated owner API, rather than direct Synchronizer database access (Section 2.2). Section 2.3 lists all implemented events; Figures 7–8 show runtime infrastructure and the confirmation processor.
 
 There are five separately runnable domain/API backends: Users, Products, Product View, Orders and Payments. [3]
 
@@ -185,7 +185,7 @@ Its private PostgreSQL database supports constraints, transactional reservation 
 
 Product View separates catalogue queries from authoritative product commands. It exposes read-only REST and typed GraphQL consumed by the real frontend, plus a private authenticated projection-write API. It neither subscribes directly to RabbitMQ nor produces business events: Product Synchronizer relays the original product event identity and snapshot to its owner API.
 
-MongoDB owns the `product_view` document model, embedding the display fields needed by catalogue filters without cross-service joins. Conditional version updates, inbox identity and tombstones reject stale snapshots and resurrection. Query depth, page size and filters are bounded. Reads can continue from an existing projection while messaging is unavailable, with visible eventual-consistency limits; MongoDB failure prevents catalogue reads. Section 4.8 reports the 10,000-car measurement rather than assuming the projection is faster. Database choice and ownership are documented in [ADR-002](decisions/002-projection-ownership.md).
+MongoDB owns the `product_view` document model, embedding the display fields needed by catalogue filters without cross-service joins. Conditional version updates, inbox identity and tombstones reject stale snapshots and resurrection. Query depth, page size and filters are bounded. Reads can continue from an existing projection while messaging is unavailable, with visible eventual-consistency limits; MongoDB failure prevents catalogue reads. Section 4.8 reports the 10,000-car measurement rather than assuming the projection is faster. The ownership decision keeps the MongoDB driver, credentials and network access exclusively in Product View; the synchronizer forwards events through its authenticated API and acknowledges only after successful storage.
 
 ### Product Synchronizer
 
@@ -221,15 +221,15 @@ RabbitMQ and the databases are infrastructure, not additional business microserv
 
 ### Data model and ownership
 
-![Figure 2 — Database ownership overview](report-figures/databases.svg)
+![Figure 2 — Database ownership overview](report-figures/databases-user.pdf)
 
-*Figure 2. Current database model. Source: [Databases.puml](application/Databases.puml). SQL field types and constraints were checked against the running development databases.*
+*Figure 2. Group database design: PostgreSQL identifier, details and deletion tables, and a denormalised MongoDB product model. This design view is not a complete physical schema; implementation differences are explained below.*
 
-Users, Products, Orders and Payments each use a main identifier table, a details table and a deletion table.
+Users, Products, Orders and Payments each own a PostgreSQL database with identifier, details and deletion tables. PK marks a primary key, FK a local foreign key, and UQ uniqueness. MongoDB belongs exclusively to Product View; Product Synchronizer writes through its owner API.
 
-Order and payment references use public UUIDs so that services need not share internal numeric IDs. Local SQL foreign keys protect local relations only. Cross-service existence is checked through the owning API or a workflow, with the usual risk that remote state changes after a lookup.
+The diagram's `Orders_details.user_id` and `Payments_details.order_id` are conceptual relationships. The implementation uses `user_guid` and `order_guid` UUIDs, with product/payment UUID references where needed; there are no SQL foreign keys across services. Local foreign keys connect each owner's tables. Remote existence is checked through owner APIs or workflows and can change afterwards.
 
-The MongoDB read model contains a complete product snapshot, a version, an event identity and a deletion flag. Price is stored as Decimal128. SQL and read-model timestamp representations are currently not fully uniform, which should be made explicit in machine-readable contracts.
+The physical schema also includes inbox/outbox, command deduplication, status history and saga recovery state omitted from the diagram. SQL specifies numeric precision and timestamp variants; order notes use VARCHAR rather than the drawn TEXT. MongoDB stores camelCase snapshot fields, a UUID-formatted string `guid`, `version`, `eventId` and a deletion flag; price uses Decimal128. Its timestamp representation differs from SQL. These details qualify the diagram's generic types and field names.
 
 ## 2.3. Communication between microservices
 
@@ -237,25 +237,25 @@ The MongoDB read model contains a complete product snapshot, a version, an event
 
 Public REST resources use `/api/v1` and JSON field names in camelCase.
 
-![Figure 3 — API request overview](<report-figures/api-contracts.svg>)
+![Figure 3 — API request overview](report-figures/api-contracts-user.pdf)
 
-*Figure 3. Implemented operations and requests. Source: [API Contracts.puml](<application/API Contracts.puml>); detailed contracts: [API.md](API.md).*
+*Figure 3. Group API design: HTTP methods and paths for Payments, Users, Orders and Products. The model lists selected endpoints rather than request-body fields.*
 
-![Figure 4 — API response overview](<report-figures/api-responses.svg>)
+![Figure 4 — API response overview](report-figures/api-responses-user-1.pdf)
 
-*Figure 4. Implemented response representations. Source: [API Contract Responses.puml](<application/API Contract Responses.puml>).*
+*Figure 4. Group response design: example JSON and HTTP status codes. The panels are arranged on two pages for readability; the second page continues the same figure.*
 
-The diagrams reference generated, validated [OpenAPI contracts](contracts/openapi/frontend.json), a vendored Swagger UI at /swagger/index.html, the [GraphQL schema](../product-view/src/main/resources/catalogue.graphqls) and [AsyncAPI contracts](contracts/asyncapi.json). Per-service READMEs explain responsibility, startup, configuration and tests. [21], [22]
+Figures 3 and 4 show the group's API design, not exhaustive runtime contracts. The implementation adds profile mapping, order history/PDF, AI and GraphQL endpoints. User creation returns the full profile; updates return that profile rather than the drawn `guid`/`updatedAt` pair. New orders return 201 with PENDING; new payments return 201 with REQUESTED, and existing payments return 200. Invoice values arrive asynchronously from their owners and can initially be null. Protected operations also return 401/403. OpenAPI, GraphQL SDL and AsyncAPI validate implementation interfaces. [21], [22]
 
 Product View exposes typed GraphQL catalogue queries used by the actual frontend. [3], [19]
 
-The frontend sends bounded GraphQL queries to `POST /api/v1/graphql`; the subsequent reservation uses REST. The SDL and OpenAPI contracts define field-level details.
+The frontend queries `POST /api/v1/graphql` using the bounded filters in FR-03, then reserves through REST. Order creation requires `userGuid`, `productGuid` and `shippingAddress`, with optional `notes`; price is resolved by Products. Payment creation uses `orderGuid` and optional `paymentMethod`, not a client-supplied amount.
 
 ### Asynchronous messages
 
 The `aj.events` topic exchange distributes JSON messages to six durable consumer queues. A shared envelope contains `eventId`, `eventType`, `occurredAt`, `correlationId`, `schemaVersion: 1` and `payload`. AMQP `messageId` matches eventId. The order UUID follows the entire purchase as correlationId, including derived product snapshots. Product payload.version remains a separate state version.
 
-The AsyncAPI contract specifies the envelope and payloads; event identity remains stable across retries while correlation follows the order.
+Event identity remains stable across retries while correlation follows the order. The envelope fields are listed above, and the payload content is described below the routing table.
 
 | Routing key | Producer | Consumers | Business purpose |
 | --- | --- | --- | --- |
@@ -315,7 +315,11 @@ Saga recovery includes stored deadlines, compensation, periodic reconciliation a
 
 ### 2.4.6. Caching
 
-No Redis cache or explicit application response cache is implemented. The MongoDB catalogue is a persistent read projection, not a disposable cache with a time-to-live. Caching could be evaluated for expensive catalogue reads after adding pagination and measurements, but it is not presented as a used pattern.
+Product View uses cache-aside for paginated GraphQL searches by validated filters, offset and limit. Hits skip MongoDB count/item queries. Misses load MongoDB and cache immutable results for 20 seconds: at most 256 entries, each limited to 256 KiB serialised JSON. Eviction is least-recently-used; oversized results and failures bypass caching.
+
+Successful projection inserts/replacements, including reservations and tombstones, clear the local cache after storage. A generation check prevents an older in-flight read from repopulating it after invalidation. Each process owns its cache: other replicas expire independently, and concurrent misses may repeat database work. Caching adds temporary staleness to projection lag; Products still validates price and availability for reservation. Customer, order and payment data, unpaginated REST lists and single-product reads are not cached. MongoDB remains the persistent read model; Redis is not used.
+
+On 18 November 2026, ten new tests verified expiry, eviction, size bounds, immutable results, keys and invalidation races. A real MongoDB 7 check recorded two read commands on the first search and zero additional reads for 100 identical searches; removal invalidation caused two fresh reads and excluded the car. GraphQL resolved the cached result without errors. These checks prove selected behaviour, not a new latency benchmark.
 
 ### 2.4.7. Transactional outbox and reliable delivery
 
@@ -331,6 +335,8 @@ Persistent messages, durable queues, publisher confirms and consumer acknowledge
 
 Figure 6 also explains the operational states: outbox entries are waiting to be sent, Ready messages are waiting in RabbitMQ, and Unacked messages have been delivered but not yet acknowledged. A fast transition may fall between metric scrapes; correlated logs retain the observed publish/process/acknowledge events.
 
+\clearpage
+
 # 3. Environments description
 
 ## 3.1. Development environment with Docker Compose
@@ -343,7 +349,7 @@ The root `docker-compose.yml` maps Figure 1 to the concrete deployment in Figure
 
 The gateway bridges the edge and backend networks. Each SQL owner and Product View use dedicated data networks; Adminer and Mongo Express receive explicit local administration access to their respective stores. `product-view-db` is the MongoDB container name, while `product-view-mongo` remains its Compose service DNS name. Prometheus joins edge and backend to scrape both frontend and backend metrics. Volumes retain databases, broker state and monitoring history; migration from the earlier `aj-monitoring` project preserves its data.
 
-Grafana opens **AJ Control Center**, linking all five SQL databases, MongoDB, Headlamp, RabbitMQ, Keycloak, Swagger and Actions. GUIs open in separate tabs. Headlamp has read-only resource/log access without Secret access. Local administration uses one configurable username/password across the application and tools; each tool retains its own login form, and internal service credentials retain their separate roles. The PDF worker stays available with `CONFIRMATION_WORKER=true`, whereas the same application terminates after one delivery in Kubernetes. Per-service Compose files remain an alternative development mode with their separately documented volumes. See [LOCAL_SETUP.md](LOCAL_SETUP.md).
+Grafana opens **AJ Control Center**, linking all five SQL databases, MongoDB, Headlamp, RabbitMQ, Keycloak, Swagger and Actions. GUIs open in separate tabs. Headlamp has read-only resource/log access without Secret access. Local administration uses one configurable username/password across the application and tools; each tool retains its own login form, and internal service credentials retain their separate roles. The PDF worker stays available with `CONFIRMATION_WORKER=true`, whereas the same application terminates after one delivery in Kubernetes. Appendix D gives the startup procedure, local accounts and verification commands.
 
 Demonstration seeding is enabled by default and can be disabled with `DEMO_DATA_ENABLED=false`. Stable fixture identities prevent duplicate insertion across restarts. These fixtures initialise historical example states; they are not evidence that twenty new purchases have been executed through live APIs at every startup. MongoDB receives the twenty product snapshots asynchronously.
 
@@ -374,23 +380,23 @@ The local `kind-aj-exam` environment runs a Kubernetes node as a Docker containe
 
 *Figure 8. Application resources inside namespace aj and the supporting cluster controllers. Grouped owner APIs represent separate Deployments and Services. Persistent stores keep individual claims and owner-only ingress policies.*
 
-Compose and Kubernetes use separate persistent data. Active Kubernetes mode pauses Compose. Normal local startup keeps the control plane reachable by Headlamp in standby, scales AJ Deployments to zero and pauses the confirmation ScaledJob. The control-plane container is separate from the twenty-four Compose containers; data is not deleted. Runtime Secrets and TLS keys remain outside committed manifests. Image-ID annotations cause changed local images to roll out even when the `:local` tag is reused. Probes gate traffic and container recovery; resource requests/limits bound workloads. Keycloak has additional CPU and startup allowance for its first schema import. See [KUBERNETES.md](KUBERNETES.md).
+Compose and Kubernetes use separate persistent data. Active Kubernetes mode pauses Compose. Normal local startup keeps the control plane reachable by Headlamp in standby, scales AJ Deployments to zero and pauses the confirmation ScaledJob. The control-plane container is separate from the twenty-four Compose containers; data is not deleted. Runtime Secrets and TLS keys remain outside committed manifests. Image-ID annotations cause changed local images to roll out even when the `:local` tag is reused. Probes gate traffic and container recovery; resource requests/limits bound workloads. Keycloak has additional CPU and startup allowance for its first schema import. Appendix D gives the runtime-switching and access procedure.
 
 ![Figure 9 — Kubernetes recovery and bounded scaling](report-figures/kubernetes-recovery.svg)
 
 *Figure 9. Separate control loops for pod replacement, CPU-driven frontend scaling and queue-driven PDF Jobs. More frontend replicas do not replicate the databases or RabbitMQ.*
 
-The 11 November local verification replaced a deleted frontend pod, completed a TLS purchase and KEDA PDF Job, blocked an unrelated pod from Users' database, and scaled frontend from one to two ready replicas. Temporary load/probe resources were removed. These are observed local results, not an availability guarantee; machine-readable results are retained in `test-results/kubernetes-results.json`.
+The 11 November local verification replaced a deleted frontend pod, completed a TLS purchase and KEDA PDF Job, blocked an unrelated pod from Users' database, and scaled frontend from one to two ready replicas. Temporary load/probe resources were removed. These are observed local results, not an availability guarantee; the tested outcomes and their limits are summarised in Section 4.8.
 
 ### 3.2.1. Technologies and isolated tasks
 
 kind supplies the local cluster; Calico enforces owner network boundaries. Random runtime secrets and local TLS keys are kept outside committed manifests. The confirmation console application consumes its own durable order.completed queue, generates a PDF, writes through the Orders owner API and exits. It acknowledges only after storage; repeating the task preserves the first document. KEDA ScaledJob supplies event-driven scheduling rather than a permanently running service renamed as serverless. [10], [12]
 
-Products calls an actual local Ollama model to draft descriptions from validated brand/model/year. It forwards no customer/payment information, applies schema/output/time limits, and inserts text for human approval. It cannot change invoice values or availability. Adapter failure tests and an actual browser-to-model run are documented in [AI.md](AI.md). The model and Kubernetes can be demonstrated separately within the workstation memory budget. [26]
+Products calls an actual local Ollama model to draft descriptions from validated brand/model/year. It forwards no customer/payment information, applies schema/output/time limits, and inserts text for human approval. It cannot change invoice values or availability. Adapter failure tests and an actual browser-to-model run passed in the recorded local verification (Section 4.8). The model and Kubernetes can be demonstrated separately within the workstation memory budget. [26]
 
 ### 3.2.2. CI/CD pipeline
 
-One automatic entry point, `ci.yaml`, handles PRs, main pushes and merge queues. Its change plan explains RUN/SKIP decisions and selects affected services and checks; service entry points are manual debugging tools. Documentation-only edits skip application builds. Frontend changes select browser checks, backend edits select owner/API/cooperation checks, and shared build/workflow changes select the full suite. Unknown Git bases use full verification. Weekly and release runs retain complete security verification. [27], [28], [29]
+One automatic entry point, `ci.yaml`, handles PRs, main pushes and merge queues. PR checks support the Development-to-main promotion rule in Section 5.3; a push to Development alone does not trigger this workflow. Its change plan explains RUN/SKIP decisions and selects affected services and checks; service entry points are manual debugging tools. Documentation-only edits skip application builds. Frontend changes select browser checks, backend edits select owner/API/cooperation checks, and shared build/workflow changes select the full suite. Unknown Git bases use full verification. Weekly and release runs retain complete security verification. [27], [28], [29]
 
 ![Figure 10 — Verification and gated release pipeline](report-figures/ci-pipeline.svg)
 
@@ -400,7 +406,7 @@ Each service separates validation, parallel unit/integration jobs and packaging.
 
 Prettier, ESLint, SpotBugs, Actionlint, zizmor, Trivy, Bandit and dependency audits are free/open-source controls. Remote Actions use immutable commit SHAs; checkouts do not retain credentials. CodeQL is selected only where the repository is public. Fixable HIGH/CRITICAL image findings block promotion. [29], [34]
 
-Release readiness precedes image publication. Server-side validation and bounded owner Flyway Jobs precede application changes; migration proofs bind the release and unchanged target state. Staging verifies HTTPS/authentication and compensation; production promotes identical image digests. Compatible rollback restores images, not database history. Actual GitHub runs and environment protection settings are documented only after observation; local passes do not establish remote execution. See [CI-CD.md](CI-CD.md) and Appendix E.
+Release readiness precedes image publication. Server-side validation and bounded owner Flyway Jobs precede application changes; migration proofs bind the release and unchanged target state. Staging verifies HTTPS/authentication and compensation; production promotes identical image digests. Compatible rollback restores images, not database history. Actual GitHub runs and environment protection settings are documented only after observation; local passes do not establish remote execution. Appendix E summarises the observed results and remaining delivery boundaries.
 
 ### 3.2.3. Monitoring and logging
 
@@ -418,7 +424,7 @@ Compose monitoring belongs to project `aj`; Kubernetes deploys its own Prometheu
 
 Frontend HPA uses real CPU metrics with a one-to-two replica range. [11], [12]
 
-Application scaling is separate from database replication and broker HA. More replicas cannot remove a single state-store failure or guarantee faster queries. The local cluster demonstrates the configured mechanisms; its actual scaling/job result is recorded in EVIDENCE.md rather than assumed from YAML.
+Application scaling is separate from database replication and broker HA. More replicas cannot remove a single state-store failure or guarantee faster queries. The local cluster demonstrates the configured mechanisms; its observed scaling and job results are described in Sections 3.2 and 4.8.
 
 ## 3.3. Cloud deployment plan
 
@@ -475,7 +481,7 @@ Actual cloud deployment is not required by the final project. The local Kubernet
 
 ![Figure 13 — Verification boundaries](report-figures/testing-strategy.svg)
 
-Tests progress from isolated rules through API/database/message boundaries to cooperating services. The reviewed Java evidence contains 28 unit and 14 integration tests; the API system suite has six scenarios with failure checks enabled. Browser checks supplement rather than replace backend cooperation. Counts identify that recorded run, not every current suite. [TESTING.md](TESTING.md) and [EVIDENCE.md](EVIDENCE.md) retain commands, dates and limits.
+Tests progress from isolated rules through API/database/message boundaries to cooperating services. The reviewed Java evidence contains 28 unit and 14 integration tests; the API system suite has six scenarios with failure checks enabled. Browser checks supplement rather than replace backend cooperation. Counts identify that recorded run, not every current suite. Appendix D includes execution commands; Section 4.8 and Appendix E state the recorded results and limitations.
 
 ## 4.2. Unit testing
 
@@ -503,13 +509,13 @@ SpotBugs' quality profile fails on configured high-priority findings. Reviewed d
 
 Surefire runs unit tests and Failsafe integration tests. Selected service tests gate packaging; container scans gate selected system acceptance. Independent security/docs tracks join an always-run `Ready to merge` gate. Only declared skips are accepted; failures/cancellations/unexpected skips fail the pipeline. Full release verification does not skip owner tests because of a path-only change. Artifacts contain native JUnit summaries and diagnostics. [27], [28]
 
-The 12 November local review passed 47 Python policy/deployment/federation tests, Actionlint, formatting and high-confidence/high-severity zizmor checks. These results verify local logic and workflow definitions, not GitHub runner execution. Section 3.2.2 and [CI-STATUS.md](CI-STATUS.md) explain the remaining remote boundary.
+The 12 November local review passed 47 Python policy/deployment/federation tests, Actionlint, formatting and high-confidence/high-severity zizmor checks. These results verify local logic and workflow definitions, not GitHub runner execution. Section 3.2.2 and Appendix E explain the remaining remote boundary.
 
 ## 4.8. Evidence, limitations and trade-offs
 
 Recorded local evidence covers real-token ownership/self-registration, browser-to-model AI, command/payment retries, late-reservation protection, manual review, PDF deduplication, four fresh migrated owners, restore and a correlated-log/firing-alert demonstration. Active Kubernetes previously verified HTTPS commerce, a terminating KEDA PDF Job, database isolation and real CPU HPA scaling from one to two frontend replicas. These observations remain tied to their recorded runs.
 
-The isolated performance fixture used 10,000 cars, 200 GraphQL queries and 20 concurrent clients. The first shared-load p95 was **3.782s**, missing the two-second target; a quieter repeat achieved median **0.616s**, p95 **1.139s**, maximum **1.263s**. Both results are retained in [PERFORMANCE.md](PERFORMANCE.md). This is direct-backend latency, not an internet SLA, long-term availability result or controlled architectural comparison.
+The isolated performance fixture used 10,000 cars, 200 GraphQL queries and 20 concurrent clients. The first shared-load p95 was **3.782s**, missing the two-second target; a quieter repeat achieved median **0.616s**, p95 **1.139s**, maximum **1.263s**. Both results are reported here to preserve the failed measurement alongside the quieter repeat. This is direct-backend latency, not an internet SLA, long-term availability result or controlled architectural comparison.
 
 Tests cover selected histories and failures, not unrestricted worker concurrency, all contradictory event outcomes or host-failure HA. Workers retain bounded replicas; the local single-node cluster cannot survive host loss. Availability remains a target. Remote delivery and individual collaboration evidence require their own observations.
 
@@ -517,7 +523,7 @@ Tests cover selected histories and failures, not unrestricted worker concurrency
 
 ## 5.1. Strategy and collaboration
 
-The adopted approach is lightweight and Scrum-inspired: short sprints, brief standups, a To Do / In Progress / Review / Done board, demonstration and retrospective. This is a working agreement, not evidence that ceremonies occurred. Done requires acceptance behaviour, relevant checks and updated contracts/documentation. [TEAM-PLAN.md](TEAM-PLAN.md) retains the proposed September–November schedule separately from actual verification dates.
+The adopted approach is lightweight and Scrum-inspired: short sprints, brief standups, a To Do / In Progress / Review / Done board, demonstration and retrospective. This is a working agreement, not evidence that ceremonies occurred. Done requires acceptance behaviour, relevant checks and updated contracts/documentation. The September–November plan is distinct from dated verification results.
 
 Observed technical corrections include replacing shared projection access with an owner API, retaining saga signals for retries, consolidating local administration and introducing change-aware CI gates. These source/test observations do not establish attendance or individual personal experience.
 
@@ -532,11 +538,11 @@ Observed technical corrections include replacing shared projection access with a
 
 Frontend, contracts, tests and report accompany each workstream. The allocation is a review plan, not attribution of existing code. Actual issues/PRs should identify owner, reviewer and acceptance evidence.
 
-The working model allocates one main workstream and one review responsibility to each participant, with shared frontend/test/report work. Balanced allocation is not measured historical effort. Authentic per-student branches/PRs remain part of the final delivery; the inspected history and its attribution limits are recorded in the submission review, without manufacturing commits or equal-hour claims.
+Each participant has a planned workstream and review role, sharing frontend/test/report work. This does not measure historical effort. Authentic per-student branches/PRs remain part of the final delivery; this report does not include a verified per-author commit or review ledger and therefore does not establish historical contribution shares or equal working hours.
 
 ## 5.3. Versioning strategies
 
-**Source.** The Git monorepo uses intended short-lived branches, reviewed PRs and protected release checks. Release manifests bind immutable image digests to a source revision. Shared Maven `1.0.0` coordinates builds; it is not evidence of independent release histories. Actual GitHub runs/settings require observation, not an accepted assumption. [CI-STATUS.md](CI-STATUS.md)
+**Source.** The group uses `Development` for development and testing, and `main` (Main) as the stable production/release branch. Changes are always tested in Development before a pull request merges them into main. Failed checks are resolved before promotion. This separation reduces the risk of untested changes reaching the production branch; merging alone does not deploy production. CI checks are described in Section 3.2.2; branch protection remains unverified (Appendix E). Release manifests bind image digests to a source revision; shared Maven `1.0.0` coordinates builds.
 
 **Data.** SQL owners apply immutable Flyway migrations before Hibernate validation. Fresh databases run the full sequence; existing reviewed local schemas require explicit baseline opt-in. Upgrade tests and migration proofs gate deployment. Orders V3 preserves status transitions separately from mutable details. Backups/restore and MongoDB deletion fences are owner responsibilities. Application rollback never reverses database history. [23]
 
@@ -544,7 +550,7 @@ The working model allocates one main workstream and one review responsibility to
 
 ## 5.4. Documentation strategy
 
-Each HTTP service and confirmation processor has a README. OpenAPI/Swagger, GraphQL SDL and AsyncAPI document interfaces; architecture sources, ADRs and procedures explain ownership, deployment and recovery. Reviews update contracts, tests, figures and prose together. The report explains decisions and refers to detailed specifications rather than duplicating code-level descriptions. [21], [22]
+Per-service documentation, OpenAPI/Swagger, GraphQL SDL and AsyncAPI describe interfaces. Reviews update contracts, tests, figures and prose together. This PDF includes ownership, architecture, workflow rules, verification and installation without requiring separate documentation. [21], [22]
 
 # 6. Discussion
 
@@ -566,7 +572,7 @@ The key lesson is that applying a named pattern is not equivalent to satisfying 
 
 Application, messaging and database scaling must be evaluated separately.
 
-The immediate scaling priorities are pagination, bounded database access, useful latency/backlog measurements and safe worker coordination. HPA/KEDA configuration should follow those measurements, rather than serve as a substitute for concurrency design. [11], [12]
+Scaling priorities are measured catalogue/query tuning, cache effectiveness, backlog monitoring and safe worker coordination. HPA/KEDA configuration should follow those measurements, rather than serve as a substitute for concurrency design. [11], [12]
 
 ## 6.4. Possible improvements
 
@@ -597,7 +603,7 @@ The following lessons follow from source changes and observed tests. They do not
 | Asger | Local transaction success does not finish a purchase. Retained signals, deadlines and manual review make retries/ambiguous payments explicit; define these histories before implementation. |
 | Laith | Reliable delivery needs migration/readiness gates and useful logs, not only containers. Establish restore and outage checks early, and separate local evidence from remote release claims. |
 
-The Scrum-inspired retrospective asks whether integration tests and cross-review exposed problems early enough. Dates, attendance, personal examples and actual effort remain for author confirmation; [TEAM-PLAN.md](TEAM-PLAN.md) retains the working model.
+The Scrum-inspired retrospective asks whether integration tests and cross-review exposed problems early enough. Dates, attendance, personal examples and actual effort remain for author confirmation; the proposed working model is included in Section 5.
 
 # 8. Conclusion
 
@@ -605,96 +611,59 @@ AJ Motors demonstrates five domain APIs, asynchronous commerce, separate data ow
 
 # 9. References
 
-The references use numbered citations. Official documentation and original pattern descriptions support technical claims; source-code observations and local test evidence are identified separately. Original online sources were consulted on 4 November; the final architecture/identity/CI review consulted official sources on 12 November 2026. Local assignment documents are supplied course material.
+Numbered citations identify technical sources; all project explanations are included in this PDF. Online sources were consulted on 4 and 12 November 2026. Appendices A–C summarise the supplied course requirements; local observations are distinguished from source claims.
 
-1. EK, *Mandatory Assignment 1 — Development of Large Systems*, supplied PDF, pp. 1–2. [Document][1].
-2. EK, *Mandatory Assignment 2 — Development of Large Systems*, supplied PDF, pp. 1–2. [Document][2].
-3. EK, *Final Project — Development of Large Systems: Project Description*, supplied PDF, pp. 1–7. [Document][3].
-4. Project group, *DLS Report Version One.docx*, supplied example draft. The original local input is not copied into this repository by this report.
-5. EK, *Development of Large Systems 2025/2026*, course catalogue. [Online][5].
-6. Microsoft, *Command Query Responsibility Segregation (CQRS) pattern*, Azure Architecture Center. [Online][6].
-7. RabbitMQ, *Consumer Acknowledgements and Publisher Confirms*. [Online][7].
-8. C. Richardson, *Pattern: Saga*, Microservices.io. [Online][8].
-9. C. Richardson, *Pattern: Transactional outbox*, Microservices.io. [Online][9].
-10. Kubernetes, *Deployments*. [Online][10].
-11. Kubernetes, *Horizontal Pod Autoscaling*. [Online][11].
-12. KEDA, *Scaling Jobs*, version 2.21 documentation. [Online][12].
-13. AWS, *What is Amazon Elastic Container Service?* [Online][13].
-14. Google Cloud, *What is Cloud Run?* [Online][14].
-15. Microsoft, *Azure Container Apps overview*. [Online][15].
-16. Microsoft, *What is Azure Kubernetes Service (AKS)?* [Online][16].
-17. Microsoft, *High availability in Azure Database for PostgreSQL flexible server*. [Online][17].
-18. Microsoft Azure, *Azure Container Apps pricing*. [Online][18].
-19. GraphQL Foundation, *Learn GraphQL*. [Online][19].
-20. OpenID Foundation, *OpenID Connect Core 1.0 incorporating errata set 2*, 2023. [Specification][20].
-21. OpenAPI Initiative, *OpenAPI Specification v3.1.1*, 2024. [Specification][21].
-22. AsyncAPI Initiative, *AsyncAPI Specification 2.6.0*. [Specification][22].
-23. Redgate, *Flyway: Migrations*. [Online][23].
-24. Grafana Labs, *Loki overview*. [Online][24].
-25. Prometheus, *Overview*. [Online][25].
-26. Ollama, *Generate a response — API reference*. [Online][26].
-27. Apache Maven, *Maven Failsafe Plugin — Introduction*. [Online][27].
-28. GitHub, *Reuse workflows*. [Online][28].
-29. GitHub, *About code scanning*. [Online][29].
-30. MongoDB, *Best Practices for Data Modeling in MongoDB*. [Online][30].
-31. Keycloak, *JavaScript adapter*, official documentation. [Online][31].
-32. Microsoft, *Baseline architecture for an AKS cluster*. [Online][32].
-33. Microsoft, *Best practices for cost optimization in AKS*. [Online][33].
-34. GitHub, *GitHub Actions billing*. [Online][34].
-35. Keycloak, *Server Administration Guide — GitHub identity provider*. [Online][35].
-36. GitHub, *Creating an OAuth app*. [Online][36].
-
-[1]: <mandatory assignments/Mandatory assignment 1.pdf>
-[2]: <mandatory assignments/Mandatory assignment 2.pdf>
-[3]: <mandatory assignments/Final project description.pdf>
-[4]: #9-references
-[5]: https://katalog.kea.dk/course/9942251/2025-2026
-[6]: https://learn.microsoft.com/en-us/azure/architecture/patterns/cqrs
-[7]: https://www.rabbitmq.com/docs/confirms
-[8]: https://microservices.io/patterns/data/saga.html
-[9]: https://microservices.io/patterns/data/transactional-outbox.html
-[10]: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
-[11]: https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/
-[12]: https://keda.sh/docs/2.21/concepts/scaling-jobs/
-[13]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html
-[14]: https://docs.cloud.google.com/run/docs/overview/what-is-cloud-run
-[15]: https://learn.microsoft.com/en-us/azure/container-apps/overview
-[16]: https://learn.microsoft.com/en-us/azure/aks/what-is-aks
-[17]: https://learn.microsoft.com/en-us/azure/postgresql/high-availability/concepts-high-availability
-[18]: https://azure.microsoft.com/en-us/pricing/details/container-apps/
-[19]: https://graphql.org/learn/
-[20]: https://openid.net/specs/openid-connect-core-1_0.html
-[21]: https://spec.openapis.org/oas/v3.1.1.html
-[22]: https://www.asyncapi.com/docs/reference/specification/v2.6.0
-[23]: https://documentation.red-gate.com/flyway/flyway-concepts/migrations
-[24]: https://grafana.com/docs/loki/latest/get-started/overview/
-[25]: https://prometheus.io/docs/introduction/overview/
-[26]: https://docs.ollama.com/api/generate
-[27]: https://maven.apache.org/surefire/maven-failsafe-plugin/
-[28]: https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows
-[29]: https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning
-[30]: https://www.mongodb.com/docs/manual/data-modeling/best-practices/
-[31]: https://www.keycloak.org/securing-apps/javascript-adapter
-[32]: https://learn.microsoft.com/en-us/azure/architecture/reference-architectures/containers/aks/baseline-aks
-[33]: https://learn.microsoft.com/en-us/azure/aks/best-practices-cost
-[34]: https://docs.github.com/en/billing/concepts/product-billing/github-actions
-[35]: https://www.keycloak.org/docs/latest/server_admin/index.html#_github
-[36]: https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app
+1. EK, *Mandatory Assignment 1 — Development of Large Systems*, supplied PDF, pp. 1–2.
+2. EK, *Mandatory Assignment 2 — Development of Large Systems*, supplied PDF, pp. 1–2.
+3. EK, *Final Project — Development of Large Systems: Project Description*, supplied PDF, pp. 1–7.
+4. Project group, *DLS Report Version One.docx*, supplied example draft. Used as background for the problem description in Section 1.1; no separate draft is required to read this report.
+5. EK, *Development of Large Systems 2025/2026*, course catalogue.
+6. Microsoft, *Command Query Responsibility Segregation (CQRS) pattern*, Azure Architecture Center.
+7. RabbitMQ, *Consumer Acknowledgements and Publisher Confirms*.
+8. C. Richardson, *Pattern: Saga*, Microservices.io.
+9. C. Richardson, *Pattern: Transactional outbox*, Microservices.io.
+10. Kubernetes, *Deployments*.
+11. Kubernetes, *Horizontal Pod Autoscaling*.
+12. KEDA, *Scaling Jobs*, version 2.21 documentation.
+13. AWS, *What is Amazon Elastic Container Service?*.
+14. Google Cloud, *What is Cloud Run?*.
+15. Microsoft, *Azure Container Apps overview*.
+16. Microsoft, *What is Azure Kubernetes Service (AKS)?*.
+17. Microsoft, *High availability in Azure Database for PostgreSQL flexible server*.
+18. Microsoft Azure, *Azure Container Apps pricing*.
+19. GraphQL Foundation, *Learn GraphQL*.
+20. OpenID Foundation, *OpenID Connect Core 1.0 incorporating errata set 2*, 2023.
+21. OpenAPI Initiative, *OpenAPI Specification v3.1.1*, 2024.
+22. AsyncAPI Initiative, *AsyncAPI Specification 2.6.0*.
+23. Redgate, *Flyway: Migrations*.
+24. Grafana Labs, *Loki overview*.
+25. Prometheus, *Overview*.
+26. Ollama, *Generate a response — API reference*.
+27. Apache Maven, *Maven Failsafe Plugin — Introduction*.
+28. GitHub, *Reuse workflows*.
+29. GitHub, *About code scanning*.
+30. MongoDB, *Best Practices for Data Modeling in MongoDB*.
+31. Keycloak, *JavaScript adapter*, official documentation.
+32. Microsoft, *Baseline architecture for an AKS cluster*.
+33. Microsoft, *Best practices for cost optimization in AKS*.
+34. GitHub, *GitHub Actions billing*.
+35. Keycloak, *Server Administration Guide — GitHub identity provider*.
+36. GitHub, *Creating an OAuth app*.
 
 # 10. Appendix
 
-These compact appendices are included in this PDF. Detailed matrices and procedures in the repository supplement them rather than replacing delivered content. [REPORT-SUPPLEMENT.md](REPORT-SUPPLEMENT.md) retains the full supporting narrative.
+The following appendices are included in this PDF. They map the assignment requirements to report sections and provide installation, verification, evidence boundaries and external-login procedures.
 
 ## Appendix A. Mandatory Assignment 1 coverage
 
 | Required topic | Delivered report coverage |
 | --- | --- |
 | Idea, functional/non-functional requirements, stack | 1.1–1.3: acceptance criteria, rationale and limits |
-| Architecture, frontend REST/GraphQL and channels | 2.1–2.3: Figure 1, API/AsyncAPI references and event table |
+| Architecture, frontend REST/GraphQL and channels | 2.1–2.3: Figure 1, API figures, message envelope and event table |
 | Patterns, ownership and responsibilities | 2.2–2.4; 5.2: implemented mechanisms and named proposed owners |
 | Cloud investigation, CI/CD, testing and monitoring | 3.2–3.3; 4: selected cloud target and verification boundaries |
 | Management, documentation and versioning | 5: actual evidence separated from proposed practice |
-| Public repository and presentation | Repository on cover; Assignment 1 PowerPoint in `documentation/submission/` |
+| Public repository and presentation | The system and workflow are described in Sections 2–4; a separate presentation is outside this PDF and is not claimed as included evidence |
 
 ## Appendix B. Mandatory Assignment 2 coverage
 
@@ -703,8 +672,8 @@ These compact appendices are included in this PDF. Detailed matrices and procedu
 | Partly functional development environment | 3.1: containerised services, private stores and broker |
 | Automated basic tests executable in CI | 4.2–4.7: unit/integration plus reusable workflows |
 | Asynchronous interaction | 2.3–2.4: reservation/payment/projection via RabbitMQ |
-| Existing-system documentation and deployment plan | Per-service READMEs/contracts; 3.2–3.3 deployment models |
-| Continued report and presentation | This report; Assignment 2 PowerPoint in `documentation/submission/` |
+| Existing-system documentation and deployment plan | 2.2–2.3: service responsibilities and interfaces; 3.2–3.3: deployment models; Appendix D: installation |
+| Continued report and presentation | This PDF provides the report; a separate presentation is outside this PDF and is not claimed as included evidence |
 
 ## Appendix C. Final-project assessment
 
@@ -717,21 +686,66 @@ These compact appendices are included in this PDF. Detailed matrices and procedu
 | Actual AI and isolated serverless task | 3.2.1: Products/Ollama workflow and terminating KEDA PDF Job |
 | Compose, Kubernetes, monitoring, migrations and scaling | 3.1–3.2; local evidence, single-node HA limitation |
 | Unit, API/queue/database integration and backend cooperation | 4: CI selection and strict failure gates; GitHub run evidence remains separate |
-| Standard interfaces and per-service documentation | 2.3; 5.4: OpenAPI, GraphQL SDL and AsyncAPI references |
-| Contribution history and personal reflection | 5; 7: current Git evidence recorded; all authors must supply authentic individual evidence |
+| Standard interfaces and per-service documentation | 2.2–2.3: service descriptions, API figures, envelope and event table; 5.4: documentation strategy |
+| Contribution history and personal reflection | 5; 7: proposed allocation and reflection drafts; verified individual contribution evidence remains pending |
 
 ## Appendix D. Installation and verification
 
-Clone the monorepo from the cover link. Install Docker Desktop with Linux containers and Python; run `./scripts/start.ps1` from the root. The bootstrap builds applications, prepares/migrates databases, configures local accounts and starts all twenty-four Compose services without deleting volumes. Java/Maven are needed for host-side Java tests, not normal Docker startup. Full commands and dependencies are in [LOCAL_SETUP.md](LOCAL_SETUP.md) and [TESTING.md](TESTING.md).
+Installation requires a local application checkout, Git, PowerShell, Python and running Docker Desktop with Linux containers. From the application root, run `./scripts/start.ps1` to build applications, migrate databases, configure local accounts and start twenty-four Compose services while preserving volumes. Java/Maven are required only for host-side Java tests. Verification commands follow below.
 
 Open AJ Motors at `http://localhost:3000` and Grafana Control Center at `http://localhost:13001`. Default local administrator: `admin / Admin123!`; customer: `kunde01 / Demo123!`. Override the common administrator in ignored `.env`. These are local demonstration accounts, not cloud credentials. Verify with `python scripts/check_local.py`, `python scripts/check_gui_hub.py` and `python scripts/check_operations.py`.
 
-Use `python scripts/kubernetes.py standby` for read-only Headlamp while Compose serves the app. Use `./scripts/start.ps1 -Runtime kubernetes` for the active Kubernetes demo and `https://localhost:8443`; its separate data/credentials are documented in [KUBERNETES.md](KUBERNETES.md). Return with `./scripts/start.ps1`. Install Playwright/Chromium for browser checks and run outage demonstrations sequentially. Named volumes provide persistence; backup/restore is verified separately.
+Use `python scripts/kubernetes.py standby` for read-only Headlamp while Compose serves the app. Use `./scripts/start.ps1 -Runtime kubernetes` for the active Kubernetes demo and `https://localhost:8443`; it uses separate persistent data and generated runtime credentials. Grafana uses username `admin` and RabbitMQ uses `aj`; the startup-generated passwords can be inspected locally with the command below. Return with `./scripts/start.ps1`. Install Playwright/Chromium for browser checks and run outage demonstrations sequentially. Named volumes provide persistence; backup/restore is verified separately.
+
+Run these commands from the application root. Java checks require JDK 17 and Maven. Browser checks require the Python Playwright package and its Chromium browser:
+
+```powershell
+# Java unit/integration tests and packaging
+mvn clean verify
+# System scenarios, including controlled dependency outages
+python scripts/smoke.py --failures
+# Browser dependencies and frontend verification
+python -m pip install playwright
+python -m playwright install chromium
+python scripts/browser_check.py
+```
+
+The failure suite stops and restarts selected dependencies and must run alone. H2-based Java tests do not require Docker; the system and browser checks require the running application and real containers. Test scenarios retain audit data, so use a demonstration environment.
+
+For Kubernetes, inspect the generated UI passwords locally, reopen access after a restart and run the cluster verification:
+
+```powershell
+Get-Content test-results/k8s/secrets.json | ConvertFrom-Json |
+  Select-Object grafana-password,rabbit-password
+python scripts/kubernetes.py access
+python scripts/check_operations.py --runtime kubernetes
+python scripts/kubernetes.py verify
+```
+
+The password file is runtime output containing secrets, not a documentation attachment. Do not submit it. The Kubernetes application uses a local development TLS certificate. Compose data is not copied automatically into Kubernetes. `docker compose stop` preserves data, and `docker compose down` retains named volumes; adding `-v` deletes Compose-owned database volumes.
 
 ## Appendix E. Evidence and delivery boundaries
 
-The 12 November review passed 47 CI/deployment/federation policy tests, Actionlint, formatting and high-confidence/high-severity zizmor checks. Live Compose checks passed twenty-four containers, six dashboards, thirty-five panel queries, nine metrics targets and isolated RabbitMQ publish/consume. Browser checks passed all five SQL GUI logins, Mongo Express and Headlamp node access while Secret reads were denied. Logs/screenshots remain in ignored `test-results`; compact results belong in [EVIDENCE.md](EVIDENCE.md).
+The 12 November local review passed 47 CI/deployment/federation policy tests, Actionlint, formatting and high-confidence/high-severity zizmor checks; twenty-four Compose containers, six dashboards, thirty-five panel queries, nine metrics targets and isolated RabbitMQ publish/consume; and browser logins for five SQL GUIs, Mongo Express and Headlamp with Secret reads denied. Raw logs/screenshots are not attached to this PDF.
 
-The runtime-only CI Dockerfile built a local image from an existing packaged JAR. This does not replace an actual GitHub execution or published release. The user cannot authenticate GitHub here; local execution is the alternative evidence, not a new GitHub run. No new branch-protection setting, registry digest or cloud rollout is asserted. GitHub broker configuration has five safety tests; actual external identity still requires owned app credentials and successful real-account login. Participants must confirm personal experience and supply missing contribution evidence before submission. [CI-STATUS.md](CI-STATUS.md) and the submission checklist track these remaining external inputs.
+A runtime-only CI image was built from a packaged JAR locally; no new GitHub run, published release, branch-protection setting, registry digest or cloud rollout is established. Broker configuration has five safety tests, but external identity still needs owned app credentials and real login. Participants must confirm personal experience and supply missing contribution evidence.
 
-Assignment 1 and 2 require upload of the report, repository link and their respective PowerPoint to itsLearning. The final delivery requires the report, repository link and installation procedure in WISEflow. Prepared files are indexed in `documentation/submission/README.md`; platform upload and group registration must be confirmed by the students.
+Assignment 1 and 2 require upload of the report, repository link and their respective PowerPoint to itsLearning. The final delivery requires the report, repository link and installation procedure in WISEflow. Platform upload and group registration must be confirmed by the students; this PDF does not assert that separate presentations or other delivery items have been submitted.
+
+## Appendix F. External identity activation and verification
+
+Keycloak issues AJ Motors tokens even with GitHub federation; backend issuer, audience, role and ownership checks remain in force. Broker configuration and redirect verification are implemented; completed external login remains pending. [20], [31], [35], [36]
+
+For the local Compose environment, register a GitHub OAuth application using an account owned by the group. Set the application name to `AJ Motors local login`, homepage to `http://localhost:3000/` and authorisation callback to `http://localhost:8180/realms/aj/broker/github/endpoint`. Generate a client secret, then run these commands from the application root:
+
+```powershell
+python scripts/configure_federation.py setup
+python scripts/configure_federation.py check
+python scripts/configure_federation.py verify
+```
+
+`setup` idempotently configures the realm using a locally entered Client ID and hidden secret; credentials stay in Keycloak and ignored runtime storage. `check` reports sanitised status; `verify` checks redirect app ID, callback and state without completing login. Never submit or commit credentials.
+
+For acceptance, use a private browser window to log in through GitHub, authorise the app and complete Keycloak profile steps. Verify own profile/orders, denied admin actions, logout and login again. Record sanitised observations. Linking an existing email requires proof of account control.
+
+The broker requests only `user:email`, retains no GitHub tokens and grants `customer`, never admin. Profiles use trusted issuer/subject mapping, not email alone. Kubernetes/cloud need environment-specific issuer, callback and runtime secrets. Successful external-account login remains pending.

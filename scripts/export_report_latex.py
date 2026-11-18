@@ -64,13 +64,21 @@ def render_assets(source,out):
             nonlocal sequence
             caption=match[1];target=match[2].strip('<>')
             path=ROOT/'documentation'/target
+            if caption=='AJ Motors cover illustration':
+                destination=assets/'cover.png';shutil.copy2(path,destination)
+                return '\n```{=latex}\n'+r'\includegraphics[width=0.94\linewidth,height=105mm,keepaspectratio]{\detokenize{'+destination.relative_to(out).as_posix()+'}}\n'+r'\par\vspace{7mm}'+'\n```\n'
             if path.suffix.lower()=='.svg':destination=vector(path.read_text(encoding='utf-8'))
             else:
                 sequence+=1;destination=assets/(f'figure-{sequence}'+path.suffix.lower());shutil.copy2(path,destination)
-            return figure(destination,caption)
-        def figure(path,caption):
+            if target=='report-figures/databases-user.pdf':
+                return '\n'+r'\clearpage\begin{landscape}'+'\n'+r'\begin{figure}[H]\centering'+'\n'+r'\includegraphics[width=250mm,height=165mm,keepaspectratio]{\detokenize{'+destination.relative_to(out).as_posix()+'}}\n'+r'\caption{Database ownership overview}'+'\n'+r'\end{figure}\end{landscape}\clearpage'+'\n'
+            if target=='report-figures/api-responses-user-1.pdf':
+                second=assets/'api-responses-user-2.pdf';shutil.copy2(ROOT/'documentation/report-figures/api-responses-user-2.pdf',second)
+                return '\n'+r'\clearpage\begin{landscape}\begin{figure}[H]\centering'+'\n'+r'\includegraphics[width=250mm,height=165mm,keepaspectratio]{\detokenize{'+destination.relative_to(out).as_posix()+'}}\n'+r'\caption{API response overview}'+'\n'+r'\end{figure}\end{landscape}\clearpage\begin{landscape}'+'\n'+r'\centering\includegraphics[width=250mm,height=165mm,keepaspectratio]{\detokenize{'+second.relative_to(out).as_posix()+'}}\n'+r'\par\medskip Figure \thefigure\ (continued): Orders and Payments responses'+'\n'+r'\end{landscape}\clearpage'+'\n'
+            return figure(destination,caption,'0.72' if target=='report-figures/architecture-user.pdf' else '0.48')
+        def figure(path,caption,height='0.48'):
             caption=re.sub(r'^Figure\s+\d+\s*[—–.-]\s*','',caption)
-            return '\n'+r'\begin{figure}[H]'+'\n'+r'\centering'+'\n'+r'\includegraphics[width=\linewidth,height=0.48\textheight,keepaspectratio]{\detokenize{'+path.relative_to(out).as_posix()+'}}\n'+r'\caption{'+tex_escape(caption)+'}\n'+r'\end{figure}'+'\n'
+            return '\n'+r'\begin{figure}[H]'+'\n'+r'\centering'+'\n'+r'\includegraphics[width=\linewidth,height='+height+r'\textheight,keepaspectratio]{\detokenize{'+path.relative_to(out).as_posix()+'}}\n'+r'\caption{'+tex_escape(caption)+'}\n'+r'\end{figure}'+'\n'
         source=re.sub(r'^!\[([^\]]+)\]\(([^\n]+)\)\s*$',image,source,flags=re.M)
         def diagram(match):
             rendered=page.evaluate('async text => (await mermaid.render("report-diagram-"+Math.random().toString(36).slice(2),text)).svg',match[1])

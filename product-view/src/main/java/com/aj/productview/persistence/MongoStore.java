@@ -14,11 +14,19 @@ public final class MongoStore implements AutoCloseable {
     private final MongoClient client;
     private final MongoDatabase database;
     private final MongoCollection<Document> products;
+    private final CatalogueCache cache;
     private volatile boolean indexed;
     public MongoStore() {
+        this(createClient(),new CatalogueCache());
+    }
+    MongoStore(MongoClient client,CatalogueCache cache) {
+        this.client=client;this.cache=cache;
+        database=client.getDatabase(Api.env("MONGO_DB","product_view")); products=database.getCollection("products");
+    }
+    private static MongoClient createClient() {
         var settings=com.mongodb.MongoClientSettings.builder().applyConnectionString(new com.mongodb.ConnectionString(Api.env("MONGO_URI","mongodb://localhost:27018")))
             .applyToClusterSettings(b -> b.serverSelectionTimeout(2,TimeUnit.SECONDS)).applyToSocketSettings(b -> b.connectTimeout(2,TimeUnit.SECONDS).readTimeout(3,TimeUnit.SECONDS)).build();
-        client=MongoClients.create(settings); database=client.getDatabase(Api.env("MONGO_DB","product_view")); products=database.getCollection("products");
+        return MongoClients.create(settings);
     }
     public boolean healthy() { return database.runCommand(new Document("ping",1)).getDouble("ok")==1.0; }
     public void project(String eventId,String topic,JsonNode data) {
@@ -32,13 +40,13 @@ public final class MongoStore implements AutoCloseable {
             d.put("guid",guid); d.put("version",version); d.put("eventId",eventId); d.put("deleted",topic.equals("product.removed"));
             d.put("price",new Decimal128(data.path("price").decimalValue()));
             if(current==null) {
-                try { products.insertOne(d); return; }
+                try { products.insertOne(d); cache.invalidate(); return; }
                 catch(com.mongodb.MongoWriteException e) {
                     if(e.getError().getCategory()!=com.mongodb.ErrorCategory.DUPLICATE_KEY) throw e;
                 }
             } else {
                 var unchanged=current.containsKey("version") ? Filters.eq("version",current.get("version")) : Filters.exists("version",false);
-                if(products.replaceOne(Filters.and(Filters.eq("guid",guid),unchanged),d).getMatchedCount()==1) return;
+                if(products.replaceOne(Filters.and(Filters.eq("guid",guid),unchanged),d).getMatchedCount()==1) { cache.invalidate(); return; }
             }
         }
         throw new IllegalStateException("Projection contention; retry the event");
@@ -75,10 +83,14 @@ public final class MongoStore implements AutoCloseable {
                 filters.add(e.getKey().startsWith("min") ? Filters.gte(e.getValue(),bound) : Filters.lte(e.getValue(),bound));
             }
         }
-        var filter=Filters.and(filters); long total=products.countDocuments(filter);
-        List<Map<String,Object>> items=new ArrayList<>();
-        for(Document d:products.find(filter).sort(Sorts.orderBy(Sorts.descending("createdAt"),Sorts.ascending("guid"))).skip(start).limit(size)) items.add(view(d));
-        return Map.of("items",items,"total",Math.toIntExact(total),"hasMore",start+items.size()<total);
+        var filter=Filters.and(filters);
+        String key=filter.toBsonDocument(Document.class,com.mongodb.MongoClientSettings.getDefaultCodecRegistry()).toJson()+":"+start+":"+size;
+        return cache.get(key,() -> {
+            long total=products.countDocuments(filter);
+            List<Map<String,Object>> items=new ArrayList<>();
+            for(Document d:products.find(filter).sort(Sorts.orderBy(Sorts.descending("createdAt"),Sorts.ascending("guid"))).skip(start).limit(size)) items.add(view(d));
+            return Map.of("items",items,"total",Math.toIntExact(total),"hasMore",start+items.size()<total);
+        });
     }
     public Map<String,Object> get(UUID guid) {
         Document d=products.find(Filters.and(Filters.eq("guid",guid.toString()),Filters.ne("deleted",true))).first();

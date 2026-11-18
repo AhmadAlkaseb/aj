@@ -2,6 +2,15 @@
 
 Owns: **MongoDB product_view**. Local port: **7006**; container HTTP port: **7000**.
 
+Paginated GraphQL searches use a process-local cache-aside cache keyed by validated
+filters, offset and limit. Results expire after 20 seconds; the cache retains at
+most 256 entries, each at most 256 KiB of serialised JSON, with LRU eviction.
+Successful projection writes clear the cache, and generation checks prevent stale
+in-flight reads from refilling it. Other replicas expire independently. REST lists,
+single-product reads and private data are not cached. Products remains the authority
+for reservation price and availability. `mvn -pl product-view -am verify -Pquality`
+runs expiry, capacity, invalidation/race, immutable-result and store-boundary checks.
+
 Start the common infrastructure with `docker compose -f compose.infrastructure.yml up -d`,
 then `docker compose -f product-view/docker-compose.yml up -d --build` from the repository root.
 Use either individual Compose projects or the root stack, because host ports overlap.

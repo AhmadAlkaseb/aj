@@ -1,0 +1,83 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net">
+  <diagram name="api-contracts-user" id="api-contracts-user">
+    <mxGraphModel grid="1" page="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="u3tKp08woHw9WUMrFElH-1" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font style=&quot;font-size: 72px;&quot;&gt;API Contracts&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="555" x="220" y="-150" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-523" parent="1" style="swimlane;fontStyle=1;fontSize=16;horizontal=1;startSize=40;rounded=1;html=1;" value="Users API" vertex="1">
+          <mxGeometry height="250" width="520" x="550" y="0" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-524" parent="KKGwWdGSVut39h5sdXl6-523" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=15;fontSize=14;" value="POST   /api/v1/users" vertex="1">
+          <mxGeometry height="35" width="480" x="20" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-525" parent="KKGwWdGSVut39h5sdXl6-523" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=15;fontSize=14;" value="GET   /api/v1/users/{userGuid}" vertex="1">
+          <mxGeometry height="35" width="480" x="20" y="105" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-526" parent="KKGwWdGSVut39h5sdXl6-523" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=15;fontSize=14;" value="PUT   /api/v1/users/{userGuid}" vertex="1">
+          <mxGeometry height="35" width="480" x="20" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-527" parent="KKGwWdGSVut39h5sdXl6-523" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=15;fontSize=14;" value="DELETE   /api/v1/users/{userGuid}" vertex="1">
+          <mxGeometry height="35" width="480" x="20" y="195" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-528" parent="1" style="swimlane;fontStyle=1;fontSize=16;horizontal=1;startSize=40;rounded=1;html=1;" value="Products API" vertex="1">
+          <mxGeometry height="340" width="520" x="550" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-529" parent="KKGwWdGSVut39h5sdXl6-528" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=15;fontSize=14;" value="POST   /api/v1/products" vertex="1">
+          <mxGeometry height="35" width="480" x="20" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-530" parent="KKGwWdGSVut39h5sdXl6-528" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=15;fontSize=14;" value="GET   /api/v1/products" vertex="1">
+          <mxGeometry height="35" width="480" x="20" y="105" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-531" parent="KKGwWdGSVut39h5sdXl6-528" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=15;fontSize=14;" value="GET   /api/v1/products/{productGuid}" vertex="1">
+          <mxGeometry height="35" width="480" x="20" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-532" parent="KKGwWdGSVut39h5sdXl6-528" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=15;fontSize=14;" value="GET   /api/v1/products?status=AVAILABLE" vertex="1">
+          <mxGeometry height="35" width="480" x="20" y="195" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-533" parent="KKGwWdGSVut39h5sdXl6-528" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=15;fontSize=14;" value="PUT   /api/v1/products/{productGuid}" vertex="1">
+          <mxGeometry height="35" width="480" x="20" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-534" parent="KKGwWdGSVut39h5sdXl6-528" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=15;fontSize=14;" value="DELETE   /api/v1/products/{productGuid}" vertex="1">
+          <mxGeometry height="35" width="480" x="20" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-535" parent="1" style="swimlane;fontStyle=1;fontSize=16;horizontal=1;startSize=40;rounded=1;html=1;" value="Orders API" vertex="1">
+          <mxGeometry height="295" width="520" x="0" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-536" parent="KKGwWdGSVut39h5sdXl6-535" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=15;fontSize=14;" value="POST   /api/v1/orders" vertex="1">
+          <mxGeometry height="35" width="480" x="20" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-537" parent="KKGwWdGSVut39h5sdXl6-535" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=15;fontSize=14;" value="GET   /api/v1/orders/{orderGuid}" vertex="1">
+          <mxGeometry height="35" width="480" x="20" y="105" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-538" parent="KKGwWdGSVut39h5sdXl6-535" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=15;fontSize=14;" value="GET   /api/v1/users/{userGuid}/orders" vertex="1">
+          <mxGeometry height="35" width="480" x="20" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-539" parent="KKGwWdGSVut39h5sdXl6-535" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=15;fontSize=14;" value="PUT   /api/v1/orders/{orderGuid}" vertex="1">
+          <mxGeometry height="35" width="480" x="20" y="195" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-540" parent="KKGwWdGSVut39h5sdXl6-535" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=15;fontSize=14;" value="DELETE   /api/v1/orders/{orderGuid}" vertex="1">
+          <mxGeometry height="35" width="480" x="20" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-541" parent="1" style="swimlane;fontStyle=1;fontSize=16;horizontal=1;startSize=40;rounded=1;html=1;" value="Payments API" vertex="1">
+          <mxGeometry height="250" width="520" x="0" y="0" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-542" parent="KKGwWdGSVut39h5sdXl6-541" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=15;fontSize=14;" value="POST   /api/v1/payments" vertex="1">
+          <mxGeometry height="35" width="480" x="20" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-543" parent="KKGwWdGSVut39h5sdXl6-541" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=15;fontSize=14;" value="GET   /api/v1/payments/{paymentGuid}" vertex="1">
+          <mxGeometry height="35" width="480" x="20" y="105" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-544" parent="KKGwWdGSVut39h5sdXl6-541" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=15;fontSize=14;" value="GET   /api/v1/orders/{orderGuid}/payments" vertex="1">
+          <mxGeometry height="35" width="480" x="20" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="KKGwWdGSVut39h5sdXl6-545" parent="KKGwWdGSVut39h5sdXl6-541" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=15;fontSize=14;" value="PUT   /api/v1/payments/{paymentGuid}" vertex="1">
+          <mxGeometry height="35" width="480" x="20" y="195" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
