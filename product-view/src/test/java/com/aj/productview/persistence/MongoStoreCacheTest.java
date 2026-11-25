@@ -36,40 +36,68 @@ class MongoStoreCacheTest {
     }
 
     @Test void equivalentFiltersHitCacheButPagesAndFiltersRemainSeparate() {
+        // Given
         Map<String,Object> first=new LinkedHashMap<>();first.put("brand","Volvo");first.put("status","AVAILABLE");
         Map<String,Object> reordered=new LinkedHashMap<>();reordered.put("status","AVAILABLE");reordered.put("brand","Volvo");
-        assertEquals(store.search(first,null,null),store.search(reordered,0,24));
+
+        // When
+        var cachedResult = store.search(first,null,null);
+        var equivalentResult = store.search(reordered,0,24);
+
+        // Then
+        assertEquals(cachedResult,equivalentResult);
         verify(products,times(1)).countDocuments(any(Bson.class));verify(found,times(1)).iterator();
+
+        // When
         store.search(first,24,24);store.search(Map.of("brand","BMW"),0,24);
+
+        // Then
         verify(products,times(3)).countDocuments(any(Bson.class));
+
+        // When / Then
         assertThrows(io.javalin.http.BadRequestResponse.class,() -> store.search(Map.of(),-1,24));
         verify(products,times(3)).countDocuments(any(Bson.class));
     }
 
     @Test void expiryReloadsBothCountAndItems() {
+        // Given
         store.search(null,null,null);store.search(Map.of(),0,24);
+
+        // When
         clock.set(Duration.ofSeconds(20).toNanos());store.search(null,null,null);
+
+        // Then
         verify(products,times(2)).countDocuments(any(Bson.class));verify(found,times(2)).iterator();
     }
 
     @Test void everySuccessfulProjectionInvalidatesCachedSearchesIncludingTombstones() {
+        // Given
+        when(found.first()).thenReturn(new Document("guid",guid).append("version",0L));
+        when(products.replaceOne(any(Bson.class),any(Document.class))).thenReturn(UpdateResult.acknowledged(1,1L,null));
+
+        // When
         for(String topic:List.of("product.created","product.updated","product.reserved","product.removed")) {
             store.search(null,0,24);
-            when(found.first()).thenReturn(new Document("guid",guid).append("version",0L));
-            when(products.replaceOne(any(Bson.class),any(Document.class))).thenReturn(UpdateResult.acknowledged(1,1L,null));
             store.project(UUID.randomUUID().toString(),topic,Json.read("{\"guid\":\""+guid+"\",\"version\":1,\"price\":100}"));
             store.search(null,0,24);
         }
+
+        // Then
         verify(products,times(5)).countDocuments(any(Bson.class));
     }
 
     @Test void insertInvalidatesButDuplicateOldEventsAndFailedWritesDoNot() {
+        // Given
         store.search(null,0,24);when(found.first()).thenReturn(null);
         var event=Json.read("{\"guid\":\""+guid+"\",\"version\":1,\"price\":100}");
+
+        // When
         store.project("event","product.created",event);store.search(null,0,24);
         when(found.first()).thenReturn(new Document("guid",guid).append("version",1L));
         store.project("event","product.created",event);store.search(null,0,24);
         when(found.first()).thenReturn(null);doThrow(new IllegalStateException("offline")).when(products).insertOne(any(Document.class));
+
+        // Then
         assertThrows(IllegalStateException.class,() -> store.project("failed","product.created",event));
         store.search(null,0,24);verify(products,times(2)).countDocuments(any(Bson.class));
     }

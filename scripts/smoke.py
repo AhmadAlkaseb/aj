@@ -86,27 +86,44 @@ class PlatformTest(unittest.TestCase):
         return wait_for(lambda: api('/products/' + car['guid'])['status'] == status)
 
     def test_01_contracts_and_validation(self):
+        # Given
+        existing_email = self.user['email']
+
+        # When
         api('/users/not-a-guid', expected=400)
         api('/users/' + str(uuid.uuid4()), expected=404)
         api('/users', 'POST', {'firstName': 'X', 'lastName': 'Y', 'email': 'invalid'}, 400)
-        api('/users', 'POST', {'firstName': 'X', 'lastName': 'Y', 'email': self.user['email']}, 409)
+        api('/users', 'POST', {'firstName': 'X', 'lastName': 'Y', 'email': existing_email}, 409)
         api('/products', 'POST', {'brand': 'X', 'model': 'Y', 'price': -1}, 400)
         api('/products?status=BOGUS', expected=400)
         api('/internal/orders/anything/payment', 'POST', {}, 404)
+
+        # Then
         self.assertNotIn('id', api('/users/' + self.user['guid']))
 
     def test_02_complete_sale_and_idempotent_payment(self):
+        # Given
         car = self.car()
+
+        # When
         projected = api('/products/' + car['guid'])
+
+        # Then
         self.assertEqual(projected['price'], 219995.50)
         self.assertEqual(projected['engine']['powerHp'], 220)
         self.assertEqual(projected['equipment'], ['Bakkamera', 'Saedevarme'])
+
+        # When
         order = self.order(car)
         self.order_state(order, 'RESERVED')
         order = api('/orders/' + order['guid'])
+
+        # Then
         self.assertEqual(order['totalAmount'], 219995.50)
         self.assertEqual(order['currency'], 'DKK')
         self.order_state(order, 'RESERVED')
+
+        # When / Then
         api('/orders/' + order['guid'], 'PUT', {'status': 'COMPLETED'}, 400)
         payment = api('/payments', 'POST', {'orderGuid': order['guid'], 'paymentMethod': 'MANUAL'}, 201)
         retry = api('/payments', 'POST', {'orderGuid': order['guid'], 'paymentMethod': 'MANUAL'})
@@ -123,14 +140,22 @@ class PlatformTest(unittest.TestCase):
         self.assertEqual(len(api('/orders/' + order['guid'] + '/payments')), 1)
 
     def test_03_failed_payment_releases_car(self):
+        # Given
         car = self.car(); order = self.order(car); self.order_state(order, 'RESERVED')
+
+        # When
         payment = api('/payments', 'POST', {'orderGuid': order['guid']}, 201)
         wait_for(lambda: api('/payments/' + payment['guid'])['status'] == 'PENDING')
         api('/payments/' + payment['guid'], 'PUT', {'status': 'FAILED'})
+
+        # Then
         self.order_state(order, 'FAILED'); self.product_state(car, 'AVAILABLE')
 
     def test_04_only_one_buyer_can_reserve(self):
+        # Given
         car = self.car()
+
+        # When
         def attempt(_):
             try:
                 return self.order(car)
@@ -142,16 +167,27 @@ class PlatformTest(unittest.TestCase):
             orders = [o for o in pool.map(attempt, range(5)) if o]
         wait_for(lambda: all(api('/orders/' + o['guid'])['status'] in ['RESERVED', 'REJECTED'] for o in orders))
         winners = [o for o in orders if api('/orders/' + o['guid'])['status'] == 'RESERVED']
+
+        # Then
         self.assertEqual(len(winners), 1)
+
+        # When
         api('/orders/' + winners[0]['guid'], 'PUT', {'status': 'CANCELLED'})
+
+        # Then
         self.product_state(car, 'AVAILABLE')
 
     def test_05_soft_delete_and_projection(self):
+        # Given
         car = self.car()
+
+        # When
         api('/products/' + car['guid'], 'PUT', {'brand': 'Updated', 'model': self.tag,
             'price': 299000, 'year': 2026, 'status': 'UNAVAILABLE'})
         wait_for(lambda: api('/products/' + car['guid'])['brand'] == 'Updated')
         api('/products/' + car['guid'], 'DELETE', expected=204)
+
+        # Then
         def removed():
             api('/products/' + car['guid'], expected=404)
             return True
@@ -159,6 +195,10 @@ class PlatformTest(unittest.TestCase):
 
     @unittest.skipUnless(FAILURES, 'Use --failures to stop and restart containers')
     def test_06_outages_and_recovery(self):
+        # Given
+        # The local services are healthy before each controlled outage.
+
+        # When / Then
         try:
             compose('stop', 'product-synchronizer')
             wait_for(lambda: api('/status')['status'] == 'DEGRADED')
@@ -166,7 +206,11 @@ class PlatformTest(unittest.TestCase):
                       'price': 12345, 'year': 2026}, 201)
         finally:
             compose('start', 'product-synchronizer')
+
+        # Then
         wait_for(lambda: api('/products/' + car['guid'])['brand'] == 'Recovery')
+
+        # When / Then
         try:
             compose('stop', 'rabbitmq')
             wait_for(lambda: api('/status')['status'] == 'DEGRADED')
@@ -174,13 +218,21 @@ class PlatformTest(unittest.TestCase):
                          'price': 54321, 'year': 2026}, 201)
         finally:
             compose('start', 'rabbitmq')
+
+        # Then
         wait_for(lambda: api('/products/' + queued['guid'])['brand'] == 'Outbox', 90)
+
+        # When / Then
         try:
             compose('stop', 'users-db')
             wait_for(lambda: any(s['service'] == 'users' and s['status'] == 'DOWN' for s in api('/status')['services']))
         finally:
             compose('start', 'users-db')
+
+        # Then
         wait_for(lambda: api('/users/' + self.user['guid'])['guid'] == self.user['guid'], 60)
+
+        # When / Then
         try:
             compose('stop', 'apigateway')
             error = api('/status', expected=503)
@@ -189,6 +241,8 @@ class PlatformTest(unittest.TestCase):
                 self.assertEqual(res.status, 200)
         finally:
             compose('start', 'apigateway')
+
+        # Then
         wait_for(lambda: api('/status')['status'] == 'UP', 90)
 
 

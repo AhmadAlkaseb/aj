@@ -486,29 +486,64 @@ Tests progress from isolated rules through API/database/message boundaries to co
 
 ## 4.2. Unit testing
 
-JUnit/Mockito isolate validation, routing and core decisions. Shared tests cover UUID/money/text/status rules, event metadata/correlation/legacy payloads and stable fixtures. Domain suites cover customer validation, exclusive inventory, order claim/expiry, terminal payments, projection versions/query bounds, relay responses and PDF content. Signed-token tests cover issuer/audience, expiry and forged signatures. These are business-focused suites without an asserted coverage percentage.
+JUnit/Mockito covers domain rules, transitions and token validation; no coverage claim. Example:
+
+```java
+// Given
+var buyer = java.util.UUID.randomUUID();
+var anotherBuyer = java.util.UUID.randomUUID();
+// When
+boolean anotherBuyerCanTakeReservation =
+        InventoryRules.canReserve("RESERVED", buyer, anotherBuyer);
+// Then
+assertFalse(anotherBuyerCanTakeReservation);
+```
 
 ## 4.3. Integration testing
 
-Temporary Javalin servers exercise real HTTP validation/proxy errors; owner tests check authenticated input/storage boundaries. Hibernate/H2 tests validate representative mappings, while separate PostgreSQL/MongoDB/RabbitMQ scenarios cover native stores and messaging. H2 is not evidence of PostgreSQL locking semantics. The cooperation fixture starts fresh owner databases, checks Flyway history and inbox records, then verifies reservation and failed-payment compensation. [3]
+Integration tests exercise local HTTP and persistence boundaries; H2 does not prove PostgreSQL locking semantics. A real projection API test:
 
-## 4.4. System-level cooperation testing
+```java
+// Given
+Object snapshot = event(1);
+// When
+var response = put(snapshot, null);
+// Then
+assertEquals(401, response.statusCode());
+assertEquals(0, writes.get());
+```
 
-The API suite checks contracts/duplicate emails, successful reservation/payment, failed-payment release, competing buyers, catalogue update/deletion and recovery from selected dependency outages. These scenarios exercise distributed business behaviour.
+## 4.4. API and system-level cooperation testing
 
-`scripts/cooperation.py` separately starts four owning backends, private stores, RabbitMQ and identity under a unique Compose project. It asserts authoritative states and processed messages without frontend/gateway dependence, retains diagnostics and cleans only fixture volumes. This meets the distinct backend-cooperation boundary; a browser purchase alone would not. [3]
+`scripts/smoke.py` runs six REST API scenarios through the frontend proxy and gateway: contracts, reservation/payment, idempotency, compensation, competing buyers, projections and selected outages. Its Given/When/Then flow includes:
+
+```python
+# Given
+car = self.car()
+order = self.order(car)
+self.order_state(order, 'RESERVED')
+# When
+payment = api('/payments', 'POST', {'orderGuid': order['guid']}, 201)
+wait_for(lambda: api('/payments/' + payment['guid'])['status'] == 'PENDING')
+api('/payments/' + payment['guid'], 'PUT', {'status': 'FAILED'})
+# Then
+self.order_state(order, 'FAILED')
+self.product_state(car, 'AVAILABLE')
+```
+
+`scripts/check_async.py` checks owner APIs against RabbitMQ. `scripts/cooperation.py` verifies four backend owners and private stores without the frontend/gateway; `scripts/browser_check.py` covers the browser end-to-end flow. These local tests do not establish remote release evidence. [3]
 
 ## 4.5. Security testing
 
-Real-provider/browser tests verify customer/admin login, reload and logout. Direct-port tests check ownership, denied administrative actions, protected customer mapping and self-registration linkage. Catalogue reads are public; protected operations fail with 401/403 independently of frontend buttons. Internal projection/PDF writers use separate credentials and are not publicly proxied. Kubernetes adds TLS and enforced network policies. Local credentials/certificates do not establish production trust. External-provider federation still needs the separate real-account verification described in Appendix E. [20], [31]
+Local browser/provider tests cover customer/admin login, reload/logout and ownership. Direct-port tests verify denied admin actions, protected customer mapping and 401/403. Internal projection/PDF writers use separate credentials; Kubernetes adds TLS and network policies. These checks do not prove production trust or external federation; real-account verification remains pending. [20], [31]
 
 ## 4.6. Static analysis and static testing
 
-SpotBugs' quality profile fails on configured high-priority findings. Reviewed defects included ignored shutdown errors, verifier inheritance and broad proxy handling. CI also runs selected Prettier/ESLint, contract checks, Actionlint and zizmor; Trivy, Bandit and dependency audits cover relevant security tracks. CodeQL is public-repository only. Static passes do not prove absence of vulnerabilities. [29]
+SpotBugs fails configured high-priority findings. CI runs selected Prettier/ESLint, contract, Actionlint/zizmor, Trivy/Bandit and dependency checks; CodeQL is public-repository only. Static passes do not prove vulnerability absence. [29]
 
 ## 4.7. Test execution in CI/CD
 
-Surefire runs unit tests and Failsafe integration tests. Selected service tests gate packaging; container scans gate selected system acceptance. Independent security/docs tracks join an always-run `Ready to merge` gate. Only declared skips are accepted; failures/cancellations/unexpected skips fail the pipeline. Full release verification does not skip owner tests because of a path-only change. Artifacts contain native JUnit summaries and diagnostics. [27], [28]
+Surefire runs unit tests; Failsafe runs integration tests. Selected service checks gate packaging, and scans precede system acceptance. Security/docs tracks join the always-run `Ready to merge` gate; failures, cancellations and unexpected skips block it. Artifacts retain JUnit reports and diagnostics. [27], [28]
 
 The 12 November local review passed 47 Python policy/deployment/federation tests, Actionlint, formatting and high-confidence/high-severity zizmor checks. These results verify local logic and workflow definitions, not GitHub runner execution. Section 3.2.2 and Appendix E explain the remaining remote boundary.
 
@@ -519,6 +554,8 @@ Recorded local evidence covers real-token ownership/self-registration, browser-t
 The isolated performance fixture used 10,000 cars, 200 GraphQL queries and 20 concurrent clients. The first shared-load p95 was **3.782s**, missing the two-second target; a quieter repeat achieved median **0.616s**, p95 **1.139s**, maximum **1.263s**. Both results are reported here to preserve the failed measurement alongside the quieter repeat. This is direct-backend latency, not an internet SLA, long-term availability result or controlled architectural comparison.
 
 Tests cover selected histories and failures, not unrestricted worker concurrency, all contradictory event outcomes or host-failure HA. Workers retain bounded replicas; the local single-node cluster cannot survive host loss. Availability remains a target. Remote delivery and individual collaboration evidence require their own observations.
+
+\clearpage
 
 # 5. Project management and team collaboration
 

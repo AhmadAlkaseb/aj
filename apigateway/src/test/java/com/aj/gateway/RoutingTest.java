@@ -16,15 +16,35 @@ class RoutingTest {
 
     @Test
     void separatesProductReadsFromWrites() {
-        assertEquals("http://product-view:7000", target("GET", "/api/v1/products/car-guid"));
-        assertEquals("http://products:7000", target("POST", "/api/v1/products"));
-        assertEquals("http://products:7000", target("DELETE", "/api/v1/products/car-guid"));
+        // Given
+        String productPath = "/api/v1/products/car-guid";
+
+        // When
+        String readTarget = target("GET", productPath);
+        String createTarget = target("POST", "/api/v1/products");
+        String deleteTarget = target("DELETE", productPath);
+
+        // Then
+        assertEquals("http://product-view:7000", readTarget);
+        assertEquals("http://products:7000", createTarget);
+        assertEquals("http://products:7000", deleteTarget);
     }
 
     @Test
     void routesNestedResourcesToTheirOwningService() {
-        assertEquals("http://orders:7000", target("GET", "/api/v1/users/user-guid/orders"));
-        assertEquals("http://payments:7000", target("GET", "/api/v1/orders/order-guid/payments"));
-        assertEquals("http://users:7000", target("GET", "/api/v1/users/user-guid"));
+        // Given
+        String customerOrdersPath = "/api/v1/users/user-guid/orders";
+        String orderPaymentsPath = "/api/v1/orders/order-guid/payments";
+        String customerPath = "/api/v1/users/user-guid";
+
+        // When
+        String ordersTarget = target("GET", customerOrdersPath);
+        String paymentsTarget = target("GET", orderPaymentsPath);
+        String usersTarget = target("GET", customerPath);
+
+        // Then
+        assertEquals("http://orders:7000", ordersTarget);
+        assertEquals("http://payments:7000", paymentsTarget);
+        assertEquals("http://users:7000", usersTarget);
     }
 }

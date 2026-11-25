@@ -40,10 +40,16 @@ class HttpBoundaryIT {
 
     @Test
     void forwardsValidationErrorsAsStructuredJson() throws Exception {
-        var response = get("/api/v1/users/invalid");
+        // Given
+        String invalidUserPath = "/api/v1/users/invalid";
+
+        // When
+        var response = get(invalidUserPath);
+        var body = Json.read(response.body());
+
+        // Then
         assertEquals(400, response.statusCode());
         assertTrue(response.headers().firstValue("Content-Type").orElse("").contains("application/json"));
-        var body = Json.read(response.body());
         assertEquals("upstream", body.path("service").asText());
         assertEquals(400, body.path("status").asInt());
         assertFalse(body.path("message").asText().isBlank());
@@ -51,10 +57,16 @@ class HttpBoundaryIT {
 
     @Test
     void reportsUnavailableUpstreamWithoutStoppingTheGateway() throws Exception {
+        // Given
         upstream.stop();
+
+        // When
         var response = get("/api/v1/users/8aa7d611-5236-45d2-937a-dca08d381cba");
+        var body = Json.read(response.body());
+
+        // Then
         assertEquals(503, response.statusCode());
-        assertEquals("gateway", Json.read(response.body()).path("service").asText());
+        assertEquals("gateway", body.path("service").asText());
         assertTrue(gateway.port() > 0);
     }
 }

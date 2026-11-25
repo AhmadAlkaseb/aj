@@ -33,23 +33,38 @@ class ProjectionClientIT {
 
     @Test
     void relaysEventIdentityTopicAndSnapshotToOwner() {
+        // Given
+        status = 204;
+
+        // When
         deliver();
         var event=Json.read(body.get());
+
+        // Then
         assertEquals("product.created",event.path("topic").asText());
         assertEquals(1,event.path("snapshot").path("version").asLong());
         assertFalse(event.path("eventId").asText().isBlank());
         assertTrue(client.healthy());
     }
+
     @Test
     void availabilityAndCredentialFailuresAreRetriedRatherThanDropped() {
-        for(int code:new int[]{401,403,404,500,503}) {
+        // Given
+        int[] failedStatuses = {401,403,404,500,503};
+
+        // When / Then
+        for(int code:failedStatuses) {
             status=code;
             assertThrows(ServiceUnavailableResponse.class,this::deliver,"HTTP "+code);
         }
     }
+
     @Test
     void malformedEventsAreDistinguishedFromTransientFailure() {
+        // Given
         status=400;
+
+        // When / Then
         assertThrows(IllegalArgumentException.class,this::deliver);
     }
 }

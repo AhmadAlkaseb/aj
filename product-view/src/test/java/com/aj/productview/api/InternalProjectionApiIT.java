@@ -43,20 +43,45 @@ class InternalProjectionApiIT {
 
     @Test
     void missingOrWrongCredentialsNeverReachStorage() throws Exception {
-        assertEquals(401,put(event(1),null).statusCode());
-        assertEquals(401,put(event(1),"wrong-key").statusCode());
+        // Given
+        Object snapshot = event(1);
+
+        // When
+        var missingCredentials = put(snapshot, null);
+        var wrongCredentials = put(snapshot, "wrong-key");
+
+        // Then
+        assertEquals(401,missingCredentials.statusCode());
+        assertEquals(401,wrongCredentials.statusCode());
         assertEquals(0,writes.get());
     }
+
     @Test
     void acceptsValidSnapshotsAndRejectsInvalidVersions() throws Exception {
-        assertEquals(204,put(event(1),"test-projection-key").statusCode());
-        assertEquals(400,put(event(-1),"test-projection-key").statusCode());
+        // Given
+        Object validSnapshot = event(1);
+        Object invalidSnapshot = event(-1);
+
+        // When
+        var validResponse = put(validSnapshot, "test-projection-key");
+        var invalidResponse = put(invalidSnapshot, "test-projection-key");
+
+        // Then
+        assertEquals(204,validResponse.statusCode());
+        assertEquals(400,invalidResponse.statusCode());
         assertEquals(1,writes.get());
     }
+
     @Test
     void failedStorageIsNotAcknowledgedAsSuccess() throws Exception {
+        // Given
         failWrite=true;
-        assertEquals(503,put(event(1),"test-projection-key").statusCode());
+
+        // When
+        var response = put(event(1), "test-projection-key");
+
+        // Then
+        assertEquals(503,response.statusCode());
         assertEquals(0,writes.get());
     }
 }

@@ -10,7 +10,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class DemoDataTest {
     @Test
     void fixtureReferencesAreStableAndUniqueAcrossAllDomains() {
+        // Given
         Set<UUID> ids = new HashSet<>();
+
+        // When
         for (String domain : new String[]{"users", "products", "orders", "payments"}) {
             for (int index = 1; index <= DemoData.COUNT; index++) {
                 UUID id = DemoData.guid(domain, index);
@@ -18,12 +21,18 @@ class DemoDataTest {
                 assertTrue(ids.add(id), "Demo identities must not collide");
             }
         }
+
+        // Then
         assertEquals(80, ids.size());
     }
 
     @Test
     void demoPaymentsUseTheNormalRetryIdentityForTheirOrder() {
-        for (int index = 1; index <= DemoData.COUNT; index++) {
+        // Given
+        int fixtureCount = DemoData.COUNT;
+
+        // When / Then
+        for (int index = 1; index <= fixtureCount; index++) {
             UUID payment = UUID.nameUUIDFromBytes(("aj-payment:" + DemoData.guid("orders", index)).getBytes(StandardCharsets.UTF_8));
             assertEquals(payment, DemoData.guid("payments", index));
         }
@@ -31,8 +40,11 @@ class DemoDataTest {
 
     @Test
     void sampleInventoryHasMatchingOutcomesAndCarsAvailableForLiveDemonstrations() {
-        assertEquals(20, DemoData.CARS.size());
+        // Given
         long available = 0;
+
+        // When
+        assertEquals(20, DemoData.CARS.size());
         for (int index = 1; index <= DemoData.COUNT; index++) {
             assertTrue(DemoData.car(index).amount().signum() > 0);
             switch (DemoData.paymentStatus(index)) {
@@ -52,6 +64,8 @@ class DemoDataTest {
                 default -> fail("Unknown payment state");
             }
         }
+
+        // Then
         assertEquals(10, available);
     }
 }

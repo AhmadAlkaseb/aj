@@ -10,10 +10,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ConfirmationTest {
     @Test void createsReadableInvoiceWithoutForwardingUnrelatedCustomerInput() throws Exception {
+        // Given
         UUID order=UUID.randomUUID(),car=UUID.randomUUID();
         var data=Json.read(Json.write(Map.of("orderGuid",order,"productGuid",car,"totalAmount",123456.78,
             "currency","DKK","email","private@example.test")));
-        try(var pdf=Loader.loadPDF(Application.document(data))) {
+
+        // When
+        byte[] document = Application.document(data);
+
+        // Then
+        try(var pdf=Loader.loadPDF(document)) {
             assertEquals(1,pdf.getNumberOfPages());
             String text=new PDFTextStripper().getText(pdf);
             assertTrue(text.contains(order.toString()));assertTrue(text.contains("123456.78 DKK"));

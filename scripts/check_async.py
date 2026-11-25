@@ -53,20 +53,38 @@ class AsyncTest(unittest.TestCase):
                     'totalAmount': 1, 'currency': 'EUR'}, 201)
 
     def test_01_real_broker_metadata_and_authoritative_sale(self):
+        # Given
         queue = 'aj.test.audit.' + uuid.uuid4().hex
         rabbit('queues/%2F/' + queue, 'PUT', {'durable': False, 'auto_delete': False, 'arguments': {}})
         rabbit('bindings/%2F/e/aj.events/q/' + queue, 'POST', {'routing_key': '#', 'arguments': {}})
         try:
+            # When
             car = self.car(); order = self.order(car)
+
+            # Then
             self.assertEqual(order['status'], 'PENDING'); self.assertIsNone(order['totalAmount'])
+
+            # When
             state('orders', 'orders', order['guid'], 'RESERVED')
             confirmed = call('orders', '/orders/' + order['guid'])
+
+            # Then
             self.assertEqual((confirmed['totalAmount'], confirmed['currency']), (234567.89, 'DKK'))
+
+            # When
             payment = call('payments', '/payments', 'POST', {'orderGuid': order['guid']}, 201)
+
+            # Then
             self.assertEqual(payment['status'], 'REQUESTED'); self.assertIsNone(payment['amount'])
+
+            # When
             state('payments', 'payments', payment['guid'], 'PENDING')
             invoice = call('payments', '/payments/' + payment['guid'])
+
+            # Then
             self.assertEqual((invoice['amount'], invoice['currency']), (234567.89, 'DKK'))
+
+            # When
             call('payments', '/payments/' + payment['guid'], 'PUT', {'status': 'COMPLETED'})
             state('orders', 'orders', order['guid'], 'COMPLETED')
             state('products', 'products', car['guid'], 'SOLD')
@@ -84,32 +102,49 @@ class AsyncTest(unittest.TestCase):
                     seen.add(body['eventType'])
                 return {'customer.check', 'customer.valid', 'quantitycheck', 'quantityreserved',
                         'product.reserved', 'payment.requested', 'payment.authorized', 'payment.completed'} <= seen
+
+            # Then
             wait_for(collected)
         finally:
             rabbit('queues/%2F/' + queue, 'DELETE')
 
     def test_02_unknown_references_are_asynchronous_business_rejections(self):
+        # Given
         car = self.car(); order = self.order(car, str(uuid.uuid4()))
+
+        # When
         state('orders', 'orders', order['guid'], 'REJECTED')
+
+        # Then
         self.assertEqual(call('products', '/products/' + car['guid'])['status'], 'AVAILABLE')
+
+        # When
         missing = self.order({'guid': str(uuid.uuid4())})
         state('orders', 'orders', missing['guid'], 'REJECTED')
         payment = call('payments', '/payments', 'POST', {'orderGuid': str(uuid.uuid4())}, 201)
         state('payments', 'payments', payment['guid'], 'REJECTED')
+
+        # Then
         call('payments', '/payments/' + payment['guid'], 'PUT', {'status': 'COMPLETED'}, 409)
         self.assertEqual(call('orders', '/users/' + str(uuid.uuid4()) + '/orders'), [])
         self.assertEqual(call('payments', '/orders/' + str(uuid.uuid4()) + '/payments'), [])
 
     def test_03_unsupported_schema_goes_to_dead_letter_queue(self):
+        # Given
         queue = 'aj.test.dead.' + uuid.uuid4().hex
         rabbit('queues/%2F/' + queue, 'PUT', {'durable': False, 'auto_delete': False, 'arguments': {}})
         rabbit('bindings/%2F/e/aj.dead/q/' + queue, 'POST', {'routing_key': '', 'arguments': {}})
         event_id = str(uuid.uuid4())
         try:
+            # When
             result = rabbit('exchanges/%2F/aj.events/publish', 'POST', {
                 'routing_key': 'customer.check', 'properties': {'message_id': event_id, 'delivery_mode': 2},
                 'payload_encoding': 'string', 'payload': json.dumps({'schemaVersion': 999, 'payload': {}})})
+
+            # Then
             self.assertTrue(result['routed'])
+
+            # When / Then
             def rejected():
                 messages = rabbit('queues/%2F/' + queue + '/get', 'POST',
                     {'count': 50, 'ackmode': 'ack_requeue_false', 'encoding': 'auto'})
@@ -120,20 +155,33 @@ class AsyncTest(unittest.TestCase):
 
     @unittest.skipUnless(FAILURES, 'Use --failures for consumer outage checks')
     def test_04_requests_recover_without_client_retries(self):
+        # Given
         car = self.car()
+
+        # When
         try:
             compose('stop', 'users')
             order = self.order(car)
             time.sleep(2)
+
+            # Then
             self.assertEqual(call('orders', '/orders/' + order['guid'])['status'], 'PENDING')
         finally:
             compose('start', 'users')
+
+        # Then
         state('orders', 'orders', order['guid'], 'RESERVED')
+
+        # When
         try:
             compose('stop', 'orders')
             payment = call('payments', '/payments', 'POST', {'orderGuid': order['guid']}, 201)
             time.sleep(2)
+
+            # Then
             self.assertEqual(call('payments', '/payments/' + payment['guid'])['status'], 'REQUESTED')
+
+            # When / Then
             call('payments', '/payments/' + payment['guid'], 'PUT', {'status': 'COMPLETED'}, 409)
             self.assertEqual(call('payments', '/payments', 'POST', {'orderGuid': order['guid']})['guid'], payment['guid'])
             compose('stop', 'payments')
@@ -141,6 +189,8 @@ class AsyncTest(unittest.TestCase):
             state('orders', 'orders', order['guid'], 'PAYMENT_PENDING')
         finally:
             compose('start', 'orders', 'payments')
+
+        # Then
         state('payments', 'payments', payment['guid'], 'PENDING')
         call('payments', '/payments/' + payment['guid'], 'PUT', {'status': 'FAILED'})
         state('orders', 'orders', order['guid'], 'FAILED')
@@ -148,14 +198,23 @@ class AsyncTest(unittest.TestCase):
 
     @unittest.skipUnless(FAILURES, 'Use --failures for late reservation checks')
     def test_05_deleted_order_releases_late_reservation(self):
+        # Given
         car = self.car()
+
+        # When
         try:
             compose('stop', 'products')
             order = self.order(car)
+
+            # Then
             state('orders', 'orders', order['guid'], 'RESERVING')
+
+            # When
             call('orders', '/orders/' + order['guid'], 'DELETE', expected=204)
         finally:
             compose('start', 'products')
+
+        # Then
         # Wait until Products actually consumed the queued check and its compensation.
         def released():
             p = call('products', '/products/' + car['guid'])

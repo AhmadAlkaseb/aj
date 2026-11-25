@@ -26,7 +26,7 @@ jobs:
           SERVICE: ${{ inputs.service }}
         run: |
           case "$SERVICE" in users|products|orders|payments|product-view|product-synchronizer|apigateway|frontend|confirmation-job) ;; *) exit 1 ;; esac
-          mvn -B -ntp -pl "$SERVICE" -am validate
+          bash scripts/mvn_ci.sh -B -ntp -pl "$SERVICE" -am validate
   unit:
     name: 02a · Unit tests
     needs: validate
@@ -44,7 +44,7 @@ jobs:
       - name: Surefire
         env:
           SERVICE: ${{ inputs.service }}
-        run: mvn -B -ntp -Pcoverage -pl "$SERVICE" -am test jacoco:report
+        run: bash scripts/mvn_ci.sh -B -ntp -Pcoverage -pl "$SERVICE" -am test jacoco:report
       - name: Unit coverage in GitHub summary
         if: always()
         run: python scripts/ci_coverage.py --title 'Unit coverage'
@@ -76,7 +76,7 @@ jobs:
       - name: Failsafe
         env:
           SERVICE: ${{ inputs.service }}
-        run: mvn -B -ntp -Pcoverage -pl "$SERVICE" -am verify -DskipUnitTests=true
+        run: bash scripts/mvn_ci.sh -B -ntp -Pcoverage -pl "$SERVICE" -am verify -DskipUnitTests=true
       - name: Integration coverage in GitHub summary
         if: always()
         run: python scripts/ci_coverage.py --title 'Integration coverage'
@@ -111,7 +111,7 @@ jobs:
         env:
           SERVICE: ${{ inputs.service }}
         run: |
-          mvn -B -ntp -pl "$SERVICE" -am package -DskipTests
+          bash scripts/mvn_ci.sh -B -ntp -pl "$SERVICE" -am package -DskipTests
           test -s "$SERVICE/target/app.jar"
           cd "$SERVICE/target"
           sha256sum app.jar > app.jar.sha256

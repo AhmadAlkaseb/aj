@@ -35,36 +35,57 @@ class TokenVerifierTest {
 
     @Test
     void acceptsCorrectlySignedAccessToken() throws Exception {
-        assertEquals("demo-subject", verifier.verify(token("http://issuer/realms/aj", "aj-api", Instant.now().plusSeconds(120), "Bearer", key)).getSubject());
+        // Given
+        String validToken = token("http://issuer/realms/aj", "aj-api",
+            Instant.now().plusSeconds(120), "Bearer", key);
+
+        // When
+        var claims = verifier.verify(validToken);
+
+        // Then
+        assertEquals("demo-subject", claims.getSubject());
     }
 
     @Test
     void rejectsMissingAndMalformedTokens() {
+        // Given
+        String malformedToken = "Bearer not-a-jwt";
+
+        // When / Then
         assertThrows(UnauthorizedResponse.class, () -> verifier.verify(null));
         assertThrows(UnauthorizedResponse.class, () -> verifier.verify("Basic credentials"));
-        assertThrows(UnauthorizedResponse.class, () -> verifier.verify("Bearer not-a-jwt"));
+        assertThrows(UnauthorizedResponse.class, () -> verifier.verify(malformedToken));
     }
 
     @Test
     void rejectsOtherIssuerOrAudience() throws Exception {
+        // Given
         String issuer = token("http://attacker", "aj-api", Instant.now().plusSeconds(120), "Bearer", key);
         String audience = token("http://issuer/realms/aj", "other-api", Instant.now().plusSeconds(120), "Bearer", key);
+
+        // When / Then
         assertThrows(UnauthorizedResponse.class, () -> verifier.verify(issuer));
         assertThrows(UnauthorizedResponse.class, () -> verifier.verify(audience));
     }
 
     @Test
     void rejectsExpiredTokensAndIdentityTokens() throws Exception {
+        // Given
         String expired = token("http://issuer/realms/aj", "aj-api", Instant.now().minusSeconds(120), "Bearer", key);
         String identity = token("http://issuer/realms/aj", "aj-api", Instant.now().plusSeconds(120), "ID", key);
+
+        // When / Then
         assertThrows(UnauthorizedResponse.class, () -> verifier.verify(expired));
         assertThrows(UnauthorizedResponse.class, () -> verifier.verify(identity));
     }
 
     @Test
     void rejectsForgedSignatureEvenWithTrustedKeyId() throws Exception {
+        // Given
         RSAKey attacker = new RSAKeyGenerator(2048).keyID("provider-key").generate();
         String forged = token("http://issuer/realms/aj", "aj-api", Instant.now().plusSeconds(120), "Bearer", attacker);
+
+        // When / Then
         assertThrows(UnauthorizedResponse.class, () -> verifier.verify(forged));
     }
 }

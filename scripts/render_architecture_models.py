@@ -47,6 +47,14 @@ class Figure:
             self.parts.append('<path d="m14 1 11 4v8c0 7-11 12-11 12S3 20 3 13V5Z"/><path d="m8 12 4 4 8-9"/>')
         elif any(word in title for word in ['MONITOR', 'OBSERV', 'GRAFANA', 'METRICS', 'LOG']):
             self.parts.append('<path d="M2 1v23h25M5 17l6-7 6 4 8-11"/><circle cx="11" cy="10" r="2"/><circle cx="17" cy="14" r="2"/>')
+        elif 'UNIT' in title:
+            self.parts.append('<path d="M8 3h12v3h4v20H4V6h4Z"/><path d="m8 12 2 2 4-4m3 1h4m-13 7 2 2 4-4m3 1h4"/>')
+        elif 'INTEGRATION' in title:
+            self.parts.append('<rect x="1" y="3" width="9" height="8" rx="1"/><rect x="18" y="3" width="9" height="8" rx="1"/><rect x="9" y="18" width="10" height="8" rx="1"/><path d="M10 7h8m-4 4v7"/>')
+        elif 'COOPERATION' in title:
+            self.parts.append('<rect x="1" y="3" width="8" height="8" rx="1"/><rect x="19" y="3" width="8" height="8" rx="1"/><rect x="10" y="18" width="8" height="8" rx="1"/><path d="M9 7h10m-5 4v7"/>')
+        elif 'GATE' in title:
+            self.parts.append('<path d="m14 1 11 4v8c0 7-11 12-11 12S3 20 3 13V5Z"/><path d="m8 12 4 4 8-9"/>')
         elif title == 'USER':
             self.parts.append('<circle cx="14" cy="7" r="5"/><path d="M3 26v-4c0-10 22-10 22 0v4Z"/>')
         elif any(word in title for word in ['NETWORK', 'NAMESPACE', 'CLUSTER']):
@@ -242,19 +250,35 @@ def purchase():
 
 
 def testing():
-    f = Figure('testing-strategy', 'Verification from local rules to business flows',
-        'Different test boundaries answer different questions; local evidence does not imply a remote release', 445)
-    cards = [
-        (24, 115, 'UNIT', ['Business rules and transitions', 'Fast, isolated feedback']),
-        (624, 115, 'INTEGRATION', ['Owner database + contracts', 'Transactions and persistence']),
-        (24, 282, 'SYSTEM', ['Real APIs + RabbitMQ + identity', 'Reservation and compensation']),
-        (624, 282, 'RELEASE GATES', ['Security + images + migration', 'Readiness and smoke evidence'])]
-    for x, y, title, lines in cards:
-        f.card(x, y, 552, 118, title, lines, size=22)
-    f.arrow([(576, 174), (624, 174)])
-    f.arrow([(900, 233), (900, 258), (300, 258), (300, 282)])
-    f.arrow([(576, 341), (624, 341)], PURPLE)
-    f.text(24, 432, 'Cross-cutting checks: access control, duplicate delivery, dependency outage and retained evidence.', size=20)
+    f = Figure('testing-strategy', 'Verification boundaries and evidence',
+        'Test scope widens from isolated code to service cooperation; configured CI gates are not remote-run evidence', 490)
+
+    f.rect(24, 118, 870, 270, '#ffffff', BLUE, dash=True)
+    f.text(44, 147, 'LOCAL TEST SCOPE', size=17, color=BLUE, weight='700')
+    f.rect(920, 118, 256, 270, '#ffffff', PURPLE, dash=True)
+    f.text(940, 147, 'CI / DELIVERY', size=17, color=PURPLE, weight='700')
+
+    f.card(44, 166, 250, 160, 'UNIT TESTS',
+        ['JUnit + Mockito', 'Business rules + transitions', 'Fast, isolated feedback'],
+        BLUE, '#eef5fc', size=17)
+    f.card(326, 166, 250, 160, 'INTEGRATION',
+        ['HTTP + owner stores', 'Transactions + persistence', 'Real DB + broker scenarios'],
+        GREEN, '#edf8f3', size=17)
+    f.card(608, 166, 250, 160, 'SYSTEM COOPERATION',
+        ['Real APIs + RabbitMQ', 'Reservation + recovery', 'Selected outage scenarios'],
+        AMBER, '#fff7e8', size=17)
+    f.card(936, 166, 224, 160, 'CI / RELEASE GATES',
+        ['Static + security', 'Images + migrations', 'Readiness + smoke'],
+        PURPLE, '#f4f0fa', size=17)
+
+    f.arrow([(294, 246), (326, 246)], BLUE)
+    f.arrow([(576, 246), (608, 246)], GREEN)
+    f.arrow([(858, 246), (920, 246)], AMBER)
+
+    f.rect(24, 408, 1152, 64, '#f4f0fa', PURPLE, radius=10, dash=True)
+    f.text(44, 434, 'SUPPORTING EVIDENCE', size=16, color=PURPLE, weight='700')
+    f.text(246, 434, 'Browser journeys supplement backend cooperation; they do not replace it.', size=18)
+    f.text(246, 458, 'Cross-cutting: access control, duplicate delivery, dependency outages and retained evidence.', size=17)
     f.save()
 
 

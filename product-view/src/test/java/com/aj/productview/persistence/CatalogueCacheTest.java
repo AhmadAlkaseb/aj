@@ -16,40 +16,72 @@ class CatalogueCacheTest {
     }
 
     @Test void hitsExpireTwentySecondsAfterLoadingWithoutSlidingExpiry() {
+        // Given
         CatalogueCache cache=cache(2,4096);AtomicInteger reads=new AtomicInteger();
         Supplier<Map<String,Object>> loader=() -> Map.of("total",reads.incrementAndGet());
-        assertEquals(1,cache.get("a",loader).get("total"));
+
+        // When
+        var firstRead = cache.get("a",loader);
         clock.set(Duration.ofSeconds(19).toNanos());
-        assertEquals(1,cache.get("a",loader).get("total"));
+        var cachedRead = cache.get("a",loader);
         clock.set(Duration.ofSeconds(20).toNanos());
-        assertEquals(2,cache.get("a",loader).get("total"));
+        var expiredRead = cache.get("a",loader);
+
+        // Then
+        assertEquals(1,firstRead.get("total"));
+        assertEquals(1,cachedRead.get("total"));
+        assertEquals(2,expiredRead.get("total"));
     }
 
     @Test void evictsLeastRecentlyUsedResultWhenCapacityIsReached() {
+        // Given
         CatalogueCache cache=cache(2,4096);AtomicInteger reads=new AtomicInteger();
         Supplier<Map<String,Object>> loader=() -> Map.of("total",reads.incrementAndGet());
+
+        // When
         cache.get("a",loader);cache.get("b",loader);cache.get("a",loader);cache.get("c",loader);
-        assertEquals(1,cache.get("a",loader).get("total"));
-        assertEquals(4,cache.get("b",loader).get("total"));
+        var mostRecentlyUsed = cache.get("a",loader);
+        var evictedEntry = cache.get("b",loader);
+
+        // Then
+        assertEquals(1,mostRecentlyUsed.get("total"));
+        assertEquals(4,evictedEntry.get("total"));
     }
 
     @Test void oversizedResultsAndFailuresAreNotCached() {
+        // Given
         CatalogueCache cache=cache(2,30);AtomicInteger reads=new AtomicInteger();
         Supplier<Map<String,Object>> loader=() -> { reads.incrementAndGet();return Map.of("description","x".repeat(50)); };
-        cache.get("large",loader);cache.get("large",loader);assertEquals(2,reads.get());
+
+        // When
+        cache.get("large",loader);cache.get("large",loader);
+
+        // Then
+        assertEquals(2,reads.get());
+
+        // When / Then
         assertThrows(IllegalStateException.class,() -> cache.get("failed",() -> { throw new IllegalStateException("offline"); }));
         assertEquals(Map.of("ok",true),cache.get("failed",() -> Map.of("ok",true)));
     }
 
     @Test void invalidationDiscardsEverySearchPage() {
+        // Given
         CatalogueCache cache=cache(3,4096);AtomicInteger reads=new AtomicInteger();
         Supplier<Map<String,Object>> loader=() -> Map.of("total",reads.incrementAndGet());
-        cache.get("a:0",loader);cache.get("a:24",loader);cache.invalidate();
-        assertEquals(3,cache.get("a:0",loader).get("total"));
-        assertEquals(4,cache.get("a:24",loader).get("total"));
+
+        // When
+        cache.get("a:0",loader);cache.get("a:24",loader);
+        cache.invalidate();
+        var firstPage = cache.get("a:0",loader);
+        var secondPage = cache.get("a:24",loader);
+
+        // Then
+        assertEquals(3,firstPage.get("total"));
+        assertEquals(4,secondPage.get("total"));
     }
 
     @Test void invalidatedInflightReadCannotRepopulateTheCache() throws Exception {
+        // Given
         CatalogueCache cache=cache(2,4096);CountDownLatch started=new CountDownLatch(1),finish=new CountDownLatch(1);
         ExecutorService pool=Executors.newSingleThreadExecutor();
         try {
@@ -59,20 +91,34 @@ class CatalogueCacheTest {
                 catch(InterruptedException e) { Thread.currentThread().interrupt();throw new IllegalStateException(e); }
                 return Map.of("version",1);
             }));
-            assertTrue(started.await(5,TimeUnit.SECONDS));cache.invalidate();
-            assertEquals(2,cache.get("a",() -> Map.of("version",2)).get("version"));
-            finish.countDown();assertEquals(1,old.get(5,TimeUnit.SECONDS).get("version"));
-            assertEquals(2,cache.get("a",() -> { fail("Old read evicted the fresh result");return Map.of(); }).get("version"));
+
+            // When
+            assertTrue(started.await(5,TimeUnit.SECONDS));
+            cache.invalidate();
+            var freshRead = cache.get("a",() -> Map.of("version",2));
+            finish.countDown();
+            var oldRead = old.get(5,TimeUnit.SECONDS);
+            var finalRead = cache.get("a",() -> { fail("Old read evicted the fresh result");return Map.of(); });
+
+            // Then
+            assertEquals(2,freshRead.get("version"));
+            assertEquals(1,oldRead.get("version"));
+            assertEquals(2,finalRead.get("version"));
         } finally { finish.countDown();pool.shutdownNow(); }
     }
 
     @Test void cachedSnapshotsCannotBeMutatedAndKeepDecimalPrecision() {
+        // Given
         CatalogueCache cache=cache(2,4096);
         List<String> equipment=new ArrayList<>(List.of("ABS"));
         Map<String,Object> car=new HashMap<>();car.put("equipment",equipment);car.put("price",new BigDecimal("123.45"));car.put("optional",null);
+
+        // When
         Map<String,Object> result=cache.get("a",() -> Map.of("items",List.of(car)));
         equipment.add("changed");car.put("price",0);
         Map<?,?> saved=(Map<?,?>)((List<?>)result.get("items")).get(0);
+
+        // Then
         assertEquals(List.of("ABS"),saved.get("equipment"));assertEquals(new BigDecimal("123.45"),saved.get("price"));
         assertThrows(UnsupportedOperationException.class,() -> result.put("items",List.of()));
         assertThrows(UnsupportedOperationException.class,() -> saved.clear());

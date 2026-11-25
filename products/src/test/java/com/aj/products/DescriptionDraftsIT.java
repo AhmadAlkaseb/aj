@@ -11,7 +11,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class DescriptionDraftsIT {
     private final String input="{\"brand\":\"Volvo\",\"model\":\"EX30\",\"year\":2024,\"email\":\"private@example.test\",\"price\":1}";
+
     @Test void acceptsDraftAndSendsOnlyWhitelistedFacts() throws Exception {
+        // Given
         var server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
         server.createContext("/",exchange -> {
             String body=new String(exchange.getRequestBody().readAllBytes(),StandardCharsets.UTF_8);
@@ -21,18 +23,33 @@ class DescriptionDraftsIT {
         });server.start();
         try {
             var adapter=new DescriptionDrafts(URI.create("http://127.0.0.1:"+server.getAddress().getPort()),"test",Duration.ofSeconds(2));
-            assertEquals(true,adapter.generate(Json.read(input)).get("requiresApproval"));
+
+            // When
+            var result = adapter.generate(Json.read(input));
+
+            // Then
+            assertEquals(true,result.get("requiresApproval"));
         } finally { server.stop(0); }
     }
+
     @Test void rejectsInvalidInputBeforeCallingModel() {
+        // Given
         var adapter=new DescriptionDrafts(URI.create("http://127.0.0.1:1"),"test",Duration.ofMillis(20));
+
+        // When / Then
         assertThrows(BadRequestResponse.class,()->adapter.generate(Json.read("{\"brand\":\"<script>\",\"model\":\"x\",\"year\":2024}")));
     }
+
     @Test void turnsUnavailableModelIntoFriendlyServiceError() {
+        // Given
         var adapter=new DescriptionDrafts(URI.create("http://127.0.0.1:1"),"test",Duration.ofMillis(20));
+
+        // When / Then
         assertThrows(ServiceUnavailableResponse.class,()->adapter.generate(Json.read(input)));
     }
+
     @Test void rejectsInvalidModelOutput() throws Exception {
+        // Given
         var server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
         server.createContext("/",exchange -> {
             byte[] body="{\"response\":\"not-json\"}".getBytes(StandardCharsets.UTF_8);
@@ -40,14 +57,20 @@ class DescriptionDraftsIT {
         });server.start();
         try {
             var adapter=new DescriptionDrafts(URI.create("http://127.0.0.1:"+server.getAddress().getPort()),"test",Duration.ofSeconds(1));
+
+            // When / Then
             assertThrows(ServiceUnavailableResponse.class,()->adapter.generate(Json.read(input)));
         } finally {server.stop(0);}
     }
+
     @Test void boundsSlowModelRequests() throws Exception {
+        // Given
         var server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
         server.createContext("/",exchange -> {try{Thread.sleep(250);}catch(InterruptedException interrupted){Thread.currentThread().interrupt();}exchange.close();});server.start();
         try {
             var adapter=new DescriptionDrafts(URI.create("http://127.0.0.1:"+server.getAddress().getPort()),"test",Duration.ofMillis(30));
+
+            // When / Then
             assertThrows(ServiceUnavailableResponse.class,()->adapter.generate(Json.read(input)));
         } finally {server.stop(0);}
     }

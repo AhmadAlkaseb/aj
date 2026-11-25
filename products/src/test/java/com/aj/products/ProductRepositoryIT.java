@@ -33,16 +33,19 @@ class ProductRepositoryIT {
 
     @Test
     void shouldPersistAndLoadProduct() {
+        // Given
         ProductDao productDao = new ProductDao(HibernateUtil.getSessionFactory());
-
         Product product = Product.builder()
                 .guid(UUID.randomUUID())
                 .build();
 
+        // When
         Product saved = productDao.save(product);
+        var loadedProduct = productDao.findById(saved.getId());
 
+        // Then
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getGuid()).isNotNull();
-        assertThat(productDao.findById(saved.getId())).isPresent();
+        assertThat(loadedProduct).isPresent();
     }
 }

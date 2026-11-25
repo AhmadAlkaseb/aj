@@ -18,6 +18,7 @@ OUT=ROOT/'test-results/cooperation'
 
 
 def main():
+    # Given an isolated Compose project derived from the application's service configuration
     OUT.mkdir(parents=True,exist_ok=True)
     project='aj-cooperation-'+uuid.uuid4().hex[:8]
     source=json.loads(subprocess.check_output(['docker','compose','config','--format','json'],cwd=ROOT))
@@ -41,7 +42,10 @@ def main():
     exclusive='--exclusive' in sys.argv
     if exclusive:subprocess.run(['docker','compose','stop'],cwd=ROOT,check=True,stdout=subprocess.DEVNULL)
     try:
+        # When the private stores, owners, broker and identity provider are started
         compose('up','-d','--wait','--wait-timeout','1200')
+
+        # Given a configured identity provider and an authorized API client
         base=url('keycloak',8180)
         os.environ['KEYCLOAK_TEST_URL']=base
         import configure_identity
@@ -51,6 +55,8 @@ def main():
             request=urllib.request.Request(url(service,7000)+'/api/v1'+path,method=method,
                 data=None if value is None else json.dumps(value).encode(),headers={'Content-Type':'application/json',**admin_headers()})
             with urllib.request.urlopen(request,timeout=15) as response:return json.load(response)
+
+        # When an order is created across the owning service APIs
         user=api('users','/users')[0]
         car=api('products','/products','POST',{'brand':'Cooperation','model':project,'price':98765.43,'year':2026})
         order=api('orders','/orders','POST',{'userGuid':user['guid'],'productGuid':car['guid'],'shippingAddress':'Isolated backend fixture','totalAmount':1})
@@ -59,9 +65,14 @@ def main():
             confirmed=api('orders','/orders/'+order['guid'])
             if confirmed['status']=='RESERVED':break
             time.sleep(.5)
+
         else:raise AssertionError('Reservation cooperation did not finish')
+
+        # Then reservation completes using the product owner's authoritative price
         assert confirmed['totalAmount']==98765.43
         assert api('products','/products/'+car['guid'])['status']=='RESERVED'
+
+        # When a payment is created, reaches PENDING and is marked failed
         payment=api('payments','/payments','POST',{'orderGuid':order['guid']})
         end=time.monotonic()+30
         while api('payments','/payments/'+payment['guid'])['status']!='PENDING':
@@ -70,13 +81,19 @@ def main():
         end=time.monotonic()+30
         while api('products','/products/'+car['guid'])['status']!='AVAILABLE':
             assert time.monotonic()<end;time.sleep(.5)
+
+        # Then compensation fails the order and releases the product
         assert api('orders','/orders/'+order['guid'])['status']=='FAILED'
+
+        # When migration and inbox evidence are queried from each owning database
         versions={}
         for owner in ['users','products','orders','payments']:
             observed=compose('exec','-T',owner+'-db','psql','-U','postgres','-d',owner,'-Atc',"select max(version::int) from flyway_schema_history where success").decode().strip()
             versions[owner]=observed
             processed=int(compose('exec','-T',owner+'-db','psql','-U','postgres','-d',owner,'-Atc','select count(*) from event_inbox').decode().strip())
             assert processed>0,(owner,'No processed broker messages')
+
+        # Then the fixture records the verified backend cooperation result
         result={'result':'PASS','project':project,'backends':['users','products','orders','payments'],'freshDatabaseVersions':versions,
             'reservation':'RabbitMQ request/reply','authoritativePrice':'PASS','compensation':'PASS','frontendOrGateway':False}
         (OUT/'result.json').write_text(json.dumps(result,indent=2),encoding='utf-8');print(json.dumps(result,indent=2))
