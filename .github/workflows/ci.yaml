@@ -58,7 +58,7 @@ jobs:
       == 'success' || needs.quality.result == 'skipped' && !fromJSON(needs.plan.outputs.plan).flags.quality)
     strategy:
       fail-fast: false
-      max-parallel: 3
+      max-parallel: 2
       matrix:
         service: ${{ fromJSON(needs.plan.outputs.services) }}
     uses: ./.github/workflows/service-ci.yaml

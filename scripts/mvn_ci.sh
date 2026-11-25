@@ -9,7 +9,7 @@ fi
 log_file="$(mktemp)"
 trap 'rm -f "$log_file"' EXIT
 
-max_attempts=3
+max_attempts=5
 for ((attempt = 1; attempt <= max_attempts; attempt++)); do
   : > "$log_file"
   if ((attempt == 1)); then
@@ -28,7 +28,7 @@ for ((attempt = 1; attempt <= max_attempts; attempt++)); do
     exit "$exit_code"
   fi
 
-  delay=$((attempt * 15))
+  delay=$((15 * (2 ** (attempt - 1)) + RANDOM % 15))
   echo "Maven repository returned HTTP 429; retrying in ${delay}s (attempt $((attempt + 1))/$max_attempts)." >&2
   sleep "$delay"
 done
