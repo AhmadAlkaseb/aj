@@ -1,0 +1,123 @@
+# Content-Security-Policy: default-src 'none' - (XSS: Cross-Site Scripting)
+# CSP er regler, som serveren sender til browseren om, hvad et dokument må indlæse og køre.
+# default-src er standardreglen, og 'none' betyder, at intet er tilladt som udgangspunkt.
+# Det blokerer fx scripts, billeder og styles, medmindre en mere specifik CSP-regel tillader dem.
+# Vores JSON-svar behøver ikke disse ressourcer, så de får denne korte og stramme regel.
+# Det er et ekstra lag mod XSS, hvis indhold behandles som et dokument i browseren.
+# Login-siderne har en særskilt CSP, fordi deres egne scripts skal kunne køre.
+# CSP erstatter ikke korrekt HTML-encoding og beskytter ikke mod SQL-injection.
+
+# X-Content-Type-Options: nosniff
+# Content-Type fortæller browseren, hvilken type indhold serveren sender, fx application/json.
+# nosniff beder browseren holde sig til den type i stedet for at gætte en anden ud fra indholdet.
+# Fx skal tekst/JSON med HTML-lignende indhold ikke pludselig fortolkes som en HTML-side.
+# Det hjælper mod XSS sammen med den korrekte Content-Type, men fjerner ikke HTML fra data.
+# En bogtitel med <script> er stadig tekst i vores JSON; en frontend skal også vise den som tekst.
+
+# WWW-Authenticate: Bearer
+# Kommer ved 401 Unauthorized og fortæller klienten, at endpointet kræver et Bearer-token.
+# Klienten skal sende: Authorization: Bearer <JWT>.
+# Serveren kontrollerer derefter signatur, udsteder, modtager, udløbstid og blacklist.
+# Headeren indeholder ikke et nyt token. Log ind igen, hvis dit token er udløbet.
+
+# Aktivér ETL i Main først, så shards indeholder data.
+# Start login i browseren: http://localhost:7070/api/v1/auth
+# Browseren udfører POST /api/v1/auth/tokens og viser access_token og token_id.
+# Manglende eller ugyldigt JWT giver desuden 401 på alle beskyttede endpoints.
+@baseUrl = http://localhost:7070/api/v1
+@token = {{$dotenv BOOK_API_TOKEN}}
+@tokenId = {{$dotenv BOOK_API_TOKEN_ID}}
+
+### Login via Keycloak/GitHub (udføres i browseren)
+# Endpoint: POST http://localhost:7070/api/v1/auth/tokens
+# Åbn http://localhost:7070/api/v1/auth og gennemfør login.
+# Browseren sender automatisk engangskoden og state til token-endpointet.
+# Svaret er 201 Created med access_token og token_id.
+# Fejl: 400 ved manglende/ugyldig login-kode eller forkert state.
+# Gem dem i .env som BOOK_API_TOKEN og BOOK_API_TOKEN_ID, og kør requests nedenfor.
+# Login vises her som dokumentation: der er ingen faste koder, som kan genbruges.
+
+### 01 - Hent forfattere med søgning og pagination
+# @name authors
+# @expect 200
+# @expect-error 400 - Sæt page=-1.
+GET {{baseUrl}}/authors
+Authorization: Bearer {{token}}
+
+### 02 - Hent kategorier med søgning og pagination
+# @name categories
+# @expect 200
+# @expect-error 400 - Sæt size=0.
+GET {{baseUrl}}/categories?search=Romance&page=0&size=10
+Authorization: Bearer {{token}}
+
+### 03 - Opret en bog
+# @name createBook
+# @expect 201
+# @expect-error 400 - Sæt title til en tom tekst.
+POST {{baseUrl}}/books
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "HTTP Testbog",
+  "authorId": "{{authors.response.body.$.items[0].id}}",
+  "categoryId": "{{categories.response.body.$.items[0].id}}"
+}
+
+### 04 - Hent bøger med søgning og pagination
+# @name books
+# @expect 200
+# @expect-error 400 - Sæt size=101 (maksimum er 100).
+GET {{baseUrl}}/books?search=HTTP%20Testbog&page=0&size=10
+Authorization: Bearer {{token}}
+
+### 05 - Hent en forfatter via ID
+# @name author
+# @expect 200
+# @expect-error 404 - Brug et gyldigt UUID, som ikke findes.
+GET {{baseUrl}}/authors/{{authors.response.body.$.items[0].id}}
+Authorization: Bearer {{token}}
+
+### 06 - Hent en kategori via ID
+# @name category
+# @expect 200
+# @expect-error 404 - Brug et gyldigt UUID, som ikke findes.
+GET {{baseUrl}}/categories/{{categories.response.body.$.items[0].id}}
+Authorization: Bearer {{token}}
+
+### 07 - Hent en bog via ID
+# @name book
+# @expect 200
+# @expect-error 404 - Brug et gyldigt sammensat bog-ID, som ikke findes.
+GET {{baseUrl}}/books/{{createBook.response.body.$.id}}
+Authorization: Bearer {{token}}
+
+### 08 - Opdater bogen
+# @name updateBook
+# @expect 200
+# @expect-error 400 - Sæt title til en tom tekst, og behold et eksisterende bog-ID.
+PUT {{baseUrl}}/books/{{createBook.response.body.$.id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "HTTP Testbog opdateret",
+  "authorId": "{{authors.response.body.$.items[0].id}}",
+  "categoryId": "{{categories.response.body.$.items[0].id}}"
+}
+
+### 09 - Slet bogen
+# @name deleteBook
+# @expect 204
+# @expect-error 404 - Kør samme sletning igen, efter at bogen er slettet.
+DELETE {{baseUrl}}/books/{{createBook.response.body.$.id}}
+Authorization: Bearer {{token}}
+
+### 10 - Logout: tilbagekald dit token
+# @name logout
+# @expect 204
+# @expect-error 401 - Brug et ugyldigt/udløbet token, eller kør logout igen med det tilbagekaldte token.
+# Logout skal køres til sidst, da tokenet derefter ikke længere giver adgang.
+DELETE {{baseUrl}}/auth/tokens/{{tokenId}}
+Authorization: Bearer {{token}}

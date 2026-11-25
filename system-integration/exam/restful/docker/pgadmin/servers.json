@@ -1,0 +1,49 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Book Catalog",
+      "Group": "Local",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "bookcatalog",
+      "Username": "bookuser",
+      "SSLMode": "prefer"
+    },
+    "2": {
+      "Name": "shard0",
+      "Group": "ETL",
+      "Host": "shard0",
+      "Port": 5432,
+      "MaintenanceDB": "bookcatalog",
+      "Username": "bookuser",
+      "SSLMode": "prefer"
+    },
+    "3": {
+      "Name": "shard1",
+      "Group": "ETL",
+      "Host": "shard1",
+      "Port": 5432,
+      "MaintenanceDB": "bookcatalog",
+      "Username": "bookuser",
+      "SSLMode": "prefer"
+    },
+    "4": {
+      "Name": "shard2",
+      "Group": "ETL",
+      "Host": "shard2",
+      "Port": 5432,
+      "MaintenanceDB": "bookcatalog",
+      "Username": "bookuser",
+      "SSLMode": "prefer"
+    },
+    "5": {
+      "Name": "warehouse",
+      "Group": "ETL",
+      "Host": "warehouse",
+      "Port": 5432,
+      "MaintenanceDB": "warehouse",
+      "Username": "bookuser",
+      "SSLMode": "prefer"
+    }
+  }
+}
