@@ -8,8 +8,11 @@ public class ProductsApplication {
         ProductController controller=new ProductController(db);
         DemoSeeder.seed(db, controller);
         Bus bus=new Bus(db,"aj.products",controller::event);
-        var app=Api.app("products"); controller.registerRoutes(app); DescriptionDrafts.register(app);
-        Api.health(app,"products",() -> db.healthy() && bus.healthy());
+        var app=Api.app("products",c -> {
+            controller.registerRoutes(c.routes);
+            DescriptionDrafts.register(c.routes);
+            Api.health(c.routes,"products",() -> db.healthy() && bus.healthy());
+        });
         Runtime.getRuntime().addShutdownHook(new Thread(() -> { app.stop(); bus.close(); db.close(); }));
         Api.start(app,7003);
     }

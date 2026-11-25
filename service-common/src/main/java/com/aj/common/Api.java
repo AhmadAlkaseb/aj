@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.javalin.Javalin;
 import io.javalin.http.*;
 import io.javalin.json.JavalinJackson;
+import io.javalin.router.JavalinDefaultRoutingApi;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.http.*;
@@ -19,13 +20,16 @@ public final class Api {
         return app(service, c -> {});
     }
     public static Javalin app(String service, java.util.function.Consumer<io.javalin.config.JavalinConfig> config) {
-        Javalin app = Javalin.create(c -> { c.jsonMapper(new JavalinJackson(Json.MAPPER, false)); c.http.maxRequestSize = 1_000_000; config.accept(c); });
-        app.exception(Exception.class, (e, ctx) -> error(service,e,ctx));
-        app.exception(HttpResponseException.class, (e, ctx) -> error(service,e,ctx));
-        app.error(404,ctx -> ctx.json(Map.of("status",404,"service",service,"message","Oplysningerne eller endpointet blev ikke fundet","timestamp",Instant.now().toString())));
-        Telemetry.install(app,service);
-        Access.install(app,service);
-        return app;
+        return Javalin.create(c -> {
+            c.jsonMapper(new JavalinJackson(Json.MAPPER, false));
+            c.http.maxRequestSize = 1_000_000;
+            c.routes.exception(Exception.class, (e, ctx) -> error(service,e,ctx));
+            c.routes.exception(HttpResponseException.class, (e, ctx) -> error(service,e,ctx));
+            c.routes.error(404,ctx -> ctx.json(Map.of("status",404,"service",service,"message","Oplysningerne eller endpointet blev ikke fundet","timestamp",Instant.now().toString())));
+            Telemetry.install(c.routes,service);
+            Access.install(c.routes,service);
+            config.accept(c);
+        });
     }
     private static void error(String service, Exception e, Context ctx) {
             int status = e instanceof HttpResponseException h ? h.getStatus() : sqlConflict(e) ? 409 : 503;
@@ -40,9 +44,9 @@ public final class Api {
         }
         return false;
     }
-    public static void health(Javalin app, String name, Supplier<Boolean> check) {
-        app.get("/health/live", ctx -> ctx.json(Map.of("service", name, "status", "UP")));
-        app.get("/health", ctx -> { boolean up; try { up = check.get(); } catch (Exception e) { up = false; }
+    public static void health(JavalinDefaultRoutingApi routes, String name, Supplier<Boolean> check) {
+        routes.get("/health/live", ctx -> ctx.json(Map.of("service", name, "status", "UP")));
+        routes.get("/health", ctx -> { boolean up; try { up = check.get(); } catch (Exception e) { up = false; }
             ctx.status(up ? 200 : 503).json(Map.of("service", name, "status", up ? "UP" : "DOWN")); });
     }
     public static void start(Javalin app, int port) { app.start("0.0.0.0", Integer.parseInt(env("PORT", "" + port))); }

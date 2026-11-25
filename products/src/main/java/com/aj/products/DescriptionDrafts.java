@@ -2,7 +2,7 @@ package com.aj.products;
 
 import com.aj.common.*;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.javalin.Javalin;
+import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.http.*;
 import java.net.URI;
 import java.net.http.*;
@@ -39,7 +39,7 @@ public final class DescriptionDrafts {
             throw new ServiceUnavailableResponse("AI er midlertidigt utilgængelig. Prøv igen eller skriv teksten selv.");
         }
     }
-    public static void register(Javalin app) {
+    public static void register(JavalinDefaultRoutingApi app) {
         var adapter=new DescriptionDrafts(URI.create(Api.env("OLLAMA_URL","http://localhost:11434")+"/api/generate"),
             Api.env("OLLAMA_MODEL","llama3.2:3b"),Duration.ofSeconds(45));
         app.post("/api/v1/products/description-draft",ctx -> ctx.json(adapter.generate(Json.read(ctx.body()))));

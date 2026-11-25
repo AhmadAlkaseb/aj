@@ -2,7 +2,7 @@ package app.controller;
 import com.aj.common.*;
 import com.aj.common.Access;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.javalin.Javalin;
+import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.http.*;
 import jakarta.persistence.*;
 import persistence.entities.*;
@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 public class PaymentController {
     private final Db db;
     public PaymentController(Db db) { this.db=db; }
-    public void register(Javalin app) {
+    public void register(JavalinDefaultRoutingApi app) {
         app.post("/api/v1/payments",this::create);
         app.get("/api/v1/payments",this::getAll);
         app.get("/api/v1/payments/{paymentGuid}",this::getById);

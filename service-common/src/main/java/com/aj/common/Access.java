@@ -2,6 +2,7 @@ package com.aj.common;
 
 import io.javalin.Javalin;
 import io.javalin.http.*;
+import io.javalin.router.JavalinDefaultRoutingApi;
 import com.nimbusds.jwt.JWTClaimsSet;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -36,22 +37,22 @@ public final class Access {
     public static void requireAdmin(Context ctx) {
         if(!admin(ctx)) throw new ForbiddenResponse("Handlingen kræver administratoradgang");
     }
-    public static void install(Javalin app,String service) {
+    public static void install(JavalinDefaultRoutingApi routes,String service) {
         if(!Set.of("users","products","orders","payments","product-view").contains(service)) return;
         String issuer=Api.env("OIDC_ISSUER","http://localhost:8180/realms/aj");
         var verifier=new AccessTokenVerifier(issuer,Api.env("OIDC_JWKS_URL",issuer+"/protocol/openid-connect/certs"),"aj-api");
-        app.before(ctx -> {
+        routes.before(ctx -> {
             String path=ctx.path();
             if(!path.startsWith("/api/v1/") || service.equals("apigateway") || service.equals("frontend")) return;
-            boolean read=ctx.method()==HandlerType.GET;
+            boolean read=ctx.method().equals(HandlerType.GET);
             if((service.equals("products") || service.equals("product-view")) && read) return;
             if(path.equals("/api/v1/graphql") && service.equals("product-view")) return;
             JWTClaimsSet claims=verifier.verify(ctx.header("Authorization"));
             ctx.attribute("principal",from(claims)); ctx.attribute("claims",claims);
             ctx.header("Cache-Control","no-store");
             if(service.equals("products") || service.equals("payments") && !read) requireAdmin(ctx);
-            if(service.equals("users") && ctx.method()==HandlerType.DELETE) requireAdmin(ctx);
-            if(service.equals("users") && ctx.method()==HandlerType.POST && !path.equals("/api/v1/users/me")) requireAdmin(ctx);
+            if(service.equals("users") && ctx.method().equals(HandlerType.DELETE)) requireAdmin(ctx);
+            if(service.equals("users") && ctx.method().equals(HandlerType.POST) && !path.equals("/api/v1/users/me")) requireAdmin(ctx);
         });
     }
 }

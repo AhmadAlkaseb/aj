@@ -1,14 +1,14 @@
 package com.aj.gateway.auth;
 
 import com.aj.common.Api;
-import io.javalin.Javalin;
+import io.javalin.router.JavalinDefaultRoutingApi;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public final class OidcRoutes {
     private OidcRoutes() {}
-    public static void register(Javalin app) {
+    public static void register(JavalinDefaultRoutingApi app) {
         String issuer = Api.env("OIDC_ISSUER", "http://localhost:8180/realms/aj");
         var verifier = new TokenVerifier(issuer,
             Api.env("OIDC_JWKS_URL", issuer + "/protocol/openid-connect/certs"), "aj-api");

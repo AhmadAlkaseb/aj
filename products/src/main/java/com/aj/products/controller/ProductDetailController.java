@@ -4,7 +4,7 @@ import com.aj.products.dao.ProductDao;
 import com.aj.products.dao.ProductDetailDao;
 import com.aj.products.entity.Product;
 import com.aj.products.entity.ProductDetail;
-import io.javalin.Javalin;
+import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.http.NotFoundResponse;
 
 public class ProductDetailController {
@@ -17,7 +17,7 @@ public class ProductDetailController {
         this.productDetailDao = productDetailDao;
     }
 
-    public void registerRoutes(Javalin app) {
+    public void registerRoutes(JavalinDefaultRoutingApi app) {
         app.get("/api/products/{productId}/details", ctx -> {
             Long productId = Long.parseLong(ctx.pathParam("productId"));
             Product product = productDao.findById(productId)

@@ -1,6 +1,7 @@
 package com.aj.common;
 
 import io.javalin.Javalin;
+import io.javalin.router.JavalinDefaultRoutingApi;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,23 +17,23 @@ public final class Telemetry {
     public static void gauge(String name,double value){GAUGES.put(name,value);}
     public static void correlation(io.javalin.http.Context ctx,Object id){ctx.attribute("correlationId",id.toString());ctx.header("X-Correlation-ID",id.toString());}
     public static void log(Map<String,Object> fields){var row=new LinkedHashMap<String,Object>();row.put("timestamp",Instant.now().toString());row.putAll(fields);System.out.println(Json.write(row));}
-    public static void install(Javalin app,String service) {
-        app.before(ctx -> {
+    public static void install(JavalinDefaultRoutingApi routes,String service) {
+        routes.before(ctx -> {
             ctx.attribute("startedNanos",System.nanoTime());
             String correlation=ctx.header("X-Correlation-ID");
             try {correlation=Api.guid(correlation).toString();}catch(Exception ex){correlation=UUID.randomUUID().toString();}
             ctx.attribute("correlationId",correlation);ctx.header("X-Correlation-ID",correlation);
         });
-        app.after(ctx -> {
+        routes.after(ctx -> {
             Long start=ctx.attribute("startedNanos");if(start==null || ctx.path().equals("/metrics"))return;
             double seconds=(System.nanoTime()-start)/1e9;
-            String route; try {route=Objects.toString(ctx.endpointHandlerPath(),"unmatched").replace("\"","");} catch(Exception ex){route="unmatched";}
-            String key="service=\""+service+"\",method=\""+ctx.method()+"\",route=\""+route+"\",status=\""+ctx.statusCode()+"\"";
+            String route; try {route=Objects.toString(ctx.endpoint().path,"unmatched").replace("\"","");} catch(Exception ex){route="unmatched";}
+            String key="service=\""+service+"\",method=\""+ctx.method().name()+"\",route=\""+route+"\",status=\""+ctx.statusCode()+"\"";
             Sample sample=HTTP.computeIfAbsent(key,x->new Sample());sample.count.increment();sample.sum.add(seconds);
             for(int i=0;i<BOUNDS.length;i++)if(seconds<=BOUNDS[i])sample.buckets[i].increment();
             log(Map.of("service",service,"event","http.request","route",route,"status",ctx.statusCode(),"durationMs",Math.round(seconds*1000),"correlationId",Objects.toString(ctx.attribute("correlationId"),"")));
         });
-        app.get("/metrics",ctx -> {
+        routes.get("/metrics",ctx -> {
             StringBuilder out=new StringBuilder();
             HTTP.forEach((key,s)->{
                 out.append("aj_http_requests_total{").append(key).append("} ").append(s.count.sum()).append('\n');

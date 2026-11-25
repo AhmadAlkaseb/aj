@@ -16,14 +16,13 @@ class HttpBoundaryIT {
 
     @BeforeEach
     void start() {
-        upstream = Api.app("upstream");
-        upstream.get("/api/v1/users/{guid}", ctx -> {
+        upstream = Api.app("upstream", c -> c.routes.get("/api/v1/users/{guid}", ctx -> {
             Api.guid(ctx.pathParam("guid"));
             ctx.json(Map.of("guid", ctx.pathParam("guid")));
-        });
+        }));
         upstream.start("127.0.0.1", 0);
-        gateway = Api.app("gateway");
-        Proxy.routes(gateway, ctx -> "http://127.0.0.1:" + upstream.port());
+        gateway = Api.app("gateway", c ->
+            Proxy.routes(c.routes, ctx -> "http://127.0.0.1:" + upstream.port()));
         gateway.start("127.0.0.1", 0);
     }
 

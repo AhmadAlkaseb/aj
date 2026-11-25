@@ -19,10 +19,11 @@ public class Application {
         return url("users");
     }
     public static void main(String[] args) {
-        var app=Api.app("apigateway"); Proxy.routes(app,Application::target);
-        com.aj.gateway.auth.OidcRoutes.register(app);
-        Api.health(app,"apigateway",() -> true);
-        app.get("/api/v1/status",ctx -> {
+        var app=Api.app("apigateway",c -> {
+            Proxy.routes(c.routes,Application::target);
+            com.aj.gateway.auth.OidcRoutes.register(c.routes);
+            Api.health(c.routes,"apigateway",() -> true);
+            c.routes.get("/api/v1/status",ctx -> {
             List<CompletableFuture<Map<String,Object>>> checks=new ArrayList<>();
             for(String s:SERVICES) {
                 String healthPath=s.equals("keycloak") ? "/realms/aj/.well-known/openid-configuration" : "/health";
@@ -32,6 +33,7 @@ public class Application {
             var states=checks.stream().map(CompletableFuture::join).toList();
             boolean up=states.stream().allMatch(s -> s.get("status").equals("UP"));
             ctx.json(Map.of("status",up ? "UP" : "DEGRADED","services",states,"message",up ? "Alle tjenester er klar" : "En eller flere tjenester er midlertidigt utilgængelige"));
+            });
         });
         Runtime.getRuntime().addShutdownHook(new Thread(app::stop)); Api.start(app,8080);
     }

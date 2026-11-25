@@ -4,7 +4,7 @@ import com.aj.products.dao.ProductDao;
 import com.aj.products.dao.ProductDeletedDao;
 import com.aj.products.entity.Product;
 import com.aj.products.entity.ProductDeleted;
-import io.javalin.Javalin;
+import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.http.NotFoundResponse;
 
 import java.time.Instant;
@@ -20,7 +20,7 @@ public class ProductDeletedController {
         this.productDeletedDao = productDeletedDao;
     }
 
-    public void registerRoutes(Javalin app) {
+    public void registerRoutes(JavalinDefaultRoutingApi app) {
         app.get("/api/products/deleted", ctx -> {
             List<ProductDeleted> deletedProducts = productDeletedDao.findAll();
             ctx.json(deletedProducts);

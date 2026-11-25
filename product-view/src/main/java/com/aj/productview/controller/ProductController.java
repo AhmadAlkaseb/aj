@@ -2,7 +2,7 @@ package com.aj.productview.controller;
 
 import com.aj.productview.dao.ProductDao;
 import com.aj.productview.entity.Product;
-import io.javalin.Javalin;
+import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.http.NotFoundResponse;
 
 import java.util.List;
@@ -15,7 +15,7 @@ public class ProductController {
         this.productDao = productDao;
     }
 
-    public void registerRoutes(Javalin app) {
+    public void registerRoutes(JavalinDefaultRoutingApi app) {
         app.get("/api/products", ctx -> {
             List<Product> products = productDao.findAll();
             ctx.json(products);

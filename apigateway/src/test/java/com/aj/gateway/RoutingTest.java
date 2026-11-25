@@ -10,7 +10,7 @@ class RoutingTest {
     private String target(String method, String path) {
         Context ctx = mock(Context.class);
         when(ctx.path()).thenReturn(path);
-        when(ctx.method()).thenReturn(HandlerType.valueOf(method));
+        when(ctx.method()).thenReturn(HandlerType.findOrDefault(method));
         return Application.target(ctx);
     }
 

@@ -3,10 +3,10 @@ package com.aj.productview.api;
 import com.aj.common.Api;
 import com.aj.common.Json;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.javalin.Javalin;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.UnauthorizedResponse;
+import io.javalin.router.JavalinDefaultRoutingApi;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Map;
@@ -21,7 +21,7 @@ public final class InternalProjectionApi {
     }
     private InternalProjectionApi() {}
 
-    public static void register(Javalin app,String token,Writer writer,BooleanSupplier healthy) {
+    public static void register(JavalinDefaultRoutingApi app,String token,Writer writer,BooleanSupplier healthy) {
         if(token==null || token.isBlank()) throw new IllegalArgumentException("Projection token must be configured");
         app.get("/internal/projections/health",ctx -> {
             authorize(ctx,token);

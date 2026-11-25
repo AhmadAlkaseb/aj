@@ -2,7 +2,7 @@ package com.aj.products.controller;
 import com.aj.common.*;
 import com.aj.products.entity.*;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.javalin.Javalin;
+import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.http.*;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
@@ -12,7 +12,7 @@ import java.util.*;
 public class ProductController {
     private final Db db;
     public ProductController(Db db) { this.db=db; }
-    public void registerRoutes(Javalin app) {
+    public void registerRoutes(JavalinDefaultRoutingApi app) {
         app.post("/api/v1/products",ctx -> {
             JsonNode n=Json.read(ctx.body());
             var result=Commands.run(db,ctx,n,em -> { Product p=new Product(); p.setGuid(UUID.randomUUID()); ProductDetail d=new ProductDetail();

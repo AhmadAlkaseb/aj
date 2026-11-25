@@ -21,11 +21,11 @@ class InternalProjectionApiIT {
 
     @BeforeEach
     void start() {
-        app=Api.app("product-view-test");
-        InternalProjectionApi.register(app,"test-projection-key",(id,topic,data) -> {
-            if(failWrite) throw new IllegalStateException("Storage unavailable");
-            writes.incrementAndGet();
-        },() -> true);
+        app=Api.app("product-view-test",c ->
+            InternalProjectionApi.register(c.routes,"test-projection-key",(id,topic,data) -> {
+                if(failWrite) throw new IllegalStateException("Storage unavailable");
+                writes.incrementAndGet();
+            },() -> true));
         app.start("127.0.0.1",0);
     }
     @AfterEach void stop() { app.stop(); }

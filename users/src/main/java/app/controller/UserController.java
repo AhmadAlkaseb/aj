@@ -2,7 +2,7 @@ package app.controller;
 import com.aj.common.*;
 import com.aj.common.Access;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.javalin.Javalin;
+import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.http.*;
 import jakarta.persistence.*;
 import persistence.entities.*;
@@ -11,7 +11,7 @@ import java.util.*;
 public class UserController {
     private final Db db;
     public UserController(Db db) { this.db=db; }
-    public void register(Javalin app) {
+    public void register(JavalinDefaultRoutingApi app) {
         app.post("/api/v1/users", this::create);
         app.get("/api/v1/users", this::getAll);
         app.post("/api/v1/users/me", this::ensureProfile);

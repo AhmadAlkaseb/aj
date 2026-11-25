@@ -7,7 +7,7 @@ import graphql.ExecutionInput;
 import graphql.analysis.*;
 import graphql.execution.instrumentation.ChainedInstrumentation;
 import graphql.schema.idl.*;
-import io.javalin.Javalin;
+import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.http.BadRequestResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -26,7 +26,7 @@ public final class CatalogueGraphql {
         } catch(java.io.IOException ex) { throw new IllegalStateException(ex); }
     }
     @SuppressWarnings("unchecked")
-    public static void register(Javalin app,MongoStore store) {
+    public static void register(JavalinDefaultRoutingApi app,MongoStore store) {
         GraphQL engine=engine(store);
         app.post("/api/v1/graphql",ctx -> {
             var n=Json.read(ctx.body()); String query=Api.required(n,"query");

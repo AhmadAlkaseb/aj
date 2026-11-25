@@ -17,12 +17,13 @@ class ProjectionClientIT {
 
     @BeforeEach
     void start() {
-        owner=Api.app("projection-owner-test");
-        owner.put("/internal/projections/products/{guid}",ctx -> {
-            assertEquals("test-key",ctx.header("X-Projection-Token"));
-            body.set(ctx.body()); ctx.status(status);
+        owner=Api.app("projection-owner-test",c -> {
+            c.routes.put("/internal/projections/products/{guid}",ctx -> {
+                assertEquals("test-key",ctx.header("X-Projection-Token"));
+                body.set(ctx.body()); ctx.status(status);
+            });
+            c.routes.get("/internal/projections/health",ctx -> ctx.status(200));
         });
-        owner.get("/internal/projections/health",ctx -> ctx.status(200));
         owner.start("127.0.0.1",0);
         client=new ProjectionClient("http://127.0.0.1:"+owner.port(),"test-key");
     }

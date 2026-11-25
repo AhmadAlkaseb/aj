@@ -1,6 +1,7 @@
 package com.aj.common;
 import io.javalin.Javalin;
 import io.javalin.http.*;
+import io.javalin.router.JavalinDefaultRoutingApi;
 import java.net.URI;
 import java.net.http.*;
 import java.time.Duration;
@@ -8,7 +9,7 @@ import java.util.*;
 
 public final class Proxy {
     private Proxy() {}
-    public static void routes(Javalin app,java.util.function.Function<Context,String> target) {
+    public static void routes(JavalinDefaultRoutingApi app,java.util.function.Function<Context,String> target) {
         for(HandlerType method:List.of(HandlerType.GET,HandlerType.POST,HandlerType.PUT,HandlerType.DELETE)) {
             for(String path:List.of("/api/v1/graphql","/api/v1/users","/api/v1/users/{userGuid}","/api/v1/users/{userGuid}/orders","/api/v1/products","/api/v1/products/description-draft","/api/v1/products/{productGuid}","/api/v1/orders","/api/v1/orders/{orderGuid}","/api/v1/orders/{orderGuid}/payments","/api/v1/orders/{orderGuid}/history","/api/v1/orders/{orderGuid}/confirmation","/api/v1/payments","/api/v1/payments/{paymentGuid}")) {
                 app.addHttpHandler(method,path,ctx -> forward(ctx,target.apply(ctx)));
