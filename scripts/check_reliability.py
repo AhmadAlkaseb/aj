@@ -78,7 +78,7 @@ def main():
     wait_for(lambda:api('/orders/'+guid)['status']=='COMPLETED')
     wait_for(lambda:api('/products/'+product['guid'])['status']=='SOLD')
     def job():
-        subprocess.run(['docker','compose','run','--rm','--no-deps','confirmation-job'],cwd=ROOT,check=True,stdout=subprocess.DEVNULL)
+        subprocess.run(['docker','compose','run','--rm','--no-deps','-e','CONFIRMATION_WORKER=false','confirmation-job'],cwd=ROOT,check=True,stdout=subprocess.DEVNULL)
     for _ in range(10):
         job()
         try:pdf=api('/orders/'+guid+'/confirmation',binary=True);break
