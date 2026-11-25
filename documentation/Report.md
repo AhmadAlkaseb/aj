@@ -307,11 +307,11 @@ Products retains reservation signals so cancellation/failure received before qua
 
 ### 2.4.5. Saga pattern
 
-![Figure 5 — Reservation and payment saga](report-figures/purchase-saga.svg)
+![Figure 5 — Reservation and payment saga](report-figures/purchase-saga-detailed.pdf)
 
-The implemented reservation/payment flow uses local database transactions and compensating release events. [8]
+Each step commits locally. `payment.completed` completes the order and sells the car. On `paymentfail`, Orders and Products consume the same event: the order becomes FAILED and its reservation returns to AVAILABLE. The red loop shows inventory becoming reusable; the failed order remains recorded. This is compensation, not a cross-service database rollback. [8]
 
-Saga recovery includes stored deadlines, compensation, periodic reconciliation and an explicit manual-review state. It still depends on eventual infrastructure recovery or informed operator action; a permanently ambiguous payment is kept visible rather than silently released. The tests cover selected crash boundaries, not every possible distributed history.
+Before payment, cancellation/unpaid expiry emits `order.cancelled` and releases the reservation. Invalid customers or unavailable cars give REJECTED without a reservation. Unknown payment outcomes instead enter REVIEW_REQUIRED after the deadline: retain the car and reconcile the stored outcome with `payment.reconcile` or manual review. Broker failures retry retained messages; stale cancellation cannot release a paid car. Tests cover selected failure histories.
 
 ### 2.4.6. Caching
 
@@ -341,15 +341,15 @@ Figure 6 also explains the operational states: outbox entries are waiting to be 
 
 ## 3.1. Development environment with Docker Compose
 
-The root `docker-compose.yml` maps Figure 1 to the concrete deployment in Figure 7. `./scripts/start.ps1` starts all twenty-four containers under one Docker Desktop project, `aj`, including monitoring and the PDF worker. Explicit names such as `rabbitmq`, `users-db` and `grafana` remove generated name suffixes. Containers use service DNS internally; published host ports bind to loopback.
+Figure 7 follows the course example: containers, networks and port mappings. `./scripts/start.ps1` starts all twenty-four containers in project `aj`. Containers use service DNS; published ports bind to `127.0.0.1`. For example, `7002:7000` maps host TCP 7002 to Users' container TCP 7000.
 
-![Figure 7 — Docker Compose system architecture](report-figures/docker-compose.svg)
+![Figure 7 — Docker Compose system architecture](report-figures/docker-compose-network.pdf)
 
-*Figure 7. The implemented twenty-four-container Compose deployment. Cards group containers by operational responsibility; owner networks still isolate each database rather than granting every backend access to every store.*
+*Figure 7. Compose network deployment. Each Docker icon is a container. Blue/red/orange boundaries are networks; green is host loopback, grey administration. Overlap denotes dual membership. Labels show host:container mappings or private TCP ports; arrows select connections; Figure 1 shows business flows.*
 
-The gateway bridges the edge and backend networks. Each SQL owner and Product View use dedicated data networks; Adminer and Mongo Express receive explicit local administration access to their respective stores. `product-view-db` is the MongoDB container name, while `product-view-mongo` remains its Compose service DNS name. Prometheus joins edge and backend to scrape both frontend and backend metrics. Volumes retain databases, broker state and monitoring history; migration from the earlier `aj-monitoring` project preserves its data.
+The gateway joins `aj-edge` and `aj-backend`; each owner API also joins its dedicated data network. Databases stay outside backend. Adminer explicitly joins five SQL networks and Mongo Express the MongoDB network, as listed in the grey area. `product-view-db` is the MongoDB container name; its service DNS name is `product-view-mongo`. Prometheus joins backend and edge; its repeated blue boundary means the same edge network. Volumes retain databases, broker state and monitoring history, preserved across project migration.
 
-Grafana opens **AJ Control Center**, linking all five SQL databases, MongoDB, Headlamp, RabbitMQ, Keycloak, Swagger and Actions. GUIs open in separate tabs. Headlamp has read-only resource/log access without Secret access. Local administration uses one configurable username/password across the application and tools; each tool retains its own login form, and internal service credentials retain their separate roles. The PDF worker stays available with `CONFIRMATION_WORKER=true`, whereas the same application terminates after one delivery in Kubernetes. Appendix D gives the startup procedure, local accounts and verification commands.
+Grafana's **AJ Control Center** links databases, Headlamp, RabbitMQ, Keycloak, Swagger and Actions in separate tabs. Headlamp is read-only without Secret access. Tools share a configurable local admin login but retain separate forms; service credentials remain distinct. `CONFIRMATION_WORKER=true` keeps the Compose PDF worker running; Kubernetes terminates it after one delivery. Appendix D covers startup, accounts and checks.
 
 Demonstration seeding is enabled by default and can be disabled with `DEMO_DATA_ENABLED=false`. Stable fixture identities prevent duplicate insertion across restarts. These fixtures initialise historical example states; they are not evidence that twenty new purchases have been executed through live APIs at every startup. MongoDB receives the twenty product snapshots asynchronously.
 
@@ -560,13 +560,13 @@ Separating domains makes ownership and failure behaviour visible. An inventory r
 
 The cost is distributed coordination.
 
-The current application therefore demonstrates an educational distributed architecture. [3]
+This is an educational distributed architecture. [3]
 
 ## 6.2. Pattern benefits and costs
 
 CQRS separates catalogue reads from authoritative writes while adding projection lag and recovery work.
 
-The key lesson is that applying a named pattern is not equivalent to satisfying all its desired outcomes. The current versioned projection is a useful technique; it is not proof that every handler is commutative or safe under concurrent replicas.
+Named patterns do not guarantee their intended outcomes. Versioned projection updates do not prove every handler commutative or safe across concurrent replicas.
 
 ## 6.3. Scalability and autoscaling
 
@@ -730,7 +730,7 @@ The 12 November local review passed 47 CI/deployment/federation policy tests, Ac
 
 A runtime-only CI image was built from a packaged JAR locally; no new GitHub run, published release, branch-protection setting, registry digest or cloud rollout is established. Broker configuration has five safety tests, but external identity still needs owned app credentials and real login. Participants must confirm personal experience and supply missing contribution evidence.
 
-Assignment 1 and 2 require upload of the report, repository link and their respective PowerPoint to itsLearning. The final delivery requires the report, repository link and installation procedure in WISEflow. Platform upload and group registration must be confirmed by the students; this PDF does not assert that separate presentations or other delivery items have been submitted.
+Assignments 1–2 require report, repository link and PowerPoint in itsLearning; final delivery requires report, repository link and installation in WISEflow. Students must confirm upload and group registration; separate submissions are not established by this PDF.
 
 ## Appendix F. External identity activation and verification
 

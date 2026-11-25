@@ -75,7 +75,7 @@ def render_assets(source,out):
             if target=='report-figures/api-responses-user-1.pdf':
                 second=assets/'api-responses-user-2.pdf';shutil.copy2(ROOT/'documentation/report-figures/api-responses-user-2.pdf',second)
                 return '\n'+r'\clearpage\begin{landscape}\begin{figure}[H]\centering'+'\n'+r'\includegraphics[width=250mm,height=165mm,keepaspectratio]{\detokenize{'+destination.relative_to(out).as_posix()+'}}\n'+r'\caption{API response overview}'+'\n'+r'\end{figure}\end{landscape}\clearpage\begin{landscape}'+'\n'+r'\centering\includegraphics[width=250mm,height=165mm,keepaspectratio]{\detokenize{'+second.relative_to(out).as_posix()+'}}\n'+r'\par\medskip Figure \thefigure\ (continued): Orders and Payments responses'+'\n'+r'\end{landscape}\clearpage'+'\n'
-            return figure(destination,caption,'0.72' if target=='report-figures/architecture-user.pdf' else '0.48')
+            return figure(destination,caption,'0.72' if target in {'report-figures/architecture-user.pdf','report-figures/docker-compose-network.pdf'} else '0.48')
         def figure(path,caption,height='0.48'):
             caption=re.sub(r'^Figure\s+\d+\s*[—–.-]\s*','',caption)
             return '\n'+r'\begin{figure}[H]'+'\n'+r'\centering'+'\n'+r'\includegraphics[width=\linewidth,height='+height+r'\textheight,keepaspectratio]{\detokenize{'+path.relative_to(out).as_posix()+'}}\n'+r'\caption{'+tex_escape(caption)+'}\n'+r'\end{figure}'+'\n'
