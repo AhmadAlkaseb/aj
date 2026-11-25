@@ -482,56 +482,67 @@ Actual cloud deployment is not required by the final project. The local Kubernet
 
 ![Figure 13 — Verification boundaries](report-figures/testing-strategy.svg)
 
-Tests progress from isolated rules through API/database/message boundaries to cooperating services. The reviewed Java evidence contains 28 unit and 14 integration tests; the API system suite has six scenarios with failure checks enabled. Browser checks supplement rather than replace backend cooperation. Counts identify that recorded run, not every current suite. Appendix D includes execution commands; Section 4.8 and Appendix E state the recorded results and limitations.
+Tests progress from isolated rules to service cooperation. A recorded Java run had 28 unit and 14 integration tests; API had six scenarios. Appendix E states evidence limits.
 
 ## 4.2. Unit testing
 
-JUnit/Mockito covers domain rules, transitions and token validation; no coverage claim. Example:
+JUnit/Mockito covers rules, transitions and tokens. Fixed UUIDs:
 
 ```java
-// Given
-var buyer = java.util.UUID.randomUUID();
-var anotherBuyer = java.util.UUID.randomUUID();
-// When
-boolean anotherBuyerCanTakeReservation =
-        InventoryRules.canReserve("RESERVED", buyer, anotherBuyer);
-// Then
-assertFalse(anotherBuyerCanTakeReservation);
+@Test
+void shouldRejectAnotherBuyerForReservedInventory() {
+    UUID currentOwner = new UUID(0L, 1L);
+    UUID anotherBuyer = new UUID(0L, 2L);
+    boolean canReserve = InventoryRules.canReserve("RESERVED", currentOwner, anotherBuyer);
+    assertFalse(canReserve);
+}
 ```
 
 ## 4.3. Integration testing
 
-Integration tests exercise local HTTP and persistence boundaries; H2 does not prove PostgreSQL locking semantics. A real projection API test:
+Products DAO example; H2 does not verify PostgreSQL locking:
 
 ```java
-// Given
-Object snapshot = event(1);
-// When
-var response = put(snapshot, null);
-// Then
-assertEquals(401, response.statusCode());
-assertEquals(0, writes.get());
+@Test
+void shouldPersistAndReloadProduct() {
+    ProductDao productDao = new ProductDao(HibernateUtil.getSessionFactory());
+    Product product = Product.builder().guid(UUID.randomUUID()).build();
+    Product saved = productDao.save(product);
+    Optional<Product> loaded = productDao.findById(saved.getId());
+    assertThat(loaded.orElseThrow().getGuid()).isEqualTo(product.getGuid());
+}
 ```
+
+\clearpage
 
 ## 4.4. API and system-level cooperation testing
 
-`scripts/smoke.py` runs six REST API scenarios through the frontend proxy and gateway: contracts, reservation/payment, idempotency, compensation, competing buyers, projections and selected outages. Its Given/When/Then flow includes:
+`scripts/smoke.py` tests competing buyers via the gateway. With one order reserved:
 
-```python
-# Given
-car = self.car()
-order = self.order(car)
-self.order_state(order, 'RESERVED')
-# When
-payment = api('/payments', 'POST', {'orderGuid': order['guid']}, 201)
-wait_for(lambda: api('/payments/' + payment['guid'])['status'] == 'PENDING')
-api('/payments/' + payment['guid'], 'PUT', {'status': 'FAILED'})
-# Then
-self.order_state(order, 'FAILED')
-self.product_state(car, 'AVAILABLE')
+```java
+String rejected = given().body(orderRequest(buyerB, car))
+    .post("/api/v1/orders").then().statusCode(201).extract().path("guid");
+awaitOrderStatus(rejected, "REJECTED");
+given().get("/api/v1/products/{guid}", car).then()
+    .statusCode(200).body("status", equalTo("RESERVED"));
 ```
 
-`scripts/check_async.py` checks owner APIs against RabbitMQ. `scripts/cooperation.py` verifies four backend owners and private stores without the frontend/gateway; `scripts/browser_check.py` covers the browser end-to-end flow. These local tests do not establish remote release evidence. [3]
+Illustrative E2E; setup signs in an administrator and seeds available `Fixturebil`:
+
+```typescript
+test('admin can reserve Fixturebil', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Biler', exact: true }).click();
+  await page.locator('#search').fill('Fixturebil');
+  await page.locator('[data-detail]').click();
+  await page.getByRole('button', { name: /Reservér bilen/ }).click();
+  await page.getByLabel('Leveringsadresse').fill('Testvej 1');
+  await page.getByRole('button', { name: /Opret reservation/ }).click();
+  await expect(page.locator('#order-list')).toContainText('Reserveret', { timeout: 20000 });
+});
+```
+
+Examples are illustrative; system/browser suites use Python. Broker and owner checks: `check_async.py` and `cooperation.py`. [3]
 
 ## 4.5. Security testing
 
@@ -549,11 +560,11 @@ The 12 November local review passed 47 Python policy/deployment/federation tests
 
 ## 4.8. Evidence, limitations and trade-offs
 
-Recorded local evidence covers real-token ownership/self-registration, browser-to-model AI, command/payment retries, late-reservation protection, manual review, PDF deduplication, four fresh migrated owners, restore and a correlated-log/firing-alert demonstration. Active Kubernetes previously verified HTTPS commerce, a terminating KEDA PDF Job, database isolation and real CPU HPA scaling from one to two frontend replicas. These observations remain tied to their recorded runs.
+Recorded evidence includes OIDC ownership, AI, retries/recovery, PDF deduplication, migrated owners, restore, correlated alerts and HTTPS/Kubernetes checks. Results apply only to those runs.
 
-The isolated performance fixture used 10,000 cars, 200 GraphQL queries and 20 concurrent clients. The first shared-load p95 was **3.782s**, missing the two-second target; a quieter repeat achieved median **0.616s**, p95 **1.139s**, maximum **1.263s**. Both results are reported here to preserve the failed measurement alongside the quieter repeat. This is direct-backend latency, not an internet SLA, long-term availability result or controlled architectural comparison.
+With 10,000 cars, 200 GraphQL queries and 20 clients, first p95 was **3.782s** (target: 2s); a quieter repeat had median **0.616s**, p95 **1.139s**, max **1.263s**. Both are retained; this is direct-backend latency, not an internet SLA or availability result.
 
-Tests cover selected histories and failures, not unrestricted worker concurrency, all contradictory event outcomes or host-failure HA. Workers retain bounded replicas; the local single-node cluster cannot survive host loss. Availability remains a target. Remote delivery and individual collaboration evidence require their own observations.
+Coverage excludes unrestricted concurrency, contradictory outcomes and host-failure HA. The single-node cluster cannot survive host loss; availability and remote evidence remain unverified.
 
 \clearpage
 
