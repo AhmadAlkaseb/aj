@@ -44,7 +44,10 @@ jobs:
       - name: Surefire
         env:
           SERVICE: ${{ inputs.service }}
-        run: mvn -B -ntp -pl "$SERVICE" -am test
+        run: mvn -B -ntp -Pcoverage -pl "$SERVICE" -am test jacoco:report
+      - name: Unit coverage in GitHub summary
+        if: always()
+        run: python scripts/ci_coverage.py --title 'Unit coverage'
       - name: Test results in the GitHub summary
         if: always()
         run: python scripts/ci_report.py '**/target/surefire-reports/TEST-*.xml' --title 'Unit tests'
@@ -52,7 +55,9 @@ jobs:
         if: always()
         with:
           name: ${{ inputs.service }}-unit-reports
-          path: '**/target/surefire-reports/'
+          path: |
+            **/target/surefire-reports/
+            **/target/site/jacoco/
           retention-days: 14
   integration:
     name: 02b · Integration tests
@@ -71,7 +76,10 @@ jobs:
       - name: Failsafe
         env:
           SERVICE: ${{ inputs.service }}
-        run: mvn -B -ntp -pl "$SERVICE" -am verify -DskipUnitTests=true
+        run: mvn -B -ntp -Pcoverage -pl "$SERVICE" -am verify -DskipUnitTests=true
+      - name: Integration coverage in GitHub summary
+        if: always()
+        run: python scripts/ci_coverage.py --title 'Integration coverage'
       - name: Test results in the GitHub summary
         if: always()
         run: python scripts/ci_report.py '**/target/failsafe-reports/TEST-*.xml' --title 'Integration tests'
@@ -79,7 +87,9 @@ jobs:
         if: always()
         with:
           name: ${{ inputs.service }}-integration-reports
-          path: '**/target/failsafe-reports/'
+          path: |
+            **/target/failsafe-reports/
+            **/target/site/jacoco/
           retention-days: 14
   package:
     name: 03 · Verified JAR

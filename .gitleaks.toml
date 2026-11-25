@@ -1,0 +1,10 @@
+title = "AJ history scan"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Internal JDBC endpoint, not a credential; exact value only"
+regexTarget = "match"
+# Gitleaks' generic rule matches this suffix of the JDBC URL.
+regexes = ['''^keycloak-db:5432/keycloak"$''']

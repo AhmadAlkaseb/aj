@@ -6,6 +6,10 @@ name: Static analysis and contracts
         type: string
         default: '{}'
         description: Change plan; empty object selects full verification
+      formatting-checked:
+        type: boolean
+        default: false
+        description: Caller already requires the separate Prettier job
   workflow_dispatch:
     inputs:
       plan:
@@ -29,7 +33,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm run format:check
-    if: inputs.plan == '{}' || fromJSON(inputs.plan).flags['formatting']
+    if: "!inputs.formatting-checked && (inputs.plan == '{}' || fromJSON(inputs.plan).flags['formatting'])"
   javascript:
     name: ESLint JavaScript
     runs-on: ubuntu-latest
@@ -127,6 +131,53 @@ jobs:
           path: test-results/pipeline-tests.log
           retention-days: 14
     if: inputs.plan == '{}' || fromJSON(inputs.plan).flags['deployment-validation']
+  python-lint:
+    name: Ruff · Python correctness
+    if: inputs.plan == '{}' || fromJSON(inputs.plan).flags['python-lint']
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - run: python -m pip install ruff==0.17.6
+      - name: Reject syntax errors, undefined names and invalid control flow
+        run: ruff check --select E9,F63,F7,F82 --output-format github scripts k8s observability
+  dockerfile-lint:
+    name: Hadolint · Dockerfile correctness
+    if: inputs.plan == '{}' || fromJSON(inputs.plan).flags['dockerfile-lint']
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - run: python scripts/ci_extra_checks.py dockerfile-lint
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: hadolint-report
+          path: test-results/ci-extra/
+          retention-days: 7
+  kubernetes-schema:
+    name: Kubeconform · Kubernetes schemas
+    if: inputs.plan == '{}' || fromJSON(inputs.plan).flags['kubernetes-schema']
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - run: python scripts/ci_extra_checks.py kubernetes-schema
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: kubernetes-schema-report
+          path: test-results/ci-extra/
+          retention-days: 7
   gate:
     name: Quality gate
     if: always()
@@ -136,6 +187,9 @@ jobs:
       - static-analysis
       - contracts
       - deployment-validation
+      - python-lint
+      - dockerfile-lint
+      - kubernetes-schema
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
@@ -146,11 +200,14 @@ jobs:
         env:
           RESULTS: ${{ toJSON(needs) }}
           PLAN: ${{ inputs.plan }}
+          FORMATTING_CHECKED: ${{ inputs.formatting-checked }}
         run: |
           python - <<'PY'
           import json, os, subprocess, sys
           plan = json.loads(os.environ["PLAN"] or "{}")
           tracks = {'formatting': 'formatting', 'javascript': 'javascript', 'static-analysis': 'static-analysis', 'contracts': 'contracts', 'deployment-validation': 'deployment-validation'}
+          tracks.update({name: name for name in ['python-lint', 'dockerfile-lint', 'kubernetes-schema']})
           expected = {name: plan.get("flags", {}).get(flag, True) for name, flag in tracks.items()}
+          expected['formatting'] = expected['formatting'] and os.environ['FORMATTING_CHECKED'] != 'true'
           subprocess.run([sys.executable, "scripts/ci_gate.py", "--expected", json.dumps(expected)], check=True)
           PY

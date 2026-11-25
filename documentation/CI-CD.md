@@ -10,7 +10,8 @@ manual, trusted-main releases on a configured runner with cluster access.
 
 ```mermaid
 flowchart LR
-    Changes[01 · Change plan] --> Quality[02 · Selected quality checks]
+    Changes[01 · Change plan] --> Formatting[02a · Prettier]
+    Formatting --> Quality[02b · Selected quality checks]
     Quality --> Services[03 · Affected service matrix]
     Services --> Images[04 · Tested JAR → build → scan]
     Images --> System[05 · Selected system tests]
@@ -23,6 +24,12 @@ flowchart LR
 ```
 
 Each affected service expands to **validate → unit + integration → package → service gate**.
+Prettier is a separate first gate in the GitHub graph. A formatting failure blocks quality
+checks and downstream service/image/system jobs. A planned formatting skip allows the
+remaining selected checks to run. Fix formatting locally with `npm run format`, commit
+the result and push again; CI checks formatting without rewriting the branch.
+Release service tests also wait for quality, including Prettier, and release system tests
+wait for both quality and the service tests.
 Packaging waits for both test tracks. Image verification waits for tested JARs; system
 acceptance waits for selected builds/scans. Independent security and documentation tracks
 can finish even when another track fails. The final gate runs after all selected work
@@ -58,6 +65,47 @@ are scanned locally without publishing to GHCR. Release candidates retain SBOM/p
 and are promoted only after their exact digest passes scanning.
 
 ## Free tools and supply-chain controls
+
+### Extended checks without external accounts
+
+| Check | Tool | Trigger / policy | Downloadable result |
+| --- | --- | --- | --- |
+| Python correctness | Ruff 0.17.6 | Python changes; syntax, undefined names and invalid control flow block quality | GitHub file annotations |
+| Dockerfile correctness | Hadolint 2.15.1 | Shared Docker/build changes; error-level findings block quality; warnings retained | JSON report |
+| Kubernetes schemas | Kubeconform 0.8.0 | Kubernetes changes; strict Kubernetes 1.35.0 schemas | JSON summary |
+| Secrets in Git history | Gitleaks CLI 8.30.1 | Selected security runs and weekly full audit; findings block security | Redacted JSON report |
+| Java test coverage | JaCoCo 0.8.16 | Each affected service's existing unit/integration jobs | Separate HTML/XML reports and GitHub summaries |
+| Container component inventory | Trivy CycloneDX export | Each verified CI image, after its vulnerability scan | `image-sbom.cdx.json` |
+
+These tools require no third-party registration, API key or hosted dashboard. Gitleaks
+uses its open-source CLI directly, avoiding its separate Action's organisation license
+registration. Containerised linter versions are pinned by digest in `scripts/ci_extra_checks.py`.
+The history scanner permits only the exact internal JDBC address declared in
+`.gitleaks.toml`, which contains no credentials; paths and historic commits are not excluded.
+Coverage is measured separately for unit and integration tracks; percentages are reported
+without an invented minimum. A missing report is explicitly shown, never treated as 100%.
+Kubeconform excludes only the named KEDA `ScaledJob` and `TriggerAuthentication` CRDs;
+those custom schemas are not validated by this check. All other missing schemas fail.
+
+Run locally with:
+
+```powershell
+python scripts/ci_extra_checks.py dockerfile-lint
+python scripts/ci_extra_checks.py kubernetes-schema
+python scripts/ci_extra_checks.py history-secrets
+mvn -B -ntp -Pcoverage -pl users -am test jacoco:report
+python scripts/ci_coverage.py
+```
+
+Tools are free; GitHub-hosted private-repository compute and artifact storage still
+follow the account's included quotas. Extra reports use short retention periods.
+Sources: [Ruff](https://docs.astral.sh/ruff/rules/),
+[Hadolint](https://github.com/hadolint/hadolint),
+[Kubeconform](https://github.com/yannh/kubeconform),
+[Gitleaks CLI](https://github.com/gitleaks/gitleaks),
+[JaCoCo](https://www.jacoco.org/jacoco/trunk/doc/maven.html),
+[Trivy SBOM](https://trivy.dev/docs/latest/supply-chain/sbom/),
+[GitHub Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions).
 
 All added components are open source or native GitHub features. There is no external
 reporting SaaS, paid formatter, paid Grafana plugin or third-party account requirement.

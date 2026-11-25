@@ -32,6 +32,12 @@ class PlanningTests(unittest.TestCase):
         self.assertTrue(plan['flags']['javascript'])
         self.assertFalse(plan['flags']['static-analysis'])
 
+    def test_contract_javascript_requires_formatting_and_lint(self):
+        plan = make_plan(['tools/contracts/validate.cjs'])
+        for key in ['formatting', 'javascript', 'contracts', 'quality']:
+            self.assertTrue(plan['flags'][key], key)
+        self.assertEqual(plan['services'], [])
+
     def test_css_skips_unchanged_dependency_and_python_audits(self):
         plan = make_plan(['frontend/src/main/resources/public/style.css'])
         self.assertEqual(plan['security_scanners'], ['secret'])
@@ -43,6 +49,22 @@ class PlanningTests(unittest.TestCase):
         self.assertTrue(plan['flags']['python-dependencies'])
         self.assertFalse(plan['flags']['system'])
         self.assertEqual(plan['services'], [])
+
+    def test_python_source_selects_correctness_without_unrelated_linters(self):
+        flags = make_plan(['scripts/check_demo.py'])['flags']
+        self.assertTrue(flags['python-lint'])
+        self.assertFalse(flags['dockerfile-lint'])
+        self.assertFalse(flags['kubernetes-schema'])
+
+    def test_kubernetes_changes_require_schema_validation(self):
+        plan = make_plan(['k8s/base.json'])
+        self.assertTrue(plan['flags']['kubernetes-schema'])
+        self.assertTrue(plan['flags']['quality'])
+        self.assertFalse(plan['flags']['dockerfile-lint'])
+        self.assertEqual(plan['services'], [])
+
+    def test_dockerfile_change_selects_dockerfile_linter(self):
+        self.assertTrue(make_plan(['Dockerfile.ci'])['flags']['dockerfile-lint'])
 
     def test_one_backend_selects_owner_cooperation_and_contracts(self):
         plan = make_plan(['users/src/main/java/com/aj/users/Application.java'])
@@ -151,6 +173,36 @@ class WorkflowTopologyTests(unittest.TestCase):
 
     def test_package_waits_for_both_test_tracks(self):
         self.assertEqual(set(self.workflows['service-ci.yaml']['jobs']['package']['needs']), {'unit', 'integration'})
+
+    def test_prettier_failure_blocks_quality_and_final_gate(self):
+        jobs = self.workflows['ci.yaml']['jobs']
+        self.assertIn('formatting', jobs['quality']['needs'])
+        self.assertIn("needs.formatting.result == 'success'", jobs['quality']['if'])
+        self.assertIn('!fromJSON(needs.plan.outputs.plan).flags.formatting', jobs['quality']['if'])
+        self.assertIn('formatting', jobs['ready']['needs'])
+        self.assertIs(jobs['quality']['with']['formatting-checked'], True)
+
+    def test_release_tests_wait_for_quality_and_system_waits_for_tests(self):
+        jobs = self.workflows['release.yaml']['jobs']
+        self.assertIn('quality', jobs['services']['needs'])
+        self.assertIn('quality', jobs['system']['needs'])
+        self.assertIn('services', jobs['system']['needs'])
+
+    def test_new_checks_are_required_by_quality_and_security_gates(self):
+        jobs = self.workflows['quality.yaml']['jobs']
+        for name in ['python-lint', 'dockerfile-lint', 'kubernetes-schema']:
+            self.assertIn(name, jobs['gate']['needs'])
+            self.assertIn(name, jobs['gate']['steps'][-1]['run'])
+        security = self.workflows['security.yaml']['jobs']
+        self.assertIn('history-secrets', security['gate']['needs'])
+        self.assertEqual(security['history-secrets']['steps'][0]['with']['fetch-depth'], 0)
+
+    def test_unit_and_integration_coverage_are_separate(self):
+        jobs = self.workflows['service-ci.yaml']['jobs']
+        for name in ['unit', 'integration']:
+            commands = '\n'.join(step.get('run', '') for step in jobs[name]['steps'])
+            self.assertIn('-Pcoverage', commands)
+            self.assertIn('ci_coverage.py', commands)
 
     def test_no_privileged_pr_target_workflow(self):
         for data in self.workflows.values():

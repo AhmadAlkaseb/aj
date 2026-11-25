@@ -14,14 +14,40 @@ conventions in the supplied diagrams.net XML reference. All icons are local SVG 
 | --- | --- | --- |
 | System architecture | `scripts/render_architecture_models.py`: `system()`; detailed UML in `../application/Architecture.puml` | [architecture.svg](architecture.svg) |
 | Docker Compose system architecture | `scripts/render_architecture_models.py`: `compose()` | [docker-compose.svg](docker-compose.svg) |
-| Local Kubernetes deployment | `scripts/render_architecture_models.py`: `kubernetes()` | [kubernetes-deployment.svg](kubernetes-deployment.svg) |
+| Local Kubernetes deployment | `scripts/render_kubernetes_drawio.py`; editable [kubernetes-deployment.drawio](kubernetes-deployment.drawio), styled after `microservices-scaling (1).drawio` | [kubernetes-deployment.svg](kubernetes-deployment.svg) |
 | Reliable message delivery | `scripts/render_architecture_models.py`: `delivery()` | [message-delivery.svg](message-delivery.svg) |
-| Observability | `scripts/render_architecture_models.py`: `observability()` | [observability.svg](observability.svg) |
+| Observability | `scripts/render_observability_drawio.py`; editable [observability.drawio](observability.drawio), metrics pull / log push / Grafana queries | [observability.svg](observability.svg) |
 | Kubernetes recovery and scaling | `scripts/render_architecture_models.py`: `recovery()` | [kubernetes-recovery.svg](kubernetes-recovery.svg) |
 | Reservation and payment saga | `scripts/render_architecture_models.py`: `purchase()` | [purchase-saga.svg](purchase-saga.svg) |
 | Verification boundaries | `scripts/render_architecture_models.py`: `testing()` | [testing-strategy.svg](testing-strategy.svg) |
-| Change-aware CI and release | `scripts/render_architecture_models.py`: `pipeline()` | [ci-pipeline.svg](ci-pipeline.svg) |
-| Selected Azure target | `scripts/render_architecture_models.py`: `cloud()` | [azure-deployment.svg](azure-deployment.svg) |
+| Frontend CI workflow | `scripts/render_ci_drawio.py`; editable [ci-pipeline.drawio](ci-pipeline.drawio), one frontend JavaScript PR path | [ci-pipeline.svg](ci-pipeline.svg) |
+| External hosting and managed services | `scripts/render_azure_drawio.py`; editable [azure-deployment.drawio](azure-deployment.drawio), app host plus independently operated provider services | [azure-deployment.svg](azure-deployment.svg) |
+
+Figure 8 uses the reference's cluster boundary, logos and arrow conventions with AJ-specific services.
+Regenerate its source with `python scripts/render_kubernetes_drawio.py`, then export SVG with
+draw.io (`-x -f svg -e --embed-svg-images`). Run this after the legacy overview generator,
+which still produces the earlier card-based Kubernetes view. The SVG embeds its images.
+
+Figure 10 uses the same dashed boundary, white shapes, Docker pictogram and orthogonal
+arrows as the supplied reference. It depicts `ci.yaml` for a frontend JavaScript change,
+including the called service's test fork/join and the parallel security track. It is
+an overview of declared dependencies, not evidence of a successful GitHub run.
+Regenerate with `python scripts/render_ci_drawio.py` and export with draw.io after
+running the legacy overview generator (which still writes the old CI card diagram).
+
+Figure 11 follows `observability/prometheus.yml`, both Alloy configurations, Grafana's
+datasources and `k8s/monitoring.py`. Logo styles come from the supplied reference;
+the original Promtail label is replaced by the project's actual collector, Alloy.
+Regenerate with `python scripts/render_observability_drawio.py`, then export SVG/PDF
+with draw.io after the legacy overview generator, which still writes the old figure.
+
+Figure 12 shows application containers at one host and managed services at independent
+providers. Provider cards are deliberately outside the AKS boundary. It uses coloured
+cards, embedded technology logos and the reference's orthogonal connectors. Named
+providers are examples; endpoint/authentication/configuration changes are planned work.
+Logo sources are recorded in [assets](assets/README.md). Regenerate with
+`python scripts/render_azure_drawio.py`, then export SVG/PDF after the legacy generator,
+which still writes the previous self-hosted Azure figure.
 
 ## Logical architecture reference
 

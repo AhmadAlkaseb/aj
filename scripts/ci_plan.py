@@ -10,7 +10,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SERVICES = ['users', 'products', 'orders', 'payments', 'product-view', 'product-synchronizer', 'apigateway', 'frontend', 'confirmation-job']
 FLAGS = ['formatting', 'javascript', 'static-analysis', 'contracts', 'deployment-validation', 'api', 'browser', 'cooperation', 'security', 'codeql', 'docs',
-         'python-sast', 'python-dependencies', 'npm-dependencies', 'repository-vulnerabilities', 'infrastructure-security']
+         'python-sast', 'python-dependencies', 'npm-dependencies', 'repository-vulnerabilities', 'infrastructure-security',
+         'python-lint', 'dockerfile-lint', 'kubernetes-schema']
 
 
 def make_plan(paths, full=False):
@@ -27,9 +28,15 @@ def make_plan(paths, full=False):
     for path in paths:
         if path.startswith('system-integration/'):
             continue
-        if path.startswith('.github/') or path in ['pom.xml', 'Dockerfile', 'Dockerfile.ci', '.dockerignore'] or path.startswith('service-common/'):
+        if path.startswith('.github/') or path in ['pom.xml', 'Dockerfile', 'Dockerfile.ci', '.dockerignore', '.gitleaks.toml'] or path.startswith('service-common/'):
             select([*SERVICES, *FLAGS], 'Shared build, workflow or common library: ' + path)
             continue
+        if path.endswith('.py') and path.startswith(('scripts/', 'k8s/', 'observability/')):
+            select(['python-lint'], 'Python correctness: ' + path)
+        if path.startswith('k8s/') or path == 'scripts/kubernetes.py':
+            select(['kubernetes-schema'], 'Kubernetes manifests/generation: ' + path)
+        if path == 'scripts/ci_extra_checks.py':
+            select(['dockerfile-lint', 'kubernetes-schema'], 'Shared linter runner: ' + path)
         service = next((s for s in SERVICES if path.startswith(s + '/')), None)
         if service and not path.lower().endswith(('.md', '.svg', '.png')):
             select([service, 'security'], 'Service implementation: ' + path)
@@ -84,13 +91,16 @@ def make_plan(paths, full=False):
             select(['python-sast'], 'Python implementation: ' + path)
         if path.startswith(('documentation/contracts/', 'tools/contracts/')):
             select(['contracts', 'security'], 'Contract specification/tooling: ' + path)
+        if path.startswith('tools/contracts/') and path.endswith(('.cjs', '.js', '.json')):
+            select(['formatting', 'javascript'], 'Contract JavaScript/formatting: ' + path)
         if path.startswith('documentation/') or path.lower().endswith('.md'):
             select(['docs'], 'Documentation: ' + path)
     selected = [s for s in SERVICES if reasons[s]]
     flags = {name: bool(reasons[name]) for name in FLAGS}
     flags['containers'] = bool(selected)
     flags['system'] = any(flags[n] for n in ['api', 'browser', 'cooperation'])
-    flags['quality'] = any(flags[n] for n in ['formatting', 'javascript', 'static-analysis', 'contracts', 'deployment-validation'])
+    flags['quality'] = any(flags[n] for n in ['formatting', 'javascript', 'static-analysis', 'contracts', 'deployment-validation',
+                                             'python-lint', 'dockerfile-lint', 'kubernetes-schema'])
     scanners = ['secret']
     if flags['repository-vulnerabilities']:
         scanners.append('vuln')
@@ -120,7 +130,8 @@ def summary(plan):
     for track, selected in plan['flags'].items():
         why = '; '.join(plan['reasons'].get(track, [])[:3]) or ('Selected dependencies' if selected else 'No matching changes')
         rows.append(f'| {track} | {"RUN" if selected else "SKIP"} | {why.replace("|", "/")} |')
-    rows += ['', '```mermaid', 'flowchart LR', '  Plan[01 Changes] --> Quality[02 Quality]',
+    rows += ['', '```mermaid', 'flowchart LR', '  Plan[01 Changes] --> Formatting[02a Prettier]',
+             '  Formatting --> Quality[02b Quality]',
              '  Quality --> Services[03 Service tests]', '  Services --> Images[04 Container scans]',
              '  Images --> System[05 System acceptance]', '  Plan --> Security[06 Security]',
              '  Plan --> Docs[07 Documentation]', '  System --> Gate[Ready to merge]',

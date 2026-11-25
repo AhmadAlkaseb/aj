@@ -38,7 +38,7 @@ jobs:
           fi
   services:
     name: Verify ${{ matrix.service }}
-    needs: preflight
+    needs: [preflight, quality]
     strategy:
       fail-fast: false
       max-parallel: 3
@@ -60,7 +60,7 @@ jobs:
     needs: preflight
     uses: ./.github/workflows/quality.yaml
   system:
-    needs: preflight
+    needs: [preflight, quality, services]
     uses: ./.github/workflows/system.yaml
   security:
     needs: preflight

@@ -120,6 +120,23 @@ jobs:
           path: npm-audit.json
           retention-days: 14
     if: inputs.plan == '' || inputs.plan == '{}' || fromJSON(inputs.plan).flags['npm-dependencies']
+  history-secrets:
+    name: Gitleaks · Git history
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Scan history with the free CLI; redact all secret values
+        run: python scripts/ci_extra_checks.py history-secrets
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: gitleaks-history-report
+          path: test-results/ci-extra/
+          retention-days: 7
   gate:
     name: Security gate
     if: always()
@@ -128,6 +145,7 @@ jobs:
       - python-sast
       - python-dependencies
       - npm-dependencies
+      - history-secrets
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
@@ -143,5 +161,6 @@ jobs:
           import json, os, subprocess, sys
           flags = json.loads(os.environ['PLAN'] or '{}').get('flags', {})
           expected = {'repository-scan': True, **{name: flags.get(name, True) for name in ['python-sast','python-dependencies','npm-dependencies']}}
+          expected['history-secrets'] = True
           subprocess.run([sys.executable,'scripts/ci_gate.py','--expected',json.dumps(expected),'--title','Security gate'],check=True)
           PY

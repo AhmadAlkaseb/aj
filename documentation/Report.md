@@ -50,9 +50,9 @@ urlcolor: blue
 | 7 | Docker Compose system architecture | Section 3.1 |
 | 8 | Local Kubernetes deployment | Section 3.2 |
 | 9 | Kubernetes recovery and bounded scaling | Section 3.2 |
-| 10 | Verification and gated release pipeline | Section 3.2.2 |
+| 10 | Frontend CI workflow | Section 3.2.2 |
 | 11 | Observability and message visibility | Section 3.2.3 |
-| 12 | Proposed Azure deployment | Section 3.3 |
+| 12 | External hosting and managed services | Section 3.3 |
 | 13 | Verification boundaries | Section 4.1 |
 
 ## List of appendices
@@ -390,21 +390,21 @@ The 11 November local verification replaced a deleted frontend pod, completed a 
 
 ### 3.2.1. Technologies and isolated tasks
 
-kind supplies the local cluster; Calico enforces owner network boundaries. Random runtime secrets and local TLS keys are kept outside committed manifests. The confirmation console application consumes its own durable order.completed queue, generates a PDF, writes through the Orders owner API and exits. It acknowledges only after storage; repeating the task preserves the first document. KEDA ScaledJob supplies event-driven scheduling rather than a permanently running service renamed as serverless. [10], [12]
+The `kind` tool supplies the local cluster; Calico enforces owner network boundaries. Random runtime secrets and local TLS keys are kept outside committed manifests. The confirmation console application consumes its own durable `order.completed` queue, generates a PDF, writes through the Orders owner API and exits. It acknowledges only after storage; repeating the task preserves the first document. KEDA ScaledJob supplies event-driven scheduling rather than a permanently running service renamed as serverless. [10], [12]
 
 Products calls an actual local Ollama model to draft descriptions from validated brand/model/year. It forwards no customer/payment information, applies schema/output/time limits, and inserts text for human approval. It cannot change invoice values or availability. Adapter failure tests and an actual browser-to-model run passed in the recorded local verification (Section 4.8). The model and Kubernetes can be demonstrated separately within the workstation memory budget. [26]
 
 ### 3.2.2. CI/CD pipeline
 
-One automatic entry point, `ci.yaml`, handles PRs, main pushes and merge queues. PR checks support the Development-to-main promotion rule in Section 5.3; a push to Development alone does not trigger this workflow. Its change plan explains RUN/SKIP decisions and selects affected services and checks; service entry points are manual debugging tools. Documentation-only edits skip application builds. Frontend changes select browser checks, backend edits select owner/API/cooperation checks, and shared build/workflow changes select the full suite. Unknown Git bases use full verification. Weekly and release runs retain complete security verification. [27], [28], [29]
+The `ci.yaml` entry point handles PRs, main pushes and merge queues; Development pushes alone do not trigger it (Section 5.3). Its change plan explains RUN/SKIP decisions. Documentation edits skip application builds; frontend edits select browser checks; backend edits select API/cooperation checks. Shared build changes and unknown Git bases select full verification. Figure 10 follows one frontend JavaScript change; other workflows are omitted. Weekly and release runs retain full security verification. [27], [28], [29]
 
-![Figure 10 — Verification and gated release pipeline](report-figures/ci-pipeline.svg)
+![Figure 10 — Frontend CI workflow](report-figures/ci-pipeline.svg)
 
-*Figure 10. Change-aware CI and complete release verification. Dependency failures block downstream work; only skips declared by the change plan are accepted. Publication and deployment are explicit release choices.*
+*Figure 10. One frontend change through CI. Solid arrows show prerequisites; dashed arrows show the independent security track. Packaging waits for both test jobs. Selected failures block dependent jobs and fail the final gate.*
 
 Each service separates validation, parallel unit/integration jobs and packaging. Containers copy the checksummed JAR from the successful service pipeline. The final gate always runs and rejects failed, cancelled, missing or unexpectedly skipped work; configure **Ready to merge** as the required branch check. Native summaries show selection reasons and test results. Matrices run at most three services concurrently and superseded PR runs are cancelled.
 
-Prettier, ESLint, SpotBugs, Actionlint, zizmor, Trivy, Bandit and dependency audits are free/open-source controls. Remote Actions use immutable commit SHAs; checkouts do not retain credentials. CodeQL is selected only where the repository is public. Fixable HIGH/CRITICAL image findings block promotion. [29], [34]
+Prettier precedes selected quality checks. Ruff, Hadolint, Kubeconform, ESLint, SpotBugs, Actionlint, zizmor, Trivy, Gitleaks, Bandit and dependency audits need no external accounts. JaCoCo reports coverage; Trivy exports container SBOMs. Actions use immutable SHAs; checkouts retain no credentials. CodeQL is public-repository-only. Fixable HIGH/CRITICAL image findings block promotion. [29], [34]
 
 Release readiness precedes image publication. Server-side validation and bounded owner Flyway Jobs precede application changes; migration proofs bind the release and unchanged target state. Staging verifies HTTPS/authentication and compensation; production promotes identical image digests. Compatible rollback restores images, not database history. Actual GitHub runs and environment protection settings are documented only after observation; local passes do not establish remote execution. Appendix E summarises the observed results and remaining delivery boundaries.
 
@@ -414,7 +414,7 @@ Prometheus scrapes application histograms/counters, outbox age/count, projection
 
 ![Figure 11 — Observability and message visibility](report-figures/observability.svg)
 
-*Figure 11. Complementary metrics and log pipelines. The five operational dashboards and a sixth Control Center portal are provisioned in both runtimes; Kubernetes resource panels require the in-cluster kube-state-metrics source.*
+*Figure 11. Separate metrics and log paths queried by Grafana. Dashed arrows identify Kubernetes-only metrics; both runtimes provision the same six dashboards.*
 
 The dashboards cover operations, HTTP/services, RabbitMQ/delivery, logs and Kubernetes operation. Control Center adds links to all administration GUIs; Headlamp can inspect standby resources independently of active Kubernetes application metrics.
 
@@ -426,11 +426,11 @@ Frontend HPA uses real CPU metrics with a one-to-two replica range. [11], [12]
 
 Application scaling is separate from database replication and broker HA. More replicas cannot remove a single state-store failure or guarantee faster queries. The local cluster demonstrates the configured mechanisms; its observed scaling and job results are described in Sections 3.2 and 4.8.
 
-## 3.3. Cloud deployment plan
+## 3.3. External hosting and managed services plan
 
 ### Provider investigation and choice
 
-The supplied example selected Azure. This report retains Azure as the proposed cloud direction, while distinguishing that planning decision from deployed infrastructure. [4]
+The proposal hosts our application remotely and delegates infrastructure to managed providers. Providers can differ from the app host. AKS is an example that preserves the tested Kubernetes/Job model without hosting every dependency. [4], [16]
 
 | Provider | Relevant option | Assessment for this project |
 | --- | --- | --- |
@@ -438,38 +438,39 @@ The supplied example selected Azure. This report retains Azure as the proposed c
 | Google Cloud | Cloud Run for container-based services | A viable managed service option; continuously running workers and persistent infrastructure require an explicit hosting design. [14] |
 | Microsoft Azure | Container Apps or AKS | Container Apps offers managed container execution; AKS provides a Kubernetes-oriented path closer to the required local-cluster exercise. [15], [16] |
 
-The selected cloud plan uses **AKS**, retaining the local Kubernetes workload model rather than operating Container Apps alongside it. This is a proposed target, not provisioned infrastructure. One Azure region and private VNet contain applications, identity, messaging and stores; public ingress exposes only HTTPS application/login endpoints. Adminer, Mongo Express and Headlamp stay private behind operator access. [16], [32]
+Figure 12 separates our application host from independently hosted databases, RabbitMQ, identity, observability and AI. The named providers are concrete examples, not provisioned accounts. Our cluster keeps application APIs, terminating PDF Jobs and an Alloy collector; provider endpoints replace local infrastructure containers. TLS, credentials and network access rules cross each provider boundary. [37]–[41]
 
-![Figure 12 — Proposed Azure deployment](report-figures/azure-deployment.svg)
+![Figure 12 — External hosting and managed services](report-figures/azure-deployment.svg)
 
-*Figure 12. Selected cloud deployment plan, including identity, AI and isolated jobs. It preserves owner APIs and private stores; it is not a record of provisioned services.*
+*Figure 12. Proposed external hosting. The central application host is separate from six managed-service examples; colours and logos identify their responsibilities. Connections use configured TLS endpoints rather than local container names.*
 
 | Component | Selected target and trade-off |
 | --- | --- |
-| Applications and release images | AKS with separate system/application pools; GHCR digest-pinned images. Reuse one registry and the existing release manifest. Stateless frontend may scale; transactional workers retain tested limits. |
-| Relational stores | Azure Database for PostgreSQL Flexible Server; separate databases/roles for four owners and Keycloak. Begin with a shared server only if shared capacity/failure exposure is acceptable; split hot or critical owners. |
-| Catalogue and broker | Native MongoDB replica set and three-node RabbitMQ with quorum queues on separate persistent volumes/nodes. Retain driver semantics; operating replicas and restoring backups remain team responsibilities. |
-| Identity | Keycloak on AKS with its own SQL database, public HTTPS issuer and private admin access. External GitHub brokering requires an OAuth app; no provider credentials are assumed. |
-| AI and PDF | Private Ollama workload with an explicit memory/GPU budget, bounded calls and human approval; KEDA schedules terminating PDF Jobs from RabbitMQ and writes through Orders. |
-| Operations and secrets | Self-hosted Prometheus/Grafana/Alloy/Loki, with private Azure Blob log storage; Key Vault and workload identity deliver secrets. Local GUI ports/passwords are not cloud access policy. |
+| Applications and releases | AKS is one host option. Deploy GHCR digest-pinned application images, PDF Jobs and Alloy; keep migrations, readiness checks and bounded workers. [16] |
+| Relational stores | Managed PostgreSQL, e.g. Azure PostgreSQL Flexible Server: four owner databases and restricted roles. The provider operates the server; we retain schema/migration and recovery verification responsibilities. [17] |
+| Catalogue | MongoDB Atlas hosts the MongoDB read model. Configure a TLS URI and test Decimal128, indexes and update semantics with the existing driver before migration. [37] |
+| Messaging | CloudAMQP hosts RabbitMQ. Configure AMQPS, permissions and KEDA trigger credentials; choose a plan supporting the required queue topology and recovery behaviour. [38] |
+| Identity | Cloud-IAM hosts Keycloak and its supporting infrastructure. Migrate realm/clients and validate issuer, JWKS, redirect URLs and role mappings. GitHub brokering still needs an OAuth app. [39] |
+| AI and PDF | Ollama Cloud moves inference to an external HTTPS API; the current local adapter needs API-key support and model/output tests. Human approval remains. PDF Jobs stay with the application and consume the external broker. [41] |
+| Operations and secrets | Grafana Cloud hosts dashboards, metrics and logs. Alloy needs remote-write/log credentials and new configuration. Store endpoint credentials in the deployment secret store; restrict operator access. [40] |
 
 ### Application and database availability
 
-The plan uses separate application replicas and rolling releases where business semantics permit. A managed PostgreSQL HA configuration can use separated primary/standby replicas, including zone-redundant options; this must be explicitly selected and funded. Four logical databases on one physical server retain some schema separation but share a failure domain, so physical separation is an explicit cost-versus-isolation decision. [17]
+Scale application replicas where business semantics permit. Managed PostgreSQL HA is an explicit service-plan choice; four databases on one server still share a failure domain. External hosting reduces server setup and patching, while application owners retain access control, migrations and tested recovery. [17]
 
-The MongoDB service must support the actual driver, Decimal128, indexes and update behaviour. A nominally compatible cloud database is not assumed to be a drop-in replacement without tests. The cloud plan replaces the single local broker with quorum queues on three separate nodes and a tested backup/recovery procedure. A MongoDB replica set similarly separates replicas across nodes; neither topology is demonstrated by the local single-node environment.
+Atlas and CloudAMQP service tiers must be checked for replica/queue features, backups, limits and recovery objectives. Re-run the reservation, outbox, retry, projection and PDF-deduplication tests against staging endpoints. A local single-node pass does not establish the hosted providers' availability or migration compatibility.
 
 ### Cost, latency and elasticity
 
-The pricing strategy uses on-demand compute until measurements justify reservations/savings commitments; scale stateless pools and Jobs within limits, while budgeting continuously running database, broker, identity and monitoring capacity. Configure budget alerts, log retention, storage lifecycle and backup retention before provisioning. No cloud purchase is made for this project. [33]
+Compare application-host costs with each managed service's capacity, storage, retention, backup and traffic charges. Reduced setup effort does not establish a lower total bill. Set a budget ceiling and alerts before provisioning; this report makes no cloud purchase or fixed monthly-price claim. [33]
 
-The cost strategy starts with a measured workload, a budget ceiling and the smallest adequate development configuration. Main cost categories are application compute, stateful database capacity, persistent storage, backups, broker/observability resources, traffic and AI inference. Azure Container Apps offers consumption-based and other pricing options, but exact cost depends on the chosen region and workload. No fixed monthly figure is claimed. [18]
+Choose nearby compatible provider regions, measure cross-provider latency and egress, and bound all remote calls. HPA/KEDA scales application compute; provider quotas and stateful-service capacity remain independent constraints. Hosted inference avoids operating a GPU server but requires an explicit data policy and service budget.
 
-Keep chatty application and data dependencies near each other, bound request timeouts and measure end-to-end latency before selecting larger instances. Scale-to-zero may reduce cost for intermittent jobs, but cold starts can conflict with an interactive latency target. Database and broker capacity remain constraints even when application replicas increase.
+Scale-to-zero can suit intermittent PDF work, while cold starts must fit the latency target. Keep service-specific settings outside application images so endpoints can change without replacing domain logic.
 
 ### Security, data management and releases
 
-The proposed production environment uses TLS, private data endpoints, restricted service access and centrally managed secrets. Customer and payment metadata require a retention policy and tested recovery procedure. Data volumes must not be treated as the only backup.
+Use TLS, least-privilege credentials and provider network restrictions; use private connectivity where the selected plans support it. Database/broker ports and admin consoles are not unrestricted public application endpoints. Retain customer-data policies, credential rotation and tested backups across providers.
 
 A release should use an immutable image identifier, pass automated quality gates, apply reviewed migrations, roll out gradually and run post-deployment checks. An application rollback must be compatible with the migrated schema. Publishing and deployment workflows are defined but their remote execution remains unverified; and local development passwords must not be copied into a cloud environment.
 
@@ -649,6 +650,11 @@ Numbered citations identify technical sources; all project explanations are incl
 34. GitHub, *GitHub Actions billing*.
 35. Keycloak, *Server Administration Guide — GitHub identity provider*.
 36. GitHub, *Creating an OAuth app*.
+37. MongoDB, [*MongoDB Atlas documentation*](https://www.mongodb.com/docs/atlas/).
+38. CloudAMQP, [*Getting started — managed RabbitMQ*](https://www.cloudamqp.com/docs/).
+39. Cloud-IAM, [*Managed Keycloak documentation*](https://documentation.cloud-iam.com/).
+40. Grafana Labs, [*Send data to Grafana Cloud*](https://grafana.com/docs/grafana-cloud/send-data/).
+41. Ollama, [*Cloud API authentication*](https://docs.ollama.com/api/authentication).
 
 # 10. Appendix
 
