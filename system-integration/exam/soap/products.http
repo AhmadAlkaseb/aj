@@ -1,0 +1,81 @@
+@baseUrl = http://localhost:8080
+@csrfToken = {{csrf.response.body.$.token}}
+@productId = {{createProduct.response.body.//*[local-name()='id']/text()}}
+
+### 1. Hent WSDL: operationer, datatyper og faults. Forvent HTTP 200.
+# @name wsdl
+GET {{baseUrl}}/services/products?wsdl
+
+### 2. Hent CSRF-token. Forvent HTTP 200 med JSON.
+# @name csrf
+GET {{baseUrl}}/csrf
+
+### 3. Opret produkt (skriv). Forvent HTTP 200 og et genereret id.
+
+# For at få ValidationFault: ændr price til -10.00. Forvent HTTP 500.
+# For at vise afvisning af markup/XSS-forsøg: ændr name til
+# &lt;script&gt;alert(1)&lt;/script&gt; og send igen. Forvent ValidationFault (HTTP 500).
+# For at vise SQL-injection-beskyttelse: ændr name til Robert'); DROP TABLE products;--
+
+# For at vise CSRF-beskyttelse: fjern X-CSRF-TOKEN-headeren, eller sæt værdien til 123.
+# Forvent HTTP 403: intet produkt oprettes. Gendan headeren bagefter.
+# @name createProduct
+POST {{baseUrl}}/services/products
+Content-Type: text/xml; charset=utf-8
+X-CSRF-TOKEN: {{csrfToken}}
+
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" xmlns:p="urn:products">
+  <s:Body>
+    <p:createProduct>
+      <name>Håndsæbe</name>
+      <price>24.95</price>
+    </p:createProduct>
+  </s:Body>
+</s:Envelope>
+
+### 4. Hent det oprettede produkt (læs). Forvent HTTP 200.
+# For at få ProductNotFoundFault: erstat {{productId}} i XML med 2147483647
+# (eller et andet positivt id, der ikke findes). Forvent HTTP 500.
+# For at få ValidationFault: erstat id med 0. Forvent HTTP 500.
+# @name getProduct
+POST {{baseUrl}}/services/products
+Content-Type: text/xml; charset=utf-8
+X-CSRF-TOKEN: {{csrfToken}}
+
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" xmlns:p="urn:products">
+  <s:Body>
+    <p:getProduct><id>{{productId}}</id></p:getProduct>
+  </s:Body>
+</s:Envelope>
+
+### 5. Opdater produkt (skriv). Forvent HTTP 200 med nyt navn og pris.
+# For at få ProductNotFoundFault: erstat id med et positivt id, der ikke findes,
+# fx 2147483647. Behold gyldigt navn og pris. Forvent HTTP 500.
+
+# For at få ValidationFault: ændr price til -10.00, name til tom tekst eller id til 0.
+# Afprøv én ændring ad gangen. Forvent HTTP 500, og produktet ændres ikke.
+
+# @name updateProduct
+POST {{baseUrl}}/services/products
+Content-Type: text/xml; charset=utf-8
+X-CSRF-TOKEN: {{csrfToken}}
+
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" xmlns:p="urn:products">
+  <s:Body>
+    <p:updateProduct>
+      <id>{{productId}}</id>
+      <name>Flydende håndsæbe</name>
+      <price>29.95</price>
+    </p:updateProduct>
+  </s:Body>
+</s:Envelope>
+
+### 6. Hent alle produkter (læs). Forvent HTTP 200 med det opdaterede produkt.
+# @name listProducts
+POST {{baseUrl}}/services/products
+Content-Type: text/xml; charset=utf-8
+X-CSRF-TOKEN: {{csrfToken}}
+
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" xmlns:p="urn:products">
+  <s:Body><p:listProducts/></s:Body>
+</s:Envelope>
