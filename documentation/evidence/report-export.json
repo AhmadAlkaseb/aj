@@ -2,7 +2,7 @@
   "engine": "Pandoc + Tectonic (LaTeX)",
   "pages": 30,
   "limit": 30,
-  "sourceCharactersIncludingWhitespace": 70870,
+  "sourceCharactersIncludingWhitespace": 70945,
   "characterLimit": 72000,
   "coverNumbered": false,
   "firstPrintedPage": 1,
@@ -94,7 +94,7 @@
     "\\numberline {12}{\\ignorespaces External hosting and managed services}": 20,
     "\\numberline {13}{\\ignorespaces Verification boundaries}": 22
   },
-  "sha256": "cf931a10f848e2d103a8c96a7da10520d55a0a9246efa81643b461b1f09e5436",
-  "sourceSha256": "7e89295df6e239eb178bbd4020f3065f69f9f42ae8612063bdf655a2f6c54b32",
+  "sha256": "a3a630bc57d91638994fe90b7bba82821e9c496bcb0288cc1a090eb442473e49",
+  "sourceSha256": "c74dcc1774ce7cdf988395079136c096675c3a0f7c622e7672e4b9f0760a3e67",
   "styleSha256": "3e246453b1edc5d2ade52400d82b12b462ac67bf5d4c44725eb94c1045dd8da8"
 }
