@@ -21,10 +21,10 @@ GET {{baseUrl}}/csrf
 # Forvent HTTP 403: intet produkt oprettes. Gendan headeren bagefter.
 # @name createProduct
 POST {{baseUrl}}/services/products
-Content-Type: text/xml; charset=utf-8
+Content-Type: application/soap+xml; charset=utf-8
 X-CSRF-TOKEN: {{csrfToken}}
 
-<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" xmlns:p="urn:products">
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:p="urn:products">
   <s:Body>
     <p:createProduct>
       <name>Håndsæbe</name>
@@ -39,10 +39,10 @@ X-CSRF-TOKEN: {{csrfToken}}
 # For at få ValidationFault: erstat id med 0. Forvent HTTP 500.
 # @name getProduct
 POST {{baseUrl}}/services/products
-Content-Type: text/xml; charset=utf-8
+Content-Type: application/soap+xml; charset=utf-8
 X-CSRF-TOKEN: {{csrfToken}}
 
-<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" xmlns:p="urn:products">
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:p="urn:products">
   <s:Body>
     <p:getProduct><id>{{productId}}</id></p:getProduct>
   </s:Body>
@@ -57,10 +57,10 @@ X-CSRF-TOKEN: {{csrfToken}}
 
 # @name updateProduct
 POST {{baseUrl}}/services/products
-Content-Type: text/xml; charset=utf-8
+Content-Type: application/soap+xml; charset=utf-8
 X-CSRF-TOKEN: {{csrfToken}}
 
-<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" xmlns:p="urn:products">
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:p="urn:products">
   <s:Body>
     <p:updateProduct>
       <id>{{productId}}</id>
@@ -73,9 +73,9 @@ X-CSRF-TOKEN: {{csrfToken}}
 ### 6. Hent alle produkter (læs). Forvent HTTP 200 med det opdaterede produkt.
 # @name listProducts
 POST {{baseUrl}}/services/products
-Content-Type: text/xml; charset=utf-8
+Content-Type: application/soap+xml; charset=utf-8
 X-CSRF-TOKEN: {{csrfToken}}
 
-<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" xmlns:p="urn:products">
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:p="urn:products">
   <s:Body><p:listProducts/></s:Body>
 </s:Envelope>

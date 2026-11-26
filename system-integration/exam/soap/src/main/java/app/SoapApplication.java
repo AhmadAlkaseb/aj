@@ -3,6 +3,7 @@ package app;
 import app.p4soap.ProductSoapService;
 
 import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.soap.SOAPBinding;
 import org.apache.cxf.Bus;
 import org.apache.cxf.jaxws.EndpointImpl;
 import org.springframework.boot.SpringApplication;
@@ -16,6 +17,7 @@ public class SoapApplication {
     @Bean
     Endpoint productsEndpoint(Bus bus, ProductSoapService service) {
         EndpointImpl endpoint = new EndpointImpl(bus, service);
+        endpoint.setBindingUri(SOAPBinding.SOAP12HTTP_BINDING);
         endpoint.publish("/products");
         return endpoint;
     }
